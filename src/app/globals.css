@@ -317,40 +317,179 @@ body::after {
   .nav-links li {
     width: 100%;
   }
-  .nav-links a {
+  .nav-links > li > a {
     display: block;
     padding: 0.85rem 0.9rem;
     border-radius: var(--radius-base);
   }
+
+  /* Inside the drawer, the dropdown is always shown inline.
+     The trigger collapses into a non-interactive section heading. */
+  .nav-dropdown {
+    width: 100%;
+  }
+  .nav-dropdown-trigger {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 1rem 0.9rem 0.4rem;
+    color: var(--fg-mute);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .nav-dropdown-trigger:hover,
+  .nav-dropdown-trigger.active {
+    background: transparent;
+    color: var(--fg-mute);
+  }
+  .nav-dropdown-chevron {
+    display: none;
+  }
+
+  .nav-dropdown-panel {
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+    box-shadow: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    min-width: 0;
+  }
+  .nav-dropdown-panel a {
+    padding: 0.7rem 0.9rem 0.7rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
   .brand {
     font-size: 1rem;
   }
 }
 
-.nav-links a {
+.nav-links > li > a,
+.nav-dropdown-trigger {
   color: var(--fg-dim);
   text-decoration: none;
   padding: 0.5rem 0.9rem;
   border-radius: var(--radius-base);
   letter-spacing: 0.02em;
-  transition: all 0.18s ease;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease;
   position: relative;
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.nav-links a:hover {
+.nav-links > li > a:hover,
+.nav-dropdown-trigger:hover {
   color: var(--fg);
   background: var(--bg-2);
 }
 
-.nav-links a.active {
+.nav-links > li > a.active,
+.nav-dropdown-trigger.active {
   color: var(--neon-cyan);
   background: rgba(0, 240, 255, 0.08);
 }
 
-.nav-links a.active::before {
+.nav-links > li > a.active::before {
   content: ">";
   margin-right: 0.4rem;
   color: var(--neon-cyan);
+}
+
+/* ============================================
+   TOPICS DROPDOWN
+   ============================================ */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-chevron {
+  font-size: 0.7rem;
+  transition: transform 0.18s ease;
+  display: inline-block;
+}
+.nav-dropdown-trigger[aria-expanded="true"] .nav-dropdown-chevron {
+  transform: rotate(180deg);
+}
+.nav-dropdown-trigger:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+}
+
+.nav-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 280px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg-base);
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  z-index: 60;
+}
+.nav-dropdown-panel[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.nav-dropdown-panel a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-base);
+  text-decoration: none;
+  color: var(--fg-dim);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+  white-space: nowrap;
+}
+.nav-dropdown-panel a:hover {
+  background: var(--bg-2);
+  color: var(--fg);
+}
+.nav-dropdown-panel a.active {
+  background: var(--bg-2);
+  color: var(--card-accent, var(--neon-cyan));
+}
+
+.nav-dropdown-num {
+  color: var(--fg-mute);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  min-width: 1.5rem;
+}
+.nav-dropdown-panel a.active .nav-dropdown-num {
+  color: var(--card-accent, var(--neon-cyan));
+}
+
+.nav-dropdown-label {
+  color: inherit;
 }
 
 /* ============================================
@@ -1348,6 +1487,93 @@ tr:hover td {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--neon-cyan);
+}
+
+/* ============================================
+   TOPIC PAGER (prev / next bar above each topic hero)
+   ============================================ */
+.topic-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 0 0;
+  margin-bottom: -0.5rem;
+}
+
+.topic-pager-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-base);
+  background: var(--bg-1);
+  text-decoration: none;
+  color: var(--fg-dim);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease;
+  max-width: 48%;
+}
+.topic-pager-link:hover {
+  border-color: var(--card-accent, var(--neon-cyan));
+  color: var(--fg);
+}
+.topic-pager-link.next {
+  text-align: right;
+}
+
+.topic-pager-arrow {
+  color: var(--card-accent, var(--fg-mute));
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+
+.topic-pager-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.topic-pager-link.next .topic-pager-text {
+  align-items: flex-end;
+}
+
+.topic-pager-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.topic-pager-title {
+  color: var(--fg);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.topic-pager-end {
+  /* placeholder so the prev link stays left-aligned on the last page */
+  display: inline-block;
+  width: 1px;
+}
+
+@media (max-width: 480px) {
+  .topic-pager-link {
+    padding: 0.5rem 0.7rem;
+  }
+  .topic-pager-title {
+    font-size: 0.78rem;
+  }
 }
 
 /* level prose helpers */

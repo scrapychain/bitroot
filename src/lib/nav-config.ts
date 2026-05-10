@@ -92,9 +92,4 @@ export const topics: Topic[] = [
   },
 ];
 
-export const navLinks = [
-  { href: "/", label: "home" },
-  ...topics.map((t) => ({ href: t.href, label: t.label.toLowerCase() })),
-];
-
 export const topicLinks = topics.map(({ href, label }) => ({ href, label }));

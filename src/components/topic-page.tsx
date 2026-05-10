@@ -1,11 +1,13 @@
 import { Hero } from "./hero";
 import { LevelSection } from "./level-section";
 import { NextUp } from "./next-up";
+import { TopicPager } from "./topic-pager";
 import type { PageContent } from "@/types/content";
 
 export async function TopicPage({ content }: { content: PageContent }) {
   return (
     <>
+      <TopicPager slug={content.slug} />
       <Hero
         eyebrow={content.hero.eyebrow}
         titleHtml={content.hero.title}

@@ -2,32 +2,50 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { navLinks } from "@/lib/nav-config";
+import { useEffect, useRef, useState } from "react";
+import { topics } from "@/lib/nav-config";
 
 export function Nav() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLLIElement>(null);
 
-  // Close drawer on route change
+  const onHome = pathname === "/";
+  const onTopic = topics.some((t) => t.href === pathname);
+
+  // Close drawer + dropdown on route change
   useEffect(() => {
-    setOpen(false);
+    setDrawerOpen(false);
+    setDropdownOpen(false);
   }, [pathname]);
 
-  // Close drawer on ESC, lock background scroll while open
+  // Close dropdown on outside click
   useEffect(() => {
-    if (!open) return;
+    if (!dropdownOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [dropdownOpen]);
+
+  // ESC closes drawer; lock background scroll while drawer is open
+  useEffect(() => {
+    if (!drawerOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") setDrawerOpen(false);
     };
     document.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = prev;
     };
-  }, [open]);
+  }, [drawerOpen]);
 
   return (
     <nav className="nav" aria-label="Primary">
@@ -39,39 +57,67 @@ export function Nav() {
           </span>
         </Link>
 
-        <ul className="nav-links" data-open={open}>
-          {navLinks.map(({ href, label }) => {
-            const active = pathname === href;
-            return (
-              <li key={href}>
-                <Link href={href} className={active ? "active" : undefined}>
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
+        <ul className="nav-links" data-open={drawerOpen}>
+          <li>
+            <Link href="/" className={onHome ? "active" : undefined}>
+              home
+            </Link>
+          </li>
+
+          <li className="nav-dropdown" ref={dropdownRef}>
+            <button
+              type="button"
+              className={`nav-dropdown-trigger${onTopic ? " active" : ""}`}
+              aria-haspopup="true"
+              aria-expanded={dropdownOpen}
+              onClick={() => setDropdownOpen((v) => !v)}
+            >
+              <span>topics</span>
+              <span className="nav-dropdown-chevron" aria-hidden="true">
+                ▾
+              </span>
+            </button>
+
+            <div className="nav-dropdown-panel" data-open={dropdownOpen} role="menu">
+              {topics.map((t) => {
+                const active = pathname === t.href;
+                return (
+                  <Link
+                    key={t.href}
+                    href={t.href}
+                    role="menuitem"
+                    className={active ? "active" : undefined}
+                    style={{ ["--card-accent" as string]: t.accent }}
+                  >
+                    <span className="nav-dropdown-num">{t.num}</span>
+                    <span className="nav-dropdown-label">{t.label.toLowerCase()}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </li>
         </ul>
 
         <button
           type="button"
           className="nav-toggle"
-          aria-expanded={open}
+          aria-expanded={drawerOpen}
           aria-controls="primary-nav"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((v) => !v)}
+          aria-label={drawerOpen ? "Close menu" : "Open menu"}
+          onClick={() => setDrawerOpen((v) => !v)}
         >
-          <span className={`nav-toggle-bar ${open ? "is-open" : ""}`} />
-          <span className={`nav-toggle-bar ${open ? "is-open" : ""}`} />
-          <span className={`nav-toggle-bar ${open ? "is-open" : ""}`} />
+          <span className={`nav-toggle-bar ${drawerOpen ? "is-open" : ""}`} />
+          <span className={`nav-toggle-bar ${drawerOpen ? "is-open" : ""}`} />
+          <span className={`nav-toggle-bar ${drawerOpen ? "is-open" : ""}`} />
         </button>
       </div>
 
-      {open && (
+      {drawerOpen && (
         <button
           type="button"
           aria-label="Close menu"
           className="nav-scrim"
-          onClick={() => setOpen(false)}
+          onClick={() => setDrawerOpen(false)}
         />
       )}
     </nav>
