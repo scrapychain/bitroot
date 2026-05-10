@@ -82,6 +82,14 @@ export const topics: Topic[] = [
     desc: "What `let x = 42` actually does. Stack vs heap, primitive vs dynamic, alignment, and lifetime, in Rust and C.",
     levels: 3,
   },
+  {
+    href: "/compile-vs-runtime",
+    label: "Compile vs Runtime",
+    num: "09",
+    accent: "var(--neon-coral)",
+    desc: "Two phases of every program. What gets decided when, why pushing work earlier matters, and how the split shows up in every layer above.",
+    levels: 3,
+  },
 ];
 
 export const navLinks = [

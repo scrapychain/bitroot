@@ -38,7 +38,8 @@ export interface PageContent {
     | "cpu"
     | "memory"
     | "operating-system"
-    | "variables";
+    | "variables"
+    | "compile-vs-runtime";
   hexLabel: string;
   category: string;
   hero: {

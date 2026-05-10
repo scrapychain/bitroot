@@ -458,10 +458,10 @@ export const variables: PageContent = {
     },
   ],
   nextUp: {
-    eyebrow: "end of root.system",
-    title: "You've reached the top of the stack. Start over from the bottom.",
-    href: "/",
-    label: "home",
-    variant: "cyan",
+    eyebrow: "next up / 0x09",
+    title: "When does each piece happen? Compile time vs runtime.",
+    href: "/compile-vs-runtime",
+    label: "compile vs runtime",
+    variant: "magenta",
   },
 };

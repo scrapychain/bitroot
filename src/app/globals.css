@@ -21,6 +21,7 @@
   --color-neon-emerald: #2bff9f;
   --color-neon-azure: #4d97ff;
   --color-neon-rose: #ff5c8a;
+  --color-neon-coral: #ff6b4a;
 
   --font-display: var(--font-display-var), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-body-var), "Geist Sans", ui-sans-serif, system-ui, sans-serif;
@@ -50,6 +51,7 @@
   --neon-emerald: #2bff9f;
   --neon-azure: #4d97ff;
   --neon-rose: #ff5c8a;
+  --neon-coral: #ff6b4a;
 
   --lvl-beginner: var(--neon-lime);
   --lvl-intermediate: var(--neon-cyan);
