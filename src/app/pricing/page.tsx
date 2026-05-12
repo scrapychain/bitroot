@@ -111,7 +111,7 @@ export default function PricingPage() {
   return (
     <>
       <section className="pricing-hero">
-        <p className="home-eyebrow">// sponsorship</p>
+        <p className="home-eyebrow">{"// sponsorship"}</p>
         <h1 className="pricing-title">
           Reach people who want to <span className="accent-cyan">understand</span> how
           <br />
@@ -125,7 +125,7 @@ export default function PricingPage() {
       </section>
 
       <section className="pricing-section">
-        <p className="pricing-section-label">// the audience</p>
+        <p className="pricing-section-label">{"// the audience"}</p>
         <div className="pricing-audience-grid">
           {audience.map((a) => (
             <div key={a.label} className="pricing-audience-card">
@@ -138,7 +138,7 @@ export default function PricingPage() {
       </section>
 
       <section className="pricing-section">
-        <p className="pricing-section-label">// pricing</p>
+        <p className="pricing-section-label">{"// pricing"}</p>
         <div className="pricing-tiers">
           {tiers.map((t) => (
             <div
@@ -176,7 +176,7 @@ export default function PricingPage() {
       </section>
 
       <section className="pricing-section">
-        <p className="pricing-section-label">// what we won&apos;t run</p>
+        <p className="pricing-section-label">{"// what we won't run"}</p>
         <ul className="pricing-exclusions">
           {exclusions.map((e) => (
             <li key={e}>{e}</li>
@@ -189,7 +189,7 @@ export default function PricingPage() {
       </section>
 
       <section className="pricing-section">
-        <p className="pricing-section-label">// faq</p>
+        <p className="pricing-section-label">{"// faq"}</p>
         <div className="pricing-faq">
           {faqs.map((f) => (
             <div key={f.q} className="pricing-faq-item">
@@ -202,7 +202,7 @@ export default function PricingPage() {
 
       <section className="pricing-cta">
         <div className="pricing-cta-text">
-          <div className="pricing-cta-eyebrow">// get in touch</div>
+          <div className="pricing-cta-eyebrow">{"// get in touch"}</div>
           <div className="pricing-cta-title">Pitch your brand in one DM.</div>
           <p className="pricing-cta-desc">
             Tell us who you are and what you&apos;d like to promote. We&apos;ll

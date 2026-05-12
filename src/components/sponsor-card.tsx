@@ -7,7 +7,7 @@ export function SponsorCard() {
   if (!sponsor) {
     return (
       <Link href="/pricing" className="sponsor-card sponsor-card-empty">
-        <div className="sponsor-eyebrow">// sponsor slot</div>
+        <div className="sponsor-eyebrow">{"// sponsor slot"}</div>
         <div className="sponsor-name">Available</div>
         <p className="sponsor-tagline">
           One curated sponsor per month. Niche audience of systems-curious
@@ -26,7 +26,7 @@ export function SponsorCard() {
       rel="noopener noreferrer sponsored"
       className="sponsor-card"
     >
-      <div className="sponsor-eyebrow">// sponsor</div>
+      <div className="sponsor-eyebrow">{"// sponsor"}</div>
       <div className="sponsor-name">{sponsor.name}</div>
       <p className="sponsor-tagline">{sponsor.tagline}</p>
       <div className="sponsor-cta">{sponsor.cta ?? "Visit"} →</div>
