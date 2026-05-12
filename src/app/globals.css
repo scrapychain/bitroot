@@ -160,7 +160,6 @@ body::after {
   padding: 1rem var(--pad);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: clamp(0.75rem, 2vw, 2rem);
 }
 
@@ -225,6 +224,36 @@ body::after {
 
 .nav-links a {
   white-space: nowrap;
+}
+
+/* X social link in nav. Square, bordered, matches the hamburger.
+   margin-left: auto pushes it (and the hamburger) to the right edge. */
+.nav-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-base);
+  color: var(--fg-dim);
+  text-decoration: none;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+.nav-social:hover {
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.06);
+}
+.nav-social:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
 }
 
 /* Hamburger button: hidden on desktop, shown on phones. */
