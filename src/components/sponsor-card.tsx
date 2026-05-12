@@ -1,16 +1,12 @@
-import { currentSponsor, sponsorContactUrl } from "@/lib/sponsor";
+import Link from "next/link";
+import { currentSponsor } from "@/lib/sponsor";
 
 export function SponsorCard() {
   const sponsor = currentSponsor;
 
   if (!sponsor) {
     return (
-      <a
-        href={sponsorContactUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="sponsor-card sponsor-card-empty"
-      >
+      <Link href="/pricing" className="sponsor-card sponsor-card-empty">
         <div className="sponsor-eyebrow">// sponsor slot</div>
         <div className="sponsor-name">Available</div>
         <p className="sponsor-tagline">
@@ -18,8 +14,8 @@ export function SponsorCard() {
           developers reading about bits, gates, kernels, and Rust. Built for
           tools and libraries people here actually use.
         </p>
-        <div className="sponsor-cta">get in touch →</div>
-      </a>
+        <div className="sponsor-cta">see pricing →</div>
+      </Link>
     );
   }
 

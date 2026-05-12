@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { topics } from "@/lib/nav-config";
-import { SponsorCard } from "@/components/sponsor-card";
+import { XCard } from "@/components/x-card";
 
 export default function HomePage() {
   const first = topics[0];
@@ -24,7 +24,7 @@ export default function HomePage() {
             text. Every topic builds on the one before it.
           </p>
         </div>
-        <SponsorCard />
+        <XCard />
       </section>
 
       <div className="topic-grid">

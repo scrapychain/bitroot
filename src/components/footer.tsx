@@ -62,6 +62,12 @@ export function Footer() {
               <span style={{ color: "var(--neon-magenta)" }}>Advanced</span>
             </li>
           </ul>
+          <h4 style={{ marginTop: "1.4rem" }}>elsewhere</h4>
+          <ul>
+            <li>
+              <Link href="/pricing">Sponsor BitRoot</Link>
+            </li>
+          </ul>
         </div>
       </div>
       <div className="footer-bottom">
