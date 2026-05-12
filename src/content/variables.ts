@@ -459,9 +459,9 @@ export const variables: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x09",
-    title: "When does each piece happen? Compile time vs runtime.",
-    href: "/compile-vs-runtime",
-    label: "compile vs runtime",
+    title: "A number that means somewhere: pointers, in C and Rust.",
+    href: "/pointers",
+    label: "pointers",
     variant: "magenta",
   },
 };

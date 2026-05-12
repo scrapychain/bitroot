@@ -39,6 +39,7 @@ export interface PageContent {
     | "memory"
     | "operating-system"
     | "variables"
+    | "pointers"
     | "compile-vs-runtime";
   hexLabel: string;
   category: string;

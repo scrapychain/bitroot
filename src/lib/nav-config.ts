@@ -83,9 +83,17 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/pointers",
+    label: "Pointers",
+    num: "09",
+    accent: "var(--neon-mint)",
+    desc: "A number that means somewhere. Why pointers power every data structure, and the five classic bugs. C raw pointers vs Rust ownership.",
+    levels: 3,
+  },
+  {
     href: "/compile-vs-runtime",
     label: "Compile vs Runtime",
-    num: "09",
+    num: "10",
     accent: "var(--neon-coral)",
     desc: "Two phases of every program. What gets decided when, why pushing work earlier matters, and how the split shows up in every layer above.",
     levels: 3,
