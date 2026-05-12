@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { topics } from "@/lib/nav-config";
+import { SponsorCard } from "@/components/sponsor-card";
 
 export default function HomePage() {
   const first = topics[0];
@@ -7,20 +8,23 @@ export default function HomePage() {
   return (
     <>
       <section className="home-hero">
-        <p className="home-eyebrow">Computing from the ground up</p>
-        <h1 className="home-title">
-          <span className="accent-lime">Bit</span>
-          <br />
-          <span className="accent-cyan">Root</span>
-        </h1>
-        <p className="home-tagline">
-          A growing field guide. Real <strong>Rust</strong> and{" "}
-          <strong>C</strong> code. Three depth levels on every page: beginner,
-          intermediate, advanced.
-          <br />
-          From electrons switching states to UTF-8 encoding the emoji in your
-          text. Every topic builds on the one before it.
-        </p>
+        <div className="home-hero-text">
+          <p className="home-eyebrow">Computing from the ground up</p>
+          <h1 className="home-title">
+            <span className="accent-lime">Bit</span>
+            <br />
+            <span className="accent-cyan">Root</span>
+          </h1>
+          <p className="home-tagline">
+            A growing field guide. Real <strong>Rust</strong> and{" "}
+            <strong>C</strong> code. Three depth levels on every page: beginner,
+            intermediate, advanced.
+            <br />
+            From electrons switching states to UTF-8 encoding the emoji in your
+            text. Every topic builds on the one before it.
+          </p>
+        </div>
+        <SponsorCard />
       </section>
 
       <div className="topic-grid">
