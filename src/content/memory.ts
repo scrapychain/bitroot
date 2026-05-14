@@ -214,8 +214,8 @@ export const memory: PageContent = {
           html: `<p>When the OS launches your program, it hands it a private chunk of address space and divides it into named regions. Two of those regions handle almost all of the runtime data your program touches: the <strong>stack</strong> and the <strong>heap</strong>.</p>`,
         },
         {
-          kind: "raw",
-          html: `<p class="formula-block">high addresses<br>┌──────────────────────┐<br>│        STACK         │  ← grows down · function locals, return addresses<br>│           ▼          │<br>│                      │<br>│           ▲          │<br>│         HEAP         │  ← grows up   · malloc / Box / Vec<br>├──────────────────────┤<br>│        BSS           │  ← uninitialised globals<br>├──────────────────────┤<br>│        DATA          │  ← initialised globals<br>├──────────────────────┤<br>│        TEXT          │  ← the program's instructions (read-only)<br>└──────────────────────┘<br>low addresses</p>`,
+          kind: "diagram",
+          name: "address-space",
         },
         { kind: "heading", text: "The stack: automatic, LIFO, free" },
         {

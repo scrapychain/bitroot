@@ -386,8 +386,8 @@ export const operatingSystem: PageContent = {
         },
         { kind: "heading", text: "The kernel boundary, in one diagram" },
         {
-          kind: "raw",
-          html: `<p class="formula-block">┌────────────────────────────────────────────────┐<br>│  USER SPACE                                    │<br>│  ┌─ your program ─┐  ┌─ shell ─┐  ┌─ daemon ─┐ │<br>│  │  printf, fork  │  │  exec   │  │  read    │ │<br>│  └────────┬───────┘  └────┬────┘  └─────┬────┘ │<br>│           │ syscall (one CPU instruction) │    │<br>├───────────┴──────────────────┴────────────┴────┤<br>│  KERNEL                                        │<br>│   scheduler · MMU · page tables · drivers      │<br>│   file systems · TCP/IP · signals · ipc        │<br>├────────────────────────────────────────────────┤<br>│  HARDWARE: CPU, memory, disk, NIC, GPU         │<br>└────────────────────────────────────────────────┘</p>`,
+          kind: "diagram",
+          name: "kernel-boundary",
         },
         {
           kind: "prose",

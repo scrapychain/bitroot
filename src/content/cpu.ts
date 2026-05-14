@@ -270,8 +270,8 @@ export const cpu: PageContent = {
           html: `<p>Registers are tiny and fast (a few hundred bytes, accessed in 1 cycle). Real programs need more, gigabytes more. So the CPU is wired to a separate chip called <strong>RAM</strong>, addressed by a number. Each instruction fetch is really:</p>`,
         },
         {
-          kind: "raw",
-          html: `<p class="formula-block">PC → address bus → RAM → data bus → instruction register → decode</p>`,
+          kind: "diagram",
+          name: "fetch-execute-flow",
         },
         {
           kind: "prose",

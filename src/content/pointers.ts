@@ -170,8 +170,8 @@ export const pointers: PageContent = {
 <p>That's the whole mechanism. Every "reference", "handle", "object", and "ID" in every language is, somewhere underneath, this idea.</p>`,
         },
         {
-          kind: "raw",
-          html: `<p class="formula-block">┌────────────┐       ┌────────────┐<br>│ p  = 0x4000│──────→│ x   =  42  │  at address 0x4000<br>└────────────┘       └────────────┘<br>   (8 bytes)            (4 bytes)</p>`,
+          kind: "diagram",
+          name: "pointer-to-value",
         },
         {
           kind: "prose",
@@ -404,9 +404,9 @@ export const pointers: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x0A",
-    title: "When does each piece happen? Compile time vs runtime.",
-    href: "/compile-vs-runtime",
-    label: "compile vs runtime",
+    title: "Houses on a numbered street: arrays from first principles.",
+    href: "/arrays",
+    label: "arrays",
     variant: "magenta",
   },
 };

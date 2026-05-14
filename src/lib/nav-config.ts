@@ -91,9 +91,17 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/arrays",
+    label: "Arrays",
+    num: "10",
+    accent: "var(--neon-saffron)",
+    desc: "Houses on a numbered street. Contiguous memory, O(1) indexing, cache locality, and the structure underneath every other data structure.",
+    levels: 3,
+  },
+  {
     href: "/compile-vs-runtime",
     label: "Compile vs Runtime",
-    num: "10",
+    num: "11",
     accent: "var(--neon-coral)",
     desc: "Two phases of every program. What gets decided when, why pushing work earlier matters, and how the split shows up in every layer above.",
     levels: 3,

@@ -23,6 +23,7 @@
   --color-neon-rose: #ff5c8a;
   --color-neon-coral: #ff6b4a;
   --color-neon-mint: #5cffc8;
+  --color-neon-saffron: #ffd84d;
 
   --font-display: var(--font-display-var), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-body-var), "Geist Sans", ui-sans-serif, system-ui, sans-serif;
@@ -54,6 +55,7 @@
   --neon-rose: #ff5c8a;
   --neon-coral: #ff6b4a;
   --neon-mint: #5cffc8;
+  --neon-saffron: #ffd84d;
 
   --lvl-beginner: var(--neon-lime);
   --lvl-intermediate: var(--neon-cyan);
@@ -2574,3 +2576,132 @@ tr:hover td {
   font-size: 0.72rem;
   color: var(--fg-dim);
 }
+
+/* ============================================
+   SVG DIAGRAMS (memory layouts, flows, etc.)
+   ============================================ */
+.diagram-wrap {
+  margin: 1.4rem 0;
+}
+
+.diagram {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1.2rem 1.4rem;
+  margin: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.diagram-svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  font-family: var(--font-mono);
+}
+
+.diagram-cell {
+  fill: var(--bg-2);
+  stroke: var(--neon-cyan);
+  stroke-width: 1.4;
+}
+
+.diagram-cell.tone-cyan      { stroke: var(--neon-cyan);     fill: rgba(0, 240, 255, 0.07); }
+.diagram-cell.tone-magenta   { stroke: var(--neon-magenta);  fill: rgba(255, 43, 214, 0.07); }
+.diagram-cell.tone-lime      { stroke: var(--neon-lime);     fill: rgba(198, 255, 61, 0.06); }
+.diagram-cell.tone-amber     { stroke: var(--neon-amber);    fill: rgba(255, 182, 39, 0.07); }
+.diagram-cell.tone-violet    { stroke: var(--neon-violet);   fill: rgba(139, 92, 255, 0.07); }
+.diagram-cell.tone-azure     { stroke: var(--neon-azure);    fill: rgba(77, 151, 255, 0.07); }
+.diagram-cell.tone-rose      { stroke: var(--neon-rose);     fill: rgba(255, 92, 138, 0.07); }
+.diagram-cell.tone-mute      { stroke: var(--fg-mute);       fill: rgba(94, 98, 117, 0.10); stroke-dasharray: 3 2; }
+
+.diagram-cell-label {
+  fill: var(--fg-mute);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.diagram-cell-value {
+  fill: var(--fg-dim);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+}
+.diagram-cell-value.tone-cyan      { fill: var(--neon-cyan); }
+.diagram-cell-value.tone-magenta   { fill: var(--neon-magenta); }
+.diagram-cell-value.tone-lime      { fill: var(--neon-lime); }
+.diagram-cell-value.tone-amber     { fill: var(--neon-amber); }
+.diagram-cell-value.tone-violet    { fill: var(--neon-violet); }
+.diagram-cell-value.tone-azure     { fill: var(--neon-azure); }
+.diagram-cell-value.tone-rose      { fill: var(--neon-rose); }
+.diagram-cell-value.tone-mute      { fill: var(--fg-mute); }
+
+.diagram-note {
+  fill: var(--fg-mute);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.diagram-note.tone-amber { fill: var(--neon-amber); }
+.diagram-note.miss { fill: var(--neon-rose); }
+
+.diagram-group-title {
+  fill: var(--fg-dim);
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.diagram-group-title.tone-cyan    { fill: var(--neon-cyan); }
+.diagram-group-title.tone-magenta { fill: var(--neon-magenta); }
+.diagram-group-title.tone-lime    { fill: var(--neon-lime); }
+
+.diagram-arrow {
+  stroke-width: 1.6;
+  fill: none;
+}
+.diagram-arrow.tone-cyan    { stroke: var(--neon-cyan); }
+.diagram-arrow.tone-magenta { stroke: var(--neon-magenta); }
+.diagram-arrow.tone-amber   { stroke: var(--neon-amber); }
+.diagram-arrow.tone-mute    { stroke: var(--fg-mute); }
+
+.diagram-divider {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.diagram-cache-line {
+  fill: none;
+  stroke: var(--neon-lime);
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.diagram-layer {
+  fill: rgba(255, 255, 255, 0.02);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.diagram-layer.tone-cyan    { stroke: var(--neon-cyan);    fill: rgba(0, 240, 255, 0.04); }
+.diagram-layer.tone-magenta { stroke: var(--neon-magenta); fill: rgba(255, 43, 214, 0.04); }
+.diagram-layer.tone-lime    { stroke: var(--neon-lime);    fill: rgba(198, 255, 61, 0.04); }
+
+.diagram-caption,
+.diagram-extra-caption {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-mute);
+  text-align: center;
+}
+
+/* In-text tspan tones for accents inside group titles */
+.diagram-svg tspan.tone-rose { fill: var(--neon-rose); }
+.diagram-svg tspan.tone-lime { fill: var(--neon-lime); }
+

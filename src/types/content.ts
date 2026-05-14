@@ -11,6 +11,18 @@ export interface CodePair {
   c: CodeSample;
 }
 
+export type DiagramName =
+  | "pointer-to-value"
+  | "array-memory"
+  | "stack-vs-heap-array"
+  | "array-vs-linked-list"
+  | "row-vs-column-major"
+  | "address-space"
+  | "primitive-vs-dynamic"
+  | "struct-padding"
+  | "kernel-boundary"
+  | "fetch-execute-flow";
+
 export type Block =
   | { kind: "prose"; html: string }
   | { kind: "heading"; text: string }
@@ -20,6 +32,7 @@ export type Block =
   | { kind: "grid"; columns?: 2 | 3 | 4; cards: { label: string; value: string; desc: string }[] }
   | { kind: "gates"; gates: Array<"AND" | "OR" | "NOT" | "XOR" | "NAND" | "NOR"> }
   | { kind: "asciiGrid" }
+  | { kind: "diagram"; name: DiagramName; caption?: string }
   | { kind: "raw"; html: string };
 
 export interface LevelContent {
@@ -40,6 +53,7 @@ export interface PageContent {
     | "operating-system"
     | "variables"
     | "pointers"
+    | "arrays"
     | "compile-vs-runtime";
   hexLabel: string;
   category: string;

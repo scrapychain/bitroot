@@ -274,8 +274,8 @@ export const variables: PageContent = {
 <p>The fix is universal: split the type into a small, fixed-size <strong>header</strong> (which lives on the stack) and a variable-size <strong>buffer</strong> (which lives on the heap, addressed by a pointer in the header).</p>`,
         },
         {
-          kind: "raw",
-          html: `<p class="formula-block">PRIMITIVE: Point { x: f64, y: f64 }<br>┌──────────────────────┐<br>│ x = 3.14   y = 2.71  │  ← all 16 bytes on the stack<br>└──────────────────────┘<br><br>DYNAMIC: String "hello, world"<br>STACK                       HEAP<br>┌─────────────────────┐    ┌──────────────────────────────┐<br>│ ptr ──────────────────→  │ h e l l o ,   w o r l d \\0   │<br>│ len = 12            │    └──────────────────────────────┘<br>│ cap = 16            │<br>└─────────────────────┘<br>      24 bytes total<br>      (header only; buffer lives elsewhere)</p>`,
+          kind: "diagram",
+          name: "primitive-vs-dynamic",
         },
         {
           kind: "prose",
@@ -337,8 +337,8 @@ export const variables: PageContent = {
           html: `<p>The compiler doesn't pack fields as tightly as it might. CPUs prefer multi-byte values to start at addresses that are multiples of their size: a 4-byte <code>i32</code> at an address divisible by 4, an 8-byte <code>f64</code> at one divisible by 8. This is <strong>alignment</strong>, and the compiler enforces it by inserting invisible <strong>padding</strong> bytes between fields. Sometimes a struct is bigger than the sum of its parts, and the order you write the fields in matters.</p>`,
         },
         {
-          kind: "raw",
-          html: `<p class="formula-block">struct Bad  { u8 a; u32 b; u8 c; }   →  12 bytes (padded)<br>  offset  0  1  2  3   4  5  6  7   8  9 10 11<br>  bytes   a  -  -  -   b  b  b  b   c  -  -  -<br>          (1)(3 pad)  (4-byte b )   (1)(3 pad, round to 4)<br><br>struct Good { u32 b; u8 a; u8 c; }   →  8 bytes<br>  offset  0  1  2  3   4  5  6  7<br>  bytes   b  b  b  b   a  c  -  -<br>          (4-byte b ) (1)(1)(2 pad)</p>`,
+          kind: "diagram",
+          name: "struct-padding",
         },
         {
           kind: "prose",

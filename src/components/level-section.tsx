@@ -4,6 +4,7 @@ import { TruthTable } from "./truth-table";
 import { CardGrid } from "./card-grid";
 import { GateGrid } from "./gate-diagram";
 import { AsciiGrid } from "./ascii-grid";
+import { Diagram } from "./diagrams";
 import type { Block, LevelContent } from "@/types/content";
 
 function renderTitle(html: string) {
@@ -29,6 +30,8 @@ async function RenderBlock({ block }: { block: Block }) {
       return <GateGrid gates={block.gates} />;
     case "asciiGrid":
       return <AsciiGrid />;
+    case "diagram":
+      return <Diagram name={block.name} caption={block.caption} />;
     case "raw":
       return <div dangerouslySetInnerHTML={{ __html: block.html }} />;
   }
