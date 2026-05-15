@@ -131,10 +131,10 @@ const rustDynamic = `fn main() {
 
 export const arrays: PageContent = {
   slug: "arrays",
-  hexLabel: "0x0A",
+  hexLabel: "0x0B",
   category: "structure",
   hero: {
-    eyebrow: "root.system / 0x0A / structure",
+    eyebrow: "root.system / 0x0B / structure",
     title: `Houses on a<br><span class="highlight">numbered street.</span>`,
     lede: `An <strong>array</strong> is the simplest data structure there is: a row of identical boxes, packed next to each other in memory, addressed by number. From that single shape, every string, every image, every audio buffer, every hash table, every CPU's branch predictor table is built. Once you see how arrays really work, half of computer science gets cheaper to think about.`,
   },
@@ -373,7 +373,7 @@ export const arrays: PageContent = {
     },
   ],
   nextUp: {
-    eyebrow: "next up / 0x0B",
+    eyebrow: "next up / 0x0C",
     title: "Same idea, no neighbours. Linked lists trade locality for cheap inserts.",
     href: "/linked-list",
     label: "linked list",

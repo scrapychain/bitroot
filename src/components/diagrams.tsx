@@ -1,6 +1,6 @@
 import type { DiagramName } from "@/types/content";
 
-type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute" | "iris" | "flame";
+type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute" | "iris" | "flame" | "sky" | "teal";
 
 const cell = "diagram-cell";
 const cellLabel = "diagram-cell-label";
@@ -115,6 +115,28 @@ function DiagramFrame({ viewBox, children, caption: cap, ariaLabel }: FrameProps
             orient="auto-start-reverse"
           >
             <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-flame)" />
+          </marker>
+          <marker
+            id="diag-arrow-sky"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-sky)" />
+          </marker>
+          <marker
+            id="diag-arrow-teal"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-teal)" />
           </marker>
         </defs>
         {children}
@@ -1647,6 +1669,536 @@ function BlockChainDiagram() {
 }
 
 /* =====================================================================
+   20. Packet structure (networking beginner)
+   ===================================================================== */
+function PacketStructureDiagram() {
+  const headerFields = [
+    { name: "source IP", size: "32 bits", tone: "cyan" as Tone },
+    { name: "dest IP", size: "32 bits", tone: "cyan" as Tone },
+    { name: "source port", size: "16 bits", tone: "amber" as Tone },
+    { name: "dest port", size: "16 bits", tone: "amber" as Tone },
+    { name: "seq num", size: "32 bits", tone: "lime" as Tone },
+    { name: "ack num", size: "32 bits", tone: "lime" as Tone },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="A TCP/IP packet broken into header fields and a payload. The header includes source IP, destination IP, source port, destination port, sequence number, and acknowledgement number. Beneath the header sits a 1460-byte payload that carries the actual bytes."
+    >
+      <text x="0" y="20" className={groupTitle}>TCP/IP PACKET</text>
+      <text x="0" y="40" className={note}>tiny chunk of binary, addressable and routable on its own</text>
+
+      <text x="0" y="80" className={cellLabel}>HEADER (metadata)</text>
+      {headerFields.map((f, i) => {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const x = col * 360;
+        const y = 95 + row * 50;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={340} height={40} className={`${cell} tone-${f.tone}`} rx="3" />
+            <text x={x + 12} y={y + 25} className={`${cellValue} tone-${f.tone}`} style={{ fontSize: "13px" }}>
+              {f.name}
+            </text>
+            <text x={x + 328} y={y + 25} textAnchor="end" className={note}>
+              {f.size}
+            </text>
+          </g>
+        );
+      })}
+
+      <text x="0" y="260" className={cellLabel}>PAYLOAD (the actual data)</text>
+      <rect x={0} y={270} width={700} height={40} className={`${cell} tone-flame`} rx="3" />
+      <text x={350} y={295} textAnchor="middle" className={`${cellValue} tone-flame`}>
+        bytes (up to ~1460): HTTP, JSON, image, Bitcoin tx, anything
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   21. Network of networks (networking beginner / intermediate)
+   ===================================================================== */
+function NetworkOfNetworksDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 360"
+      ariaLabel="A laptop in Tokyo sends packets to a server in London. The packets take three different paths through the global routing fabric: one through Frankfurt, one through Singapore, and one through New York. Routers in between forward each packet independently."
+    >
+      <text x="0" y="20" className={groupTitle}>THE INTERNET IS A NETWORK OF NETWORKS</text>
+
+      {/* Tokyo client */}
+      <rect x={0} y={150} width={120} height={60} className={`${cell} tone-cyan`} rx="6" />
+      <text x={60} y={180} textAnchor="middle" className={`${cellValue} tone-cyan`}>
+        Tokyo
+      </text>
+      <text x={60} y={200} textAnchor="middle" className={note} style={{ fontSize: "11px" }}>
+        client
+      </text>
+
+      {/* Routers in the middle (network fabric) */}
+      <text x={290} y={50} textAnchor="middle" className={cellLabel}>Frankfurt</text>
+      <circle cx={290} cy={75} r={22} className={`${cell} tone-sky`} />
+      <text x={290} y={80} textAnchor="middle" className={`${cellValue} tone-sky`} style={{ fontSize: "12px" }}>R</text>
+
+      <text x={420} y={50} textAnchor="middle" className={cellLabel}>Amsterdam</text>
+      <circle cx={420} cy={75} r={22} className={`${cell} tone-sky`} />
+      <text x={420} y={80} textAnchor="middle" className={`${cellValue} tone-sky`} style={{ fontSize: "12px" }}>R</text>
+
+      <text x={290} y={310} textAnchor="middle" className={cellLabel}>Singapore</text>
+      <circle cx={290} cy={285} r={22} className={`${cell} tone-sky`} />
+      <text x={290} y={290} textAnchor="middle" className={`${cellValue} tone-sky`} style={{ fontSize: "12px" }}>R</text>
+
+      <text x={420} y={310} textAnchor="middle" className={cellLabel}>New York</text>
+      <circle cx={420} cy={285} r={22} className={`${cell} tone-sky`} />
+      <text x={420} y={290} textAnchor="middle" className={`${cellValue} tone-sky`} style={{ fontSize: "12px" }}>R</text>
+
+      {/* London server */}
+      <rect x={580} y={150} width={120} height={60} className={`${cell} tone-magenta`} rx="6" />
+      <text x={640} y={180} textAnchor="middle" className={`${cellValue} tone-magenta`}>
+        London
+      </text>
+      <text x={640} y={200} textAnchor="middle" className={note} style={{ fontSize: "11px" }}>
+        server
+      </text>
+
+      {/* Paths: Tokyo → Frankfurt → Amsterdam → London */}
+      <line className={`${arrow} tone-cyan`} x1={120} y1={170} x2={270} y2={85} markerEnd="url(#diag-arrow-cyan)" />
+      <line className={`${arrow} tone-cyan`} x1={312} y1={75} x2={398} y2={75} markerEnd="url(#diag-arrow-cyan)" />
+      <line className={`${arrow} tone-cyan`} x1={442} y1={85} x2={580} y2={170} markerEnd="url(#diag-arrow-cyan)" />
+
+      {/* Path 2: Tokyo → Singapore → New York → London */}
+      <line className={`${arrow} tone-lime`} x1={120} y1={195} x2={270} y2={275} markerEnd="url(#diag-arrow-lime)" />
+      <line className={`${arrow} tone-lime`} x1={312} y1={285} x2={398} y2={285} markerEnd="url(#diag-arrow-lime)" />
+      <line className={`${arrow} tone-lime`} x1={442} y1={275} x2={580} y2={195} markerEnd="url(#diag-arrow-lime)" />
+
+      <text x="0" y="345" className={note}>
+        packets find their own paths; routers make forwarding decisions billions of times per second
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   22. Packet reassembly (networking intermediate)
+   ===================================================================== */
+function PacketReassemblyDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 260"
+      ariaLabel="A message is split into four packets numbered 1 through 4 by the sender. They arrive at the receiver out of order: 2, 4, 1, 3. The receiver uses the sequence numbers to reassemble the packets back into the original ordered sequence 1, 2, 3, 4."
+    >
+      {/* Sent */}
+      <text x="0" y="20" className={groupTitle}>SENT — in order</text>
+      {[1, 2, 3, 4].map((n, i) => (
+        <g key={`s-${n}`}>
+          <rect x={20 + i * 110} y={35} width={90} height={42} className={`${cell} tone-cyan`} rx="3" />
+          <text x={65 + i * 110} y={62} textAnchor="middle" className={`${cellValue} tone-cyan`}>
+            pkt {n}
+          </text>
+        </g>
+      ))}
+
+      {/* Network blur */}
+      <text x="0" y="105" className={note}>
+        the network shuffles them: different routes, different latencies
+      </text>
+
+      {/* Arrived */}
+      <text x="0" y="135" className={groupTitle}>ARRIVED — out of order</text>
+      {[2, 4, 1, 3].map((n, i) => (
+        <g key={`a-${i}`}>
+          <rect x={20 + i * 110} y={150} width={90} height={42} className={`${cell} tone-flame`} rx="3" />
+          <text x={65 + i * 110} y={177} textAnchor="middle" className={`${cellValue} tone-flame`}>
+            pkt {n}
+          </text>
+        </g>
+      ))}
+
+      <text x="0" y="220" className={note}>
+        TCP sorts by sequence number, asks for anything missing, hands ordered bytes up to your app
+      </text>
+      <text x="0" y="240" className={note}>
+        if pkt 3 never arrives, the receiver notices the gap and asks for it again, automatically
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   23. TCP three-way handshake (networking intermediate)
+   ===================================================================== */
+function TcpHandshakeDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="A TCP three-way handshake. The client sends SYN, the server responds with SYN-ACK, and the client confirms with ACK. After three messages, a reliable byte-stream connection is established."
+    >
+      <text x="0" y="20" className={groupTitle}>TCP THREE-WAY HANDSHAKE</text>
+
+      {/* Client */}
+      <rect x={20} y={45} width={140} height={50} className={`${cell} tone-cyan`} rx="6" />
+      <text x={90} y={75} textAnchor="middle" className={`${cellValue} tone-cyan`}>
+        CLIENT
+      </text>
+
+      {/* Server */}
+      <rect x={560} y={45} width={140} height={50} className={`${cell} tone-magenta`} rx="6" />
+      <text x={630} y={75} textAnchor="middle" className={`${cellValue} tone-magenta`}>
+        SERVER
+      </text>
+
+      {/* Vertical timeline divider */}
+      <line x1={90} y1={100} x2={90} y2={280} className="diagram-divider" />
+      <line x1={630} y1={100} x2={630} y2={280} className="diagram-divider" />
+
+      {/* SYN */}
+      <line className={`${arrow} tone-cyan`} x1={90} y1={130} x2={630} y2={150} markerEnd="url(#diag-arrow-cyan)" />
+      <text x={360} y={125} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "13px" }}>
+        SYN
+      </text>
+      <text x={360} y={142} textAnchor="middle" className={note}>
+        seq = x
+      </text>
+
+      {/* SYN-ACK */}
+      <line className={`${arrow} tone-magenta`} x1={630} y1={185} x2={90} y2={205} markerEnd="url(#diag-arrow-magenta)" />
+      <text x={360} y={180} textAnchor="middle" className={`${cellValue} tone-magenta`} style={{ fontSize: "13px" }}>
+        SYN-ACK
+      </text>
+      <text x={360} y={197} textAnchor="middle" className={note}>
+        seq = y, ack = x+1
+      </text>
+
+      {/* ACK */}
+      <line className={`${arrow} tone-lime`} x1={90} y1={240} x2={630} y2={260} markerEnd="url(#diag-arrow-lime)" />
+      <text x={360} y={235} textAnchor="middle" className={`${cellValue} tone-lime`} style={{ fontSize: "13px" }}>
+        ACK
+      </text>
+      <text x={360} y={252} textAnchor="middle" className={note}>
+        ack = y+1
+      </text>
+
+      <text x="0" y="305" className={note}>
+        three messages to agree on starting sequence numbers, then bytes can flow reliably both ways
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   24. Bitcoin gossip (networking advanced / blockchain)
+   ===================================================================== */
+function BitcoinGossipDiagram() {
+  const nodes = [
+    { id: "N1", x: 60, y: 60, tone: "flame" as Tone },
+    { id: "N2", x: 240, y: 40, tone: "sky" as Tone },
+    { id: "N3", x: 420, y: 60, tone: "sky" as Tone },
+    { id: "N4", x: 600, y: 50, tone: "sky" as Tone },
+    { id: "N5", x: 130, y: 180, tone: "sky" as Tone },
+    { id: "N6", x: 320, y: 200, tone: "sky" as Tone },
+    { id: "N7", x: 510, y: 200, tone: "sky" as Tone },
+    { id: "N8", x: 660, y: 200, tone: "sky" as Tone },
+  ];
+
+  const peerLinks: Array<[string, string]> = [
+    ["N1", "N2"],
+    ["N1", "N5"],
+    ["N2", "N3"],
+    ["N2", "N6"],
+    ["N3", "N4"],
+    ["N3", "N6"],
+    ["N4", "N8"],
+    ["N5", "N6"],
+    ["N6", "N7"],
+    ["N7", "N8"],
+  ];
+
+  const byId = Object.fromEntries(nodes.map((n) => [n.id, n]));
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="A Bitcoin gossip network. Node N1 originates a transaction and forwards it to every peer it knows about. Each of those peers forwards it to their own peers. Within seconds the transaction reaches every node in the network without any central coordinator."
+    >
+      <text x="0" y="20" className={groupTitle}>GOSSIP PROTOCOL — every node forwards to every peer</text>
+
+      {/* Peer links (background) */}
+      {peerLinks.map(([a, b], i) => {
+        const na = byId[a];
+        const nb = byId[b];
+        return (
+          <line
+            key={`l-${i}`}
+            x1={na.x}
+            y1={na.y}
+            x2={nb.x}
+            y2={nb.y}
+            stroke="var(--line-strong)"
+            strokeWidth="1"
+            strokeDasharray="2 3"
+          />
+        );
+      })}
+
+      {/* Propagation arrows (from N1 outward) */}
+      <line className={`${arrow} tone-flame`} x1={byId.N1.x} y1={byId.N1.y} x2={byId.N2.x} y2={byId.N2.y} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={byId.N1.x} y1={byId.N1.y} x2={byId.N5.x} y2={byId.N5.y} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={byId.N2.x} y1={byId.N2.y} x2={byId.N3.x} y2={byId.N3.y} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={byId.N2.x} y1={byId.N2.y} x2={byId.N6.x} y2={byId.N6.y} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={byId.N3.x} y1={byId.N3.y} x2={byId.N4.x} y2={byId.N4.y} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={byId.N6.x} y1={byId.N6.y} x2={byId.N7.x} y2={byId.N7.y} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={byId.N7.x} y1={byId.N7.y} x2={byId.N8.x} y2={byId.N8.y} markerEnd="url(#diag-arrow-flame)" />
+
+      {/* Nodes on top */}
+      {nodes.map((n) => (
+        <g key={n.id}>
+          <circle cx={n.x} cy={n.y} r={24} className={`${cell} tone-${n.tone}`} />
+          <text x={n.x} y={n.y + 5} textAnchor="middle" className={`${cellValue} tone-${n.tone}`}>
+            {n.id}
+          </text>
+        </g>
+      ))}
+
+      {/* Originator label */}
+      <text x={byId.N1.x} y={byId.N1.y + 50} textAnchor="middle" className={`${note} tone-amber`}>
+        originator
+      </text>
+
+      <text x="0" y="270" className={note}>
+        no central coordinator: every node forwards every new tx to every connected peer
+      </text>
+      <text x="0" y="290" className={note}>
+        within seconds the whole network has the same transaction in its mempool
+      </text>
+      <text x="0" y="310" className={note}>
+        every receiving node verifies signatures and hashes before forwarding; nobody trusts anybody
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   25. Node, three meanings (nodes beginner)
+   ===================================================================== */
+function NodeThreeMeaningsDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 280"
+      ariaLabel="The same node concept at three scales. Left: a data-structure node (a small struct with value and next). Middle: a network node (a whole computer with an IP address). Right: a blockchain node (a computer running protocol software, holding a copy of the chain)."
+    >
+      <text x="0" y="20" className={groupTitle}>ONE WORD, THREE SCALES</text>
+
+      {/* Data-structure node */}
+      <text x={110} y={55} textAnchor="middle" className={cellLabel}>
+        DATA STRUCTURE
+      </text>
+      <rect x={20} y={70} width={180} height={70} className={`${cell} tone-iris`} rx="6" />
+      <text x={50} y={100} className={`${cellValue} tone-iris`} style={{ fontSize: "13px" }}>
+        value: 42
+      </text>
+      <line x1={20} y1={108} x2={200} y2={108} className="diagram-divider" />
+      <text x={50} y={130} className={`${cellValue} tone-iris`} style={{ fontSize: "13px" }}>
+        next: 0x40e0
+      </text>
+      <text x={110} y={170} textAnchor="middle" className={note}>
+        ~16 bytes on the heap
+      </text>
+      <text x={110} y={188} textAnchor="middle" className={note}>
+        a struct with pointers
+      </text>
+
+      {/* Network node */}
+      <text x={360} y={55} textAnchor="middle" className={cellLabel}>
+        NETWORK
+      </text>
+      <rect x={260} y={70} width={200} height={70} className={`${cell} tone-sky`} rx="6" />
+      <text x={360} y={102} textAnchor="middle" className={`${cellValue} tone-sky`}>
+        192.168.1.42
+      </text>
+      <text x={360} y={125} textAnchor="middle" className={note} style={{ fontSize: "11px" }}>
+        laptop · router · server
+      </text>
+      <text x={360} y={170} textAnchor="middle" className={note}>
+        a whole computer
+      </text>
+      <text x={360} y={188} textAnchor="middle" className={note}>
+        with an address on the wire
+      </text>
+
+      {/* Blockchain node */}
+      <text x={610} y={55} textAnchor="middle" className={cellLabel}>
+        BLOCKCHAIN
+      </text>
+      <rect x={510} y={70} width={200} height={70} className={`${cell} tone-flame`} rx="6" />
+      <text x={610} y={100} textAnchor="middle" className={`${cellValue} tone-flame`} style={{ fontSize: "13px" }}>
+        bitcoind / geth
+      </text>
+      <line x1={510} y1={108} x2={710} y2={108} className="diagram-divider" />
+      <text x={610} y={130} textAnchor="middle" className={note} style={{ fontSize: "11px" }}>
+        chain + mempool + peers
+      </text>
+      <text x={610} y={170} textAnchor="middle" className={note}>
+        a computer running
+      </text>
+      <text x={610} y={188} textAnchor="middle" className={note}>
+        the protocol software
+      </text>
+
+      {/* Connecting bracket / commonality */}
+      <line x1={20} y1={225} x2={700} y2={225} stroke="var(--line-strong)" strokeWidth="1" strokeDasharray="3 4" />
+      <text x={360} y={250} textAnchor="middle" className={`${cellValue} tone-teal`}>
+        a participant with identity, holding state, connected to others
+      </text>
+      <text x={360} y={268} textAnchor="middle" className={note}>
+        same pattern, three orders of magnitude apart
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   26. Data structure nodes (nodes beginner)
+   ===================================================================== */
+function DataStructureNodesDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="The same node concept used in three data structures. A linked-list node has one next pointer. A binary-tree node has two child pointers. A graph node has many edges to other nodes."
+    >
+      {/* LIST */}
+      <text x="0" y="20" className={cellLabel}>LINKED LIST: one next pointer per node</text>
+      {[0, 1, 2].map((i) => {
+        const x = 20 + i * 130;
+        return (
+          <g key={`l-${i}`}>
+            <rect x={x} y={35} width={100} height={42} className={`${cell} tone-iris`} rx="3" />
+            <text x={x + 30} y={62} textAnchor="middle" className={`${cellValue} tone-iris`} style={{ fontSize: "13px" }}>
+              {["a", "b", "c"][i]}
+            </text>
+            <line x1={x + 60} y1={35} x2={x + 60} y2={77} className="diagram-divider" />
+            <text x={x + 80} y={62} textAnchor="middle" className={note} style={{ fontSize: "10px" }}>
+              next
+            </text>
+            {i < 2 && (
+              <line
+                className={`${arrow} tone-iris`}
+                x1={x + 100}
+                y1={56}
+                x2={x + 130}
+                y2={56}
+                markerEnd="url(#diag-arrow-iris)"
+              />
+            )}
+          </g>
+        );
+      })}
+
+      <line x1={0} y1={100} x2={720} y2={100} className="diagram-divider" />
+
+      {/* TREE */}
+      <text x="0" y="125" className={cellLabel}>BINARY TREE: two child pointers per node</text>
+      {/* root */}
+      <rect x={310} y={140} width={100} height={42} className={`${cell} tone-amber`} rx="3" />
+      <text x={360} y={167} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "13px" }}>
+        root
+      </text>
+      {/* left child */}
+      <line className={`${arrow} tone-amber`} x1={335} y1={182} x2={220} y2={210} markerEnd="url(#diag-arrow-amber)" />
+      <rect x={170} y={210} width={100} height={42} className={`${cell} tone-amber`} rx="3" />
+      <text x={220} y={237} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "13px" }}>
+        L
+      </text>
+      {/* right child */}
+      <line className={`${arrow} tone-amber`} x1={385} y1={182} x2={500} y2={210} markerEnd="url(#diag-arrow-amber)" />
+      <rect x={450} y={210} width={100} height={42} className={`${cell} tone-amber`} rx="3" />
+      <text x={500} y={237} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "13px" }}>
+        R
+      </text>
+
+      <text x="0" y="295" className={note}>
+        SAME node, more pointers per slot — list (1), tree (2), graph (many), hash-map bucket (chain).
+      </text>
+      <text x="0" y="313" className={note}>
+        The data structure is just a choice about how many neighbours a single node can know.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   27. Blockchain node types (nodes advanced)
+   ===================================================================== */
+function BlockchainNodeTypesDiagram() {
+  const types = [
+    {
+      name: "FULL NODE",
+      tone: "flame" as Tone,
+      stores: "every block, every tx, since genesis",
+      role: "verifies and forwards everything; the backbone of trustlessness",
+    },
+    {
+      name: "LIGHT / SPV NODE",
+      tone: "sky" as Tone,
+      stores: "block headers only (~80 bytes each)",
+      role: "your phone wallet; trusts full nodes for tx inclusion proofs",
+    },
+    {
+      name: "MINING / VALIDATOR",
+      tone: "lime" as Tone,
+      stores: "everything, plus the candidate next block",
+      role: "proposes new blocks; earns the reward when accepted",
+    },
+    {
+      name: "ARCHIVE NODE",
+      tone: "iris" as Tone,
+      stores: "full state at every historical block",
+      role: "powers explorers and analytics; rarely needed by ordinary users",
+    },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 360"
+      ariaLabel="Four kinds of blockchain node. Full nodes store and verify everything. Light or SPV nodes store only block headers. Mining or validator nodes propose new blocks. Archive nodes keep full state at every historical block."
+    >
+      <text x="0" y="20" className={groupTitle}>BLOCKCHAIN NODE TYPES — what each one stores and does</text>
+
+      {types.map((t, i) => {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const x = col * 365;
+        const y = 50 + row * 145;
+        return (
+          <g key={t.name}>
+            <rect x={x} y={y} width={345} height={130} className={`${cell} tone-${t.tone}`} rx="6" />
+            <text x={x + 16} y={y + 30} className={`${cellValue} tone-${t.tone}`}>
+              {t.name}
+            </text>
+            <line x1={x + 16} y1={y + 42} x2={x + 329} y2={y + 42} className="diagram-divider" />
+            <text x={x + 16} y={y + 62} className={cellLabel}>
+              stores
+            </text>
+            <text x={x + 16} y={y + 84} className={note} style={{ fontSize: "12px" }}>
+              {t.stores}
+            </text>
+            <text x={x + 16} y={y + 105} className={cellLabel}>
+              role
+            </text>
+            <text x={x + 16} y={y + 125} className={note} style={{ fontSize: "12px" }}>
+              {t.role}
+            </text>
+          </g>
+        );
+      })}
+
+      <text x="0" y="350" className={note}>
+        every type speaks the same protocol over TCP/IP — the differences are in what they bother to keep
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -1669,6 +2221,14 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "hash-collision-chain": HashCollisionChainDiagram,
   "merkle-tree": MerkleTreeDiagram,
   "block-chain": BlockChainDiagram,
+  "packet-structure": PacketStructureDiagram,
+  "network-of-networks": NetworkOfNetworksDiagram,
+  "packet-reassembly": PacketReassemblyDiagram,
+  "tcp-handshake": TcpHandshakeDiagram,
+  "bitcoin-gossip": BitcoinGossipDiagram,
+  "node-three-meanings": NodeThreeMeaningsDiagram,
+  "data-structure-nodes": DataStructureNodesDiagram,
+  "blockchain-node-types": BlockchainNodeTypesDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

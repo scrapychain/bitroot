@@ -235,10 +235,10 @@ fn merkle_root(leaves: &[&[u8]]) -> Vec<u8> {
 
 export const hashing: PageContent = {
   slug: "hashing",
-  hexLabel: "0x0C",
+  hexLabel: "0x0D",
   category: "structure",
   hero: {
-    eyebrow: "root.system / 0x0C / structure",
+    eyebrow: "root.system / 0x0D / structure",
     title: `A fingerprint for<br><span class="highlight">anything.</span>`,
     lede: `A <strong>hash function</strong> turns arbitrary input (a string, a file, a struct, a gigabyte of transactions) into a small, fixed-size number. From that one idea you get hash maps (the workhorse of every dynamic language), content-addressed storage, password hashing, Merkle trees, and the chain in blockchain. Every layer is the same trick, just applied with more or less paranoia.`,
   },
@@ -515,10 +515,10 @@ export const hashing: PageContent = {
     },
   ],
   nextUp: {
-    eyebrow: "next up / 0x0D",
-    title: "When does each piece happen? Compile time vs runtime.",
-    href: "/compile-vs-runtime",
-    label: "compile vs runtime",
-    variant: "magenta",
+    eyebrow: "next up / 0x0E",
+    title: "One word, three scales. What 'node' means in data structures, networking, and blockchain.",
+    href: "/nodes",
+    label: "nodes",
+    variant: "cyan",
   },
 };

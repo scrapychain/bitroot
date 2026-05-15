@@ -30,7 +30,15 @@ export type DiagramName =
   | "hash-table-basic"
   | "hash-collision-chain"
   | "merkle-tree"
-  | "block-chain";
+  | "block-chain"
+  | "packet-structure"
+  | "network-of-networks"
+  | "packet-reassembly"
+  | "tcp-handshake"
+  | "bitcoin-gossip"
+  | "node-three-meanings"
+  | "data-structure-nodes"
+  | "blockchain-node-types";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -65,6 +73,8 @@ export interface PageContent {
     | "arrays"
     | "linked-list"
     | "hashing"
+    | "nodes"
+    | "networking"
     | "compile-vs-runtime";
   hexLabel: string;
   category: string;

@@ -404,9 +404,9 @@ export const pointers: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x0A",
-    title: "Houses on a numbered street: arrays from first principles.",
-    href: "/arrays",
-    label: "arrays",
+    title: "When does each piece happen? Compile time vs runtime.",
+    href: "/compile-vs-runtime",
+    label: "compile vs runtime",
     variant: "magenta",
   },
 };

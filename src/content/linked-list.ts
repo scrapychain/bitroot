@@ -210,10 +210,10 @@ uint32_t a_alloc(int value, uint32_t after) {
 
 export const linkedList: PageContent = {
   slug: "linked-list",
-  hexLabel: "0x0B",
+  hexLabel: "0x0C",
   category: "structure",
   hero: {
-    eyebrow: "root.system / 0x0B / structure",
+    eyebrow: "root.system / 0x0C / structure",
     title: `A chain of <span class="highlight">somewheres.</span>`,
     lede: `An <strong>array</strong> is houses on a numbered street. A <strong>linked list</strong> is a treasure hunt: each node tells you, by address, where the next one lives. You give up the array's cheap indexing and cache locality. In return you get O(1) inserts and deletes anywhere, no resizing, no copying. That tradeoff has been keeping operating systems, schedulers, and lock-free queues alive for fifty years.`,
   },
@@ -488,7 +488,7 @@ export const linkedList: PageContent = {
     },
   ],
   nextUp: {
-    eyebrow: "next up / 0x0C",
+    eyebrow: "next up / 0x0D",
     title: "Turn anything into a fingerprint. Hash maps, Merkle trees, blockchain.",
     href: "/hashing",
     label: "hashing",
