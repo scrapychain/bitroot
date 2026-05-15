@@ -318,7 +318,7 @@ export const arrays: PageContent = {
         {
           kind: "diagram",
           name: "row-vs-column-major",
-          caption: "grid[2][3] — 2 rows × 3 cols, same data, two layouts",
+          caption: "grid[2][3]: 2 rows × 3 cols, same data, two layouts",
         },
         {
           kind: "prose",
@@ -374,9 +374,9 @@ export const arrays: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x0B",
-    title: "When does each piece happen? Compile time vs runtime.",
-    href: "/compile-vs-runtime",
-    label: "compile vs runtime",
+    title: "Same idea, no neighbours. Linked lists trade locality for cheap inserts.",
+    href: "/linked-list",
+    label: "linked list",
     variant: "magenta",
   },
 };

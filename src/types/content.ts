@@ -21,7 +21,16 @@ export type DiagramName =
   | "primitive-vs-dynamic"
   | "struct-padding"
   | "kernel-boundary"
-  | "fetch-execute-flow";
+  | "fetch-execute-flow"
+  | "singly-linked-list"
+  | "doubly-linked-list"
+  | "linked-list-insert"
+  | "linked-list-delete"
+  | "hash-function"
+  | "hash-table-basic"
+  | "hash-collision-chain"
+  | "merkle-tree"
+  | "block-chain";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -54,6 +63,8 @@ export interface PageContent {
     | "variables"
     | "pointers"
     | "arrays"
+    | "linked-list"
+    | "hashing"
     | "compile-vs-runtime";
   hexLabel: string;
   category: string;

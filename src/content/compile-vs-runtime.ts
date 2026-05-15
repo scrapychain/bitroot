@@ -161,10 +161,10 @@ int main(void) {
 
 export const compileVsRuntime: PageContent = {
   slug: "compile-vs-runtime",
-  hexLabel: "0x0B",
+  hexLabel: "0x0D",
   category: "time",
   hero: {
-    eyebrow: "root.system / 0x0B / time",
+    eyebrow: "root.system / 0x0D / time",
     title: `Two phases.<br><span class="highlight">One program.</span>`,
     lede: `Every line you write happens twice. Once when the compiler reads it and turns it into a binary, and again, in a different shape, when the CPU actually runs it. The first phase is <strong>compile time</strong>. The second is <strong>runtime</strong>. Almost every tradeoff in programming, from type systems to performance to safety, comes down to where the work happens.`,
   },

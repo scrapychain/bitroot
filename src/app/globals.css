@@ -56,6 +56,8 @@
   --neon-coral: #ff6b4a;
   --neon-mint: #5cffc8;
   --neon-saffron: #ffd84d;
+  --neon-iris: #d96bff;
+  --neon-flame: #ff8a3d;
 
   --lvl-beginner: var(--neon-lime);
   --lvl-intermediate: var(--neon-cyan);
@@ -2616,6 +2618,8 @@ tr:hover td {
 .diagram-cell.tone-azure     { stroke: var(--neon-azure);    fill: rgba(77, 151, 255, 0.07); }
 .diagram-cell.tone-rose      { stroke: var(--neon-rose);     fill: rgba(255, 92, 138, 0.07); }
 .diagram-cell.tone-mute      { stroke: var(--fg-mute);       fill: rgba(94, 98, 117, 0.10); stroke-dasharray: 3 2; }
+.diagram-cell.tone-iris      { stroke: var(--neon-iris);     fill: rgba(217, 107, 255, 0.08); }
+.diagram-cell.tone-flame     { stroke: var(--neon-flame);    fill: rgba(255, 138, 61, 0.08); }
 
 .diagram-cell-label {
   fill: var(--fg-mute);
@@ -2639,6 +2643,8 @@ tr:hover td {
 .diagram-cell-value.tone-azure     { fill: var(--neon-azure); }
 .diagram-cell-value.tone-rose      { fill: var(--neon-rose); }
 .diagram-cell-value.tone-mute      { fill: var(--fg-mute); }
+.diagram-cell-value.tone-iris      { fill: var(--neon-iris); }
+.diagram-cell-value.tone-flame     { fill: var(--neon-flame); }
 
 .diagram-note {
   fill: var(--fg-mute);
@@ -2667,6 +2673,10 @@ tr:hover td {
 .diagram-arrow.tone-magenta { stroke: var(--neon-magenta); }
 .diagram-arrow.tone-amber   { stroke: var(--neon-amber); }
 .diagram-arrow.tone-mute    { stroke: var(--fg-mute); }
+.diagram-arrow.tone-iris    { stroke: var(--neon-iris); }
+.diagram-arrow.tone-rose    { stroke: var(--neon-rose); }
+.diagram-arrow.tone-lime    { stroke: var(--neon-lime); }
+.diagram-arrow.tone-flame   { stroke: var(--neon-flame); }
 
 .diagram-divider {
   stroke: var(--line-strong);

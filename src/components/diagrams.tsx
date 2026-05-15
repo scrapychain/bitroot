@@ -1,6 +1,6 @@
 import type { DiagramName } from "@/types/content";
 
-type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute";
+type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute" | "iris" | "flame";
 
 const cell = "diagram-cell";
 const cellLabel = "diagram-cell-label";
@@ -71,6 +71,50 @@ function DiagramFrame({ viewBox, children, caption: cap, ariaLabel }: FrameProps
             orient="auto-start-reverse"
           >
             <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--fg-mute)" />
+          </marker>
+          <marker
+            id="diag-arrow-iris"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-iris)" />
+          </marker>
+          <marker
+            id="diag-arrow-lime"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-lime)" />
+          </marker>
+          <marker
+            id="diag-arrow-rose"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-rose)" />
+          </marker>
+          <marker
+            id="diag-arrow-flame"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-flame)" />
           </marker>
         </defs>
         {children}
@@ -215,7 +259,7 @@ function ArrayMemoryDiagram() {
       ))}
 
       <text x="205" y="150" textAnchor="middle" className={note}>
-        each cell is 4 bytes — total 20 bytes, contiguous
+        each cell is 4 bytes, total 20 bytes, contiguous
       </text>
     </DiagramFrame>
   );
@@ -318,7 +362,7 @@ function ArrayVsLinkedListDiagram() {
       viewBox="0 0 720 280"
       ariaLabel="An array of 8 integers in one 64-byte cache line at the top, fetched in a single load. Below, a linked list of 8 integers scattered in memory, requiring a cache miss for every step."
     >
-      <text x="0" y="20" className={groupTitle}>ARRAY OF 8 ints — 64 bytes, one cache line</text>
+      <text x="0" y="20" className={groupTitle}>ARRAY OF 8 ints, 64 bytes, one cache line</text>
       {arr.map((v, i) => (
         <g key={i}>
           <rect
@@ -340,10 +384,10 @@ function ArrayVsLinkedListDiagram() {
         </g>
       ))}
       <rect x="0" y="35" width={cellW * 8 - 2} height="45" className="diagram-cache-line" rx="3" />
-      <text x="200" y="100" className={note}>one load fetches all eight values — zero cache misses</text>
+      <text x="200" y="100" className={note}>one load fetches all eight values, zero cache misses</text>
 
       {/* Linked list */}
-      <text x="0" y="150" className={groupTitle}>LINKED LIST of 8 ints — each node lives somewhere different</text>
+      <text x="0" y="150" className={groupTitle}>LINKED LIST of 8 ints: each node lives somewhere different</text>
 
       {arr.map((v, i) => {
         const x = 5 + i * 88;
@@ -410,7 +454,7 @@ function RowVsColumnMajorDiagram() {
           </g>
         );
       })}
-      <text x="0" y="105" className={note}>row 0 — then row 1</text>
+      <text x="0" y="105" className={note}>row 0, then row 1</text>
 
       <text x="0" y="155" className={groupTitle}>COLUMN-MAJOR (Fortran, MATLAB, BLAS)</text>
       {colOrder.map((c, i) => {
@@ -437,7 +481,7 @@ function RowVsColumnMajorDiagram() {
           </g>
         );
       })}
-      <text x="0" y="240" className={note}>col 0 — col 1 — col 2</text>
+      <text x="0" y="240" className={note}>col 0, col 1, col 2</text>
 
       <text x="0" y="270" className={note}>
         grid[i][j] in row-major = base + (i × num_cols + j) × sizeof(elem)
@@ -511,19 +555,19 @@ function PrimitiveVsDynamicDiagram() {
       ariaLabel="Top: a Point struct with x and y stored entirely on the stack in 16 bytes. Bottom: a String with a 24-byte header on the stack containing ptr, len 12, cap 16, with an arrow to a heap buffer holding the bytes of 'hello, world'."
     >
       {/* Primitive */}
-      <text x="0" y="20" className={groupTitle}>PRIMITIVE — Point {`{ x: f64, y: f64 }`}</text>
+      <text x="0" y="20" className={groupTitle}>PRIMITIVE: Point {`{ x: f64, y: f64 }`}</text>
       <text x="0" y="50" className={cellLabel}>STACK</text>
 
       <rect x="0" y="60" width="280" height="60" className={`${cell} tone-cyan`} rx="3" />
       <text x="20" y="95" className={`${cellValue} tone-cyan`} style={{ fontSize: "13px" }}>x = 3.14</text>
       <text x="160" y="95" className={`${cellValue} tone-cyan`} style={{ fontSize: "13px" }}>y = 2.71</text>
-      <text x="0" y="140" className={note}>all 16 bytes on the stack — no allocator, no pointer chase</text>
+      <text x="0" y="140" className={note}>all 16 bytes on the stack: no allocator, no pointer chase</text>
 
       {/* Divider */}
       <line x1="0" y1="165" x2="720" y2="165" className="diagram-divider" />
 
       {/* Dynamic */}
-      <text x="0" y="190" className={groupTitle}>DYNAMIC — String &quot;hello, world&quot;</text>
+      <text x="0" y="190" className={groupTitle}>DYNAMIC: String &quot;hello, world&quot;</text>
 
       <text x="0" y="215" className={cellLabel}>STACK</text>
       <rect x="0" y="225" width="180" height="85" className={`${cell} tone-magenta`} rx="3" />
@@ -563,7 +607,7 @@ function PrimitiveVsDynamicDiagram() {
         </g>
       ))}
 
-      <text x="0" y="320" className={note}>24-byte header on stack — buffer lives elsewhere</text>
+      <text x="0" y="320" className={note}>24-byte header on stack; buffer lives elsewhere</text>
     </DiagramFrame>
   );
 }
@@ -575,17 +619,17 @@ function StructPaddingDiagram() {
   const offsets = Array.from({ length: 12 }, (_, i) => i);
   const bad = [
     { tone: "cyan" as Tone, label: "a" },
-    { tone: "mute" as Tone, label: "—" },
-    { tone: "mute" as Tone, label: "—" },
-    { tone: "mute" as Tone, label: "—" },
+    { tone: "mute" as Tone, label: "·" },
+    { tone: "mute" as Tone, label: "·" },
+    { tone: "mute" as Tone, label: "·" },
     { tone: "magenta" as Tone, label: "b" },
     { tone: "magenta" as Tone, label: "b" },
     { tone: "magenta" as Tone, label: "b" },
     { tone: "magenta" as Tone, label: "b" },
     { tone: "lime" as Tone, label: "c" },
-    { tone: "mute" as Tone, label: "—" },
-    { tone: "mute" as Tone, label: "—" },
-    { tone: "mute" as Tone, label: "—" },
+    { tone: "mute" as Tone, label: "·" },
+    { tone: "mute" as Tone, label: "·" },
+    { tone: "mute" as Tone, label: "·" },
   ];
   const good = [
     { tone: "magenta" as Tone, label: "b" },
@@ -594,8 +638,8 @@ function StructPaddingDiagram() {
     { tone: "magenta" as Tone, label: "b" },
     { tone: "cyan" as Tone, label: "a" },
     { tone: "lime" as Tone, label: "c" },
-    { tone: "mute" as Tone, label: "—" },
-    { tone: "mute" as Tone, label: "—" },
+    { tone: "mute" as Tone, label: "·" },
+    { tone: "mute" as Tone, label: "·" },
   ];
   const cellW = 40;
   return (
@@ -638,7 +682,7 @@ function StructPaddingDiagram() {
           </text>
         </g>
       ))}
-      <text x="60" y="118" className={note}>1 byte a — 3 bytes padding — 4 bytes b — 1 byte c — 3 bytes padding</text>
+      <text x="60" y="118" className={note}>1 byte a, 3 bytes padding, 4 bytes b, 1 byte c, 3 bytes padding</text>
 
       <line x1="0" y1="150" x2="540" y2="150" className="diagram-divider" />
 
@@ -677,8 +721,8 @@ function StructPaddingDiagram() {
           </text>
         </g>
       ))}
-      <text x="60" y="278" className={note}>4 bytes b — 1 byte a — 1 byte c — 2 bytes padding</text>
-      <text x="0" y="310" className={note}>same fields, smaller footprint — order matters</text>
+      <text x="60" y="278" className={note}>4 bytes b, 1 byte a, 1 byte c, 2 bytes padding</text>
+      <text x="0" y="310" className={note}>same fields, smaller footprint; order matters</text>
     </DiagramFrame>
   );
 }
@@ -713,7 +757,7 @@ function KernelBoundaryDiagram() {
         />
       ))}
       <text x="320" y="155" textAnchor="middle" className={`${note} tone-amber`}>
-        syscall — one CPU instruction
+        syscall: one CPU instruction
       </text>
 
       {/* Kernel */}
@@ -798,6 +842,811 @@ function FetchExecuteFlowDiagram() {
 }
 
 /* =====================================================================
+   11. Singly linked list (linked-list page)
+   ===================================================================== */
+function LinkedListNode({
+  x,
+  y,
+  value,
+  tone = "magenta",
+  showPrev = false,
+}: {
+  x: number;
+  y: number;
+  value: string;
+  tone?: Tone;
+  showPrev?: boolean;
+}) {
+  const nodeW = 100;
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={nodeW}
+        height="50"
+        className={`${cell} tone-${tone}`}
+        rx="3"
+      />
+      {showPrev && (
+        <>
+          <line x1={x + 30} y1={y} x2={x + 30} y2={y + 50} className="diagram-divider" />
+          <text x={x + 15} y={y + 30} textAnchor="middle" className={note} style={{ fontSize: "10px" }}>
+            prev
+          </text>
+        </>
+      )}
+      <text
+        x={x + (showPrev ? 50 : 30)}
+        y={y + 30}
+        textAnchor="middle"
+        className={`${cellValue} tone-${tone}`}
+      >
+        {value}
+      </text>
+      <line
+        x1={x + nodeW - 30}
+        y1={y}
+        x2={x + nodeW - 30}
+        y2={y + 50}
+        className="diagram-divider"
+      />
+      <text x={x + nodeW - 15} y={y + 30} textAnchor="middle" className={note} style={{ fontSize: "10px" }}>
+        next
+      </text>
+    </g>
+  );
+}
+
+function SinglyLinkedListDiagram() {
+  const values = ["a", "b", "c", "d"];
+  const startX = 60;
+  const nodeW = 100;
+  const gap = 30;
+  return (
+    <DiagramFrame
+      viewBox="0 0 640 160"
+      ariaLabel="A head pointer leads into a chain of four nodes labelled a, b, c, d. Each node has a value slot and a next pointer. The final node's next points to null."
+    >
+      <text x="0" y="20" className={groupTitle}>SINGLY LINKED LIST</text>
+
+      {/* head pointer */}
+      <text x="0" y="80" className={cellLabel}>head</text>
+      <line
+        className={`${arrow} tone-cyan`}
+        x1="35"
+        y1="75"
+        x2={startX}
+        y2="75"
+        markerEnd="url(#diag-arrow-cyan)"
+      />
+
+      {values.map((v, i) => {
+        const x = startX + i * (nodeW + gap);
+        return (
+          <g key={i}>
+            <LinkedListNode x={x} y={50} value={v} tone="magenta" />
+            {i < values.length - 1 && (
+              <line
+                className={`${arrow} tone-magenta`}
+                x1={x + nodeW}
+                y1={75}
+                x2={x + nodeW + gap}
+                y2={75}
+                markerEnd="url(#diag-arrow-magenta)"
+              />
+            )}
+          </g>
+        );
+      })}
+
+      {/* null tail */}
+      {(() => {
+        const lastX = startX + (values.length - 1) * (nodeW + gap) + nodeW;
+        return (
+          <>
+            <line
+              className={`${arrow} tone-mute`}
+              x1={lastX}
+              y1={75}
+              x2={lastX + gap}
+              y2={75}
+              markerEnd="url(#diag-arrow-mute)"
+            />
+            <text
+              x={lastX + gap + 14}
+              y={80}
+              className={`${cellValue} tone-mute`}
+              style={{ fontSize: "13px" }}
+            >
+              ∅
+            </text>
+          </>
+        );
+      })()}
+
+      <text x="0" y="140" className={note}>
+        each node lives wherever the allocator put it: next is a heap address, not an offset
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   12. Doubly linked list (linked-list page)
+   ===================================================================== */
+function DoublyLinkedListDiagram() {
+  const values = ["a", "b", "c"];
+  const startX = 80;
+  const nodeW = 130;
+  const gap = 40;
+  return (
+    <DiagramFrame
+      viewBox="0 0 620 200"
+      ariaLabel="A doubly linked list of three nodes. Each node has a prev pointer, a value, and a next pointer. The first node's prev points to null and the last node's next points to null."
+    >
+      <text x="0" y="20" className={groupTitle}>DOUBLY LINKED LIST</text>
+
+      {/* null head */}
+      <text x="0" y="105" className={`${cellValue} tone-mute`} style={{ fontSize: "13px" }}>∅</text>
+      <line
+        className={`${arrow} tone-mute`}
+        x1="20"
+        y1="100"
+        x2={startX}
+        y2="100"
+        markerEnd="url(#diag-arrow-mute)"
+      />
+
+      {values.map((v, i) => {
+        const x = startX + i * (nodeW + gap);
+        return (
+          <g key={i}>
+            <LinkedListNode x={x} y={75} value={v} tone="iris" showPrev />
+            {i < values.length - 1 && (
+              <>
+                {/* forward arrow */}
+                <line
+                  className={`${arrow} tone-iris`}
+                  x1={x + nodeW}
+                  y1={90}
+                  x2={x + nodeW + gap}
+                  y2={90}
+                  markerEnd="url(#diag-arrow-iris)"
+                />
+                {/* back arrow */}
+                <line
+                  className={`${arrow} tone-iris`}
+                  x1={x + nodeW + gap}
+                  y1={115}
+                  x2={x + nodeW}
+                  y2={115}
+                  markerEnd="url(#diag-arrow-iris)"
+                />
+              </>
+            )}
+          </g>
+        );
+      })}
+
+      {/* null tail */}
+      {(() => {
+        const lastX = startX + (values.length - 1) * (nodeW + gap) + nodeW;
+        return (
+          <>
+            <line
+              className={`${arrow} tone-mute`}
+              x1={lastX}
+              y1="100"
+              x2={lastX + gap}
+              y2="100"
+              markerEnd="url(#diag-arrow-mute)"
+            />
+            <text
+              x={lastX + gap + 10}
+              y="105"
+              className={`${cellValue} tone-mute`}
+              style={{ fontSize: "13px" }}
+            >
+              ∅
+            </text>
+          </>
+        );
+      })()}
+
+      <text x="0" y="180" className={note}>
+        twice the pointer bytes per node: bidirectional traversal, O(1) delete given a node reference
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   13. Linked list insert (linked-list page)
+   ===================================================================== */
+function LinkedListInsertDiagram() {
+  const nodeW = 90;
+  const gap = 36;
+  return (
+    <DiagramFrame
+      viewBox="0 0 640 320"
+      ariaLabel="Top row shows two nodes a and c linked together. Bottom row shows a new node b spliced in between, with a's next now pointing to b and b's next pointing to c."
+    >
+      <text x="0" y="20" className={groupTitle}>BEFORE: a → c</text>
+      <LinkedListNode x={60} y={40} value="a" tone="iris" />
+      <line
+        className={`${arrow} tone-iris`}
+        x1={60 + nodeW}
+        y1={65}
+        x2={60 + nodeW + gap}
+        y2={65}
+        markerEnd="url(#diag-arrow-iris)"
+      />
+      <LinkedListNode x={60 + nodeW + gap} y={40} value="c" tone="iris" />
+
+      <line x1="0" y1="130" x2="640" y2="130" className="diagram-divider" />
+
+      <text x="0" y="160" className={groupTitle}>
+        AFTER: a <tspan className="tone-lime">→ b →</tspan> c
+      </text>
+      <LinkedListNode x={60} y={185} value="a" tone="iris" />
+      <line
+        className={`${arrow} tone-lime`}
+        x1={60 + nodeW}
+        y1={210}
+        x2={60 + nodeW + gap}
+        y2={210}
+        markerEnd="url(#diag-arrow-lime)"
+      />
+      <LinkedListNode x={60 + nodeW + gap} y={185} value="b" tone="lime" />
+      <line
+        className={`${arrow} tone-lime`}
+        x1={60 + nodeW + gap + nodeW}
+        y1={210}
+        x2={60 + 2 * (nodeW + gap)}
+        y2={210}
+        markerEnd="url(#diag-arrow-lime)"
+      />
+      <LinkedListNode x={60 + 2 * (nodeW + gap)} y={185} value="c" tone="iris" />
+
+      <text x="0" y="280" className={note}>
+        one allocation for the new node, two pointer writes, no neighbours moved
+      </text>
+      <text x="0" y="300" className={note}>
+        same operation on an array would shift every element after the insertion point
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   14. Linked list delete (linked-list page)
+   ===================================================================== */
+function LinkedListDeleteDiagram() {
+  const nodeW = 90;
+  const gap = 36;
+  return (
+    <DiagramFrame
+      viewBox="0 0 640 320"
+      ariaLabel="Top row shows three linked nodes a, b, c. Bottom row shows node b grayed out with a's next pointer rerouted directly to c, bypassing b."
+    >
+      <text x="0" y="20" className={groupTitle}>BEFORE: a → b → c</text>
+      <LinkedListNode x={60} y={40} value="a" tone="iris" />
+      <line
+        className={`${arrow} tone-iris`}
+        x1={60 + nodeW}
+        y1={65}
+        x2={60 + nodeW + gap}
+        y2={65}
+        markerEnd="url(#diag-arrow-iris)"
+      />
+      <LinkedListNode x={60 + nodeW + gap} y={40} value="b" tone="iris" />
+      <line
+        className={`${arrow} tone-iris`}
+        x1={60 + nodeW + gap + nodeW}
+        y1={65}
+        x2={60 + 2 * (nodeW + gap)}
+        y2={65}
+        markerEnd="url(#diag-arrow-iris)"
+      />
+      <LinkedListNode x={60 + 2 * (nodeW + gap)} y={40} value="c" tone="iris" />
+
+      <line x1="0" y1="130" x2="640" y2="130" className="diagram-divider" />
+
+      <text x="0" y="160" className={groupTitle}>
+        AFTER: a <tspan className="tone-rose">↷</tspan> c &nbsp;(b freed)
+      </text>
+      <LinkedListNode x={60} y={185} value="a" tone="iris" />
+
+      {/* Curved bypass arrow over node b */}
+      <path
+        className={`${arrow} tone-rose`}
+        d={`M ${60 + nodeW} 210
+            Q ${60 + nodeW + gap + nodeW / 2} 155
+              ${60 + 2 * (nodeW + gap)} 210`}
+        fill="none"
+        markerEnd="url(#diag-arrow-rose)"
+      />
+
+      {/* Freed b node */}
+      <LinkedListNode x={60 + nodeW + gap} y={185} value="b" tone="mute" />
+      <text
+        x={60 + nodeW + gap + nodeW / 2}
+        y={185 + 75}
+        textAnchor="middle"
+        className={`${note} miss`}
+      >
+        freed
+      </text>
+
+      <LinkedListNode x={60 + 2 * (nodeW + gap)} y={185} value="c" tone="iris" />
+
+      <text x="0" y="295" className={note}>
+        one pointer write on the predecessor, one free() call, every other node stays put
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   15. Hash function (hashing beginner)
+   ===================================================================== */
+function HashFunctionDiagram() {
+  const inputs = [
+    { value: "\"alice\"", tone: "cyan" as Tone, hash: "5d1a8b" },
+    { value: "\"bob\"", tone: "lime" as Tone, hash: "f3c027" },
+    { value: "\"alicf\"", tone: "amber" as Tone, hash: "9a4e12" },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 230"
+      ariaLabel="Three different string inputs flow through a hash function in the middle and produce three fixed-size hash outputs on the right. Even single-character changes produce completely different hashes."
+    >
+      <text x="0" y="20" className={cellLabel}>INPUT (any size)</text>
+      <text x="540" y="20" className={cellLabel}>HASH (fixed size)</text>
+
+      {inputs.map((inp, i) => {
+        const y = 50 + i * 50;
+        return (
+          <g key={i}>
+            <rect
+              x={0}
+              y={y - 18}
+              width={150}
+              height={36}
+              className={`${cell} tone-${inp.tone}`}
+              rx="3"
+            />
+            <text
+              x={75}
+              y={y + 5}
+              textAnchor="middle"
+              className={`${cellValue} tone-${inp.tone}`}
+            >
+              {inp.value}
+            </text>
+            <line
+              className={`${arrow} tone-flame`}
+              x1={150}
+              y1={y}
+              x2={235}
+              y2={115}
+              markerEnd="url(#diag-arrow-flame)"
+            />
+          </g>
+        );
+      })}
+
+      {/* hash function "black box" */}
+      <rect
+        x={235}
+        y={70}
+        width={170}
+        height={90}
+        className={`${cell} tone-flame`}
+        rx="6"
+      />
+      <text x={320} y={108} textAnchor="middle" className={`${cellValue} tone-flame`}>
+        HASH
+      </text>
+      <text x={320} y={132} textAnchor="middle" className={note}>
+        deterministic · one-way
+      </text>
+
+      {inputs.map((inp, i) => {
+        const y = 50 + i * 50;
+        return (
+          <g key={`h-${i}`}>
+            <line
+              className={`${arrow} tone-flame`}
+              x1={405}
+              y1={115}
+              x2={540}
+              y2={y}
+              markerEnd="url(#diag-arrow-flame)"
+            />
+            <rect
+              x={540}
+              y={y - 18}
+              width={160}
+              height={36}
+              className={`${cell} tone-${inp.tone}`}
+              rx="3"
+            />
+            <text
+              x={620}
+              y={y + 5}
+              textAnchor="middle"
+              className={`${cellValue} tone-${inp.tone}`}
+            >
+              0x{inp.hash}
+            </text>
+          </g>
+        );
+      })}
+
+      <text x="0" y="220" className={note}>
+        same input → same output, every time; flip one bit of input, roughly half the output bits flip
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   16. Hash table basic (hashing beginner)
+   ===================================================================== */
+function HashTableBasicDiagram() {
+  const buckets = [
+    { idx: 0, value: null },
+    { idx: 1, value: null },
+    { idx: 2, value: "(\"bob\", 31)" },
+    { idx: 3, value: "(\"alice\", 27)" },
+    { idx: 4, value: null },
+    { idx: 5, value: null },
+    { idx: 6, value: "(\"carol\", 42)" },
+    { idx: 7, value: null },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 260"
+      ariaLabel="The key 'alice' is hashed into the index 3, which then directly addresses bucket 3 in an 8-slot array storing the (alice, 27) entry."
+    >
+      <text x="0" y="20" className={cellLabel}>KEY</text>
+      <rect x={0} y={35} width={130} height={40} className={`${cell} tone-cyan`} rx="3" />
+      <text x={65} y={60} textAnchor="middle" className={`${cellValue} tone-cyan`}>
+        &quot;alice&quot;
+      </text>
+
+      {/* Arrow into hash function */}
+      <line
+        className={`${arrow} tone-flame`}
+        x1={130}
+        y1={55}
+        x2={180}
+        y2={55}
+        markerEnd="url(#diag-arrow-flame)"
+      />
+
+      {/* Hash function box */}
+      <rect x={180} y={35} width={120} height={40} className={`${cell} tone-flame`} rx="3" />
+      <text x={240} y={60} textAnchor="middle" className={`${cellValue} tone-flame`}>
+        hash() % 8
+      </text>
+
+      {/* Arrow to index */}
+      <line
+        className={`${arrow} tone-flame`}
+        x1={300}
+        y1={55}
+        x2={355}
+        y2={55}
+        markerEnd="url(#diag-arrow-flame)"
+      />
+
+      {/* Index = 3 */}
+      <rect x={355} y={35} width={80} height={40} className={`${cell} tone-amber`} rx="3" />
+      <text x={395} y={60} textAnchor="middle" className={`${cellValue} tone-amber`}>
+        3
+      </text>
+
+      {/* Arrow down into array */}
+      <line
+        className={`${arrow} tone-amber`}
+        x1={395}
+        y1={75}
+        x2={395}
+        y2={130}
+        markerEnd="url(#diag-arrow-amber)"
+      />
+
+      {/* Bucket array */}
+      <text x={0} y={150} className={cellLabel}>buckets[8]</text>
+      {buckets.map((b) => {
+        const bx = 80 + b.idx * 75;
+        const occupied = b.value !== null;
+        return (
+          <g key={b.idx}>
+            <text x={bx + 32} y={150} textAnchor="middle" className={note}>
+              {b.idx}
+            </text>
+            <rect
+              x={bx}
+              y={155}
+              width={66}
+              height={48}
+              className={`${cell} tone-${occupied ? "lime" : "mute"}`}
+              rx="3"
+            />
+            {occupied && (
+              <text
+                x={bx + 33}
+                y={184}
+                textAnchor="middle"
+                className={`${cellValue} tone-lime`}
+                style={{ fontSize: "10px" }}
+              >
+                {b.value}
+              </text>
+            )}
+          </g>
+        );
+      })}
+
+      <text x="0" y="240" className={note}>
+        hash(key) → index → direct array access: O(1) regardless of how many keys are stored
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   17. Hash collision with chaining (hashing intermediate)
+   ===================================================================== */
+function HashCollisionChainDiagram() {
+  const buckets: Array<{ idx: number; chain: string[] }> = [
+    { idx: 0, chain: [] },
+    { idx: 1, chain: ["(\"eve\", 23)"] },
+    { idx: 2, chain: [] },
+    { idx: 3, chain: ["(\"alice\", 27)", "(\"dan\", 19)", "(\"mia\", 35)"] },
+    { idx: 4, chain: [] },
+    { idx: 5, chain: ["(\"bob\", 31)"] },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 280"
+      ariaLabel="A bucket array of six slots. Bucket 3 contains a linked-list chain of three colliding entries: alice, dan, and mia. The other occupied buckets each hold a single entry."
+    >
+      <text x="0" y="20" className={groupTitle}>SEPARATE CHAINING</text>
+      <text x="0" y="40" className={note}>each bucket is a linked list; collisions append to the chain</text>
+
+      <text x="0" y="80" className={cellLabel}>buckets[6]</text>
+      {buckets.map((b) => {
+        const bx = 80 + b.idx * 110;
+        const head = b.chain[0];
+        const isCollision = b.chain.length > 1;
+        return (
+          <g key={b.idx}>
+            <text x={bx + 45} y={80} textAnchor="middle" className={note}>
+              {b.idx}
+            </text>
+            <rect
+              x={bx}
+              y={90}
+              width={90}
+              height={44}
+              className={`${cell} tone-${head ? "flame" : "mute"}`}
+              rx="3"
+            />
+            {head && (
+              <text
+                x={bx + 45}
+                y={117}
+                textAnchor="middle"
+                className={`${cellValue} tone-flame`}
+                style={{ fontSize: "10px" }}
+              >
+                {head}
+              </text>
+            )}
+
+            {/* Chain extension for collisions */}
+            {isCollision && (
+              <>
+                {b.chain.slice(1).map((entry, ci) => {
+                  const cy = 155 + ci * 50;
+                  return (
+                    <g key={`c-${ci}`}>
+                      <line
+                        className={`${arrow} tone-iris`}
+                        x1={bx + 45}
+                        y1={cy - 21}
+                        x2={bx + 45}
+                        y2={cy - 5}
+                        markerEnd="url(#diag-arrow-iris)"
+                      />
+                      <rect
+                        x={bx}
+                        y={cy - 5}
+                        width={90}
+                        height={36}
+                        className={`${cell} tone-iris`}
+                        rx="3"
+                      />
+                      <text
+                        x={bx + 45}
+                        y={cy + 17}
+                        textAnchor="middle"
+                        className={`${cellValue} tone-iris`}
+                        style={{ fontSize: "10px" }}
+                      >
+                        {entry}
+                      </text>
+                    </g>
+                  );
+                })}
+              </>
+            )}
+          </g>
+        );
+      })}
+
+      <text x="0" y="270" className={note}>
+        lookup = hash(key) → bucket → walk a (usually tiny) chain comparing keys
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   18. Merkle tree (hashing advanced)
+   ===================================================================== */
+function MerkleTreeDiagram() {
+  const leaves = ["tx1", "tx2", "tx3", "tx4"];
+  const leafHashes = ["H(tx1)", "H(tx2)", "H(tx3)", "H(tx4)"];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="A Merkle tree built from four transactions. Each transaction is hashed at the leaf level, pairs of leaf hashes are concatenated and hashed at the middle level, and the two middle hashes are combined into a single Merkle root at the top."
+    >
+      {/* Leaves */}
+      <text x="0" y="20" className={cellLabel}>DATA</text>
+      {leaves.map((tx, i) => {
+        const x = 50 + i * 160;
+        return (
+          <g key={i}>
+            <rect x={x} y={35} width={120} height={36} className={`${cell} tone-cyan`} rx="3" />
+            <text x={x + 60} y={58} textAnchor="middle" className={`${cellValue} tone-cyan`}>
+              {tx}
+            </text>
+            <line
+              className={`${arrow} tone-flame`}
+              x1={x + 60}
+              y1={71}
+              x2={x + 60}
+              y2={95}
+              markerEnd="url(#diag-arrow-flame)"
+            />
+          </g>
+        );
+      })}
+
+      {/* Leaf hashes */}
+      <text x="0" y="120" className={cellLabel}>LEAF HASHES</text>
+      {leafHashes.map((h, i) => {
+        const x = 50 + i * 160;
+        return (
+          <g key={`h-${i}`}>
+            <rect x={x} y={100} width={120} height={36} className={`${cell} tone-flame`} rx="3" />
+            <text x={x + 60} y={123} textAnchor="middle" className={`${cellValue} tone-flame`}>
+              {h}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Combine arrows */}
+      <line className={`${arrow} tone-flame`} x1={110} y1={136} x2={195} y2={185} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={250} y1={136} x2={210} y2={185} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={430} y1={136} x2={515} y2={185} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={570} y1={136} x2={530} y2={185} markerEnd="url(#diag-arrow-flame)" />
+
+      {/* Middle hashes */}
+      <rect x={140} y={185} width={150} height={36} className={`${cell} tone-amber`} rx="3" />
+      <text x={215} y={208} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>
+        H(H(tx1)+H(tx2))
+      </text>
+      <rect x={460} y={185} width={150} height={36} className={`${cell} tone-amber`} rx="3" />
+      <text x={535} y={208} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>
+        H(H(tx3)+H(tx4))
+      </text>
+
+      <line className={`${arrow} tone-flame`} x1={215} y1={221} x2={345} y2={260} markerEnd="url(#diag-arrow-flame)" />
+      <line className={`${arrow} tone-flame`} x1={535} y1={221} x2={405} y2={260} markerEnd="url(#diag-arrow-flame)" />
+
+      {/* Root */}
+      <rect x={290} y={260} width={170} height={40} className={`${cell} tone-magenta`} rx="3" />
+      <text x={375} y={285} textAnchor="middle" className={`${cellValue} tone-magenta`}>
+        MERKLE ROOT
+      </text>
+
+      <text x="0" y="318" className={note}>
+        change any leaf, and every hash on the path to the root changes
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   19. Block chain (hashing advanced: blockchain)
+   ===================================================================== */
+function BlockChainDiagram() {
+  const blocks = [
+    { n: 0, prev: "0x000…", merkle: "0xa3f1…", nonce: "0x0042" },
+    { n: 1, prev: "0x91be…", merkle: "0x77c5…", nonce: "0x1a8e" },
+    { n: 2, prev: "0xd2c4…", merkle: "0x4f02…", nonce: "0x09d7" },
+  ];
+  const blockW = 200;
+  const gap = 28;
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 260"
+      ariaLabel="Three blocks arranged left to right. Each block stores the previous block's hash, the Merkle root of its transactions, and a nonce. An arrow from each block's prev-hash field reaches back to the previous block, forming a hash-linked chain."
+    >
+      <text x="0" y="20" className={groupTitle}>BLOCKCHAIN: each block names the previous one</text>
+
+      {blocks.map((b, i) => {
+        const x = 30 + i * (blockW + gap);
+        return (
+          <g key={i}>
+            <rect x={x} y={50} width={blockW} height={140} className={`${cell} tone-flame`} rx="4" />
+            <text x={x + blockW / 2} y={75} textAnchor="middle" className={`${cellValue} tone-flame`}>
+              BLOCK #{b.n}
+            </text>
+            <line x1={x + 10} y1={88} x2={x + blockW - 10} y2={88} className="diagram-divider" />
+
+            <text x={x + 10} y={108} className={note}>prev hash</text>
+            <text x={x + blockW - 10} y={108} textAnchor="end" className={`${cellValue} tone-cyan`} style={{ fontSize: "11px" }}>
+              {b.prev}
+            </text>
+
+            <text x={x + 10} y={132} className={note}>merkle root</text>
+            <text x={x + blockW - 10} y={132} textAnchor="end" className={`${cellValue} tone-magenta`} style={{ fontSize: "11px" }}>
+              {b.merkle}
+            </text>
+
+            <text x={x + 10} y={156} className={note}>nonce</text>
+            <text x={x + blockW - 10} y={156} textAnchor="end" className={`${cellValue} tone-lime`} style={{ fontSize: "11px" }}>
+              {b.nonce}
+            </text>
+
+            <text x={x + 10} y={180} className={note}>txns: 2,431</text>
+
+            {/* Curved arrow from prev-hash field back to previous block */}
+            {i > 0 && (
+              <path
+                className={`${arrow} tone-cyan`}
+                d={`M ${x} 108
+                    Q ${x - gap / 2} 35
+                      ${x - gap} 108`}
+                fill="none"
+                markerEnd="url(#diag-arrow-cyan)"
+              />
+            )}
+          </g>
+        );
+      })}
+
+      <text x="0" y="225" className={note}>
+        each block&apos;s prev-hash points back at the hash of the previous block
+      </text>
+      <text x="0" y="245" className={note}>
+        tamper with any block, every block after it has the wrong prev-hash, the chain breaks
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -811,6 +1660,15 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "struct-padding": StructPaddingDiagram,
   "kernel-boundary": KernelBoundaryDiagram,
   "fetch-execute-flow": FetchExecuteFlowDiagram,
+  "singly-linked-list": SinglyLinkedListDiagram,
+  "doubly-linked-list": DoublyLinkedListDiagram,
+  "linked-list-insert": LinkedListInsertDiagram,
+  "linked-list-delete": LinkedListDeleteDiagram,
+  "hash-function": HashFunctionDiagram,
+  "hash-table-basic": HashTableBasicDiagram,
+  "hash-collision-chain": HashCollisionChainDiagram,
+  "merkle-tree": MerkleTreeDiagram,
+  "block-chain": BlockChainDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

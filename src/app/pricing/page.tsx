@@ -67,7 +67,7 @@ const audience = [
   {
     label: "what they like",
     value: "Rust + C + depth",
-    desc: "Three levels per page — beginner, intermediate, advanced. Every topic includes Rust and C side-by-side.",
+    desc: "Three levels per page: beginner, intermediate, advanced. Every topic includes Rust and C side-by-side.",
   },
   {
     label: "what we ship",
