@@ -401,10 +401,10 @@ export const networking: PageContent = {
     },
   ],
   nextUp: {
-    eyebrow: "end of root.system",
-    title: "You've reached the top of the stack. Start over from the bottom.",
-    href: "/",
-    label: "home",
-    variant: "cyan",
+    eyebrow: "next up / 0x10",
+    title: "The capstone. From one transistor in 1947 to a financial network nobody owns.",
+    href: "/blockchain",
+    label: "blockchain",
+    variant: "magenta",
   },
 };

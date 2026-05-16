@@ -138,6 +138,14 @@ export const topics: Topic[] = [
     desc: "Where one machine becomes many. IP addresses, packets, TCP/IP, routing, sockets, and why every previous topic shows up the moment two computers talk.",
     levels: 3,
   },
+  {
+    href: "/blockchain",
+    label: "Blockchain",
+    num: "16",
+    accent: "var(--neon-bitcoin)",
+    desc: "The capstone. From one transistor in 1947 to a financial network nobody owns. How every previous topic stacks into Bitcoin, end to end, with nothing missing.",
+    levels: 3,
+  },
 ];
 
 export const topicLinks = topics.map(({ href, label }) => ({ href, label }));

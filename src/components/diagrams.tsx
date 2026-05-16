@@ -1,6 +1,6 @@
 import type { DiagramName } from "@/types/content";
 
-type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute" | "iris" | "flame" | "sky" | "teal";
+type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute" | "iris" | "flame" | "sky" | "teal" | "bitcoin" | "mint";
 
 const cell = "diagram-cell";
 const cellLabel = "diagram-cell-label";
@@ -137,6 +137,17 @@ function DiagramFrame({ viewBox, children, caption: cap, ariaLabel }: FrameProps
             orient="auto-start-reverse"
           >
             <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-teal)" />
+          </marker>
+          <marker
+            id="diag-arrow-bitcoin"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-bitcoin)" />
           </marker>
         </defs>
         {children}
@@ -1921,7 +1932,7 @@ function BitcoinGossipDiagram() {
       viewBox="0 0 720 320"
       ariaLabel="A Bitcoin gossip network. Node N1 originates a transaction and forwards it to every peer it knows about. Each of those peers forwards it to their own peers. Within seconds the transaction reaches every node in the network without any central coordinator."
     >
-      <text x="0" y="20" className={groupTitle}>GOSSIP PROTOCOL — every node forwards to every peer</text>
+      <text x="0" y="20" className={groupTitle}>GOSSIP PROTOCOL: every node forwards to every peer</text>
 
       {/* Peer links (background) */}
       {peerLinks.map(([a, b], i) => {
@@ -2199,6 +2210,159 @@ function BlockchainNodeTypesDiagram() {
 }
 
 /* =====================================================================
+   28. Computing stack ladder (blockchain beginner)
+   ===================================================================== */
+function ComputingStackLadderDiagram() {
+  const layers = [
+    { label: "BLOCKCHAIN", sub: "trust without trust", tone: "bitcoin" as Tone },
+    { label: "NETWORKING", sub: "TCP/IP, routing, gossip", tone: "sky" as Tone },
+    { label: "NODES", sub: "participants with identity", tone: "teal" as Tone },
+    { label: "HASHING", sub: "fingerprints, Merkle trees", tone: "flame" as Tone },
+    { label: "DATA STRUCTURES", sub: "arrays, lists, hash maps", tone: "iris" as Tone },
+    { label: "POINTERS", sub: "numbers that mean somewhere", tone: "mint" as Tone },
+    { label: "MEMORY", sub: "addressable bytes", tone: "amber" as Tone },
+    { label: "OS + CPU", sub: "fetch, decode, execute", tone: "violet" as Tone },
+    { label: "LOGIC GATES", sub: "AND, OR, XOR, NOT", tone: "magenta" as Tone },
+    { label: "BINARY", sub: "two states, one wire", tone: "lime" as Tone },
+    { label: "TRANSISTOR (1947)", sub: "a single switch", tone: "cyan" as Tone },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 460"
+      ariaLabel="A vertical ladder from a single transistor at the bottom to blockchain at the top. Each rung is a layer covered earlier on the site: binary, logic gates, OS and CPU, memory, pointers, data structures, hashing, nodes, networking, and finally blockchain at the top."
+    >
+      <text x="0" y="20" className={groupTitle}>FROM ONE SWITCH TO A FINANCIAL NETWORK NOBODY OWNS</text>
+
+      {layers.map((layer, i) => {
+        const y = 40 + i * 36;
+        return (
+          <g key={i}>
+            <rect x={20} y={y} width={470} height={28} className={`${cell} tone-${layer.tone}`} rx="3" />
+            <text x={32} y={y + 19} className={`${cellValue} tone-${layer.tone}`} style={{ fontSize: "13px" }}>
+              {layer.label}
+            </text>
+            <text x={500} y={y + 19} className={note}>
+              {layer.sub}
+            </text>
+          </g>
+        );
+      })}
+
+      <text x="0" y="450" className={note}>
+        each rung is a previous page on this site; the one above it cannot exist without it
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   29. Bitcoin block detail (blockchain intermediate)
+   ===================================================================== */
+function BitcoinBlockDetailDiagram() {
+  const headerFields = [
+    { label: "version", value: "4 bytes", tone: "cyan" as Tone },
+    { label: "prev block hash", value: "32 bytes (SHA-256)", tone: "cyan" as Tone },
+    { label: "merkle root", value: "32 bytes (SHA-256)", tone: "magenta" as Tone },
+    { label: "timestamp", value: "4 bytes (unix)", tone: "amber" as Tone },
+    { label: "bits (difficulty)", value: "4 bytes", tone: "amber" as Tone },
+    { label: "nonce", value: "4 bytes (the search space)", tone: "lime" as Tone },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 380"
+      ariaLabel="The anatomy of a Bitcoin block. The 80-byte header contains version, previous block hash, Merkle root, timestamp, difficulty bits, and a 4-byte nonce. Underneath sits the body: a list of transactions whose Merkle root is the one referenced in the header."
+    >
+      <text x="0" y="20" className={groupTitle}>BITCOIN BLOCK: anatomy of one rung in the chain</text>
+
+      <text x="0" y="50" className={cellLabel}>HEADER (80 bytes total)</text>
+      {headerFields.map((f, i) => {
+        const y = 65 + i * 36;
+        return (
+          <g key={i}>
+            <rect x={0} y={y} width={700} height={30} className={`${cell} tone-${f.tone}`} rx="3" />
+            <text x={14} y={y + 20} className={`${cellValue} tone-${f.tone}`} style={{ fontSize: "13px" }}>
+              {f.label}
+            </text>
+            <text x={686} y={y + 20} textAnchor="end" className={note}>
+              {f.value}
+            </text>
+          </g>
+        );
+      })}
+
+      <text x="0" y="305" className={cellLabel}>BODY (variable size; ~1 to ~4 MB in practice)</text>
+      <rect x={0} y={320} width={700} height={36} className={`${cell} tone-bitcoin`} rx="3" />
+      <text x={14} y={343} className={`${cellValue} tone-bitcoin`}>
+        TRANSACTIONS: usually 2,000 to 3,000 of them, hashed into the Merkle root above
+      </text>
+
+      <text x="0" y="378" className={note}>
+        the entire chain is just these blocks, each pointing back at the previous via prev block hash
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   30. Mining nonce search (blockchain intermediate)
+   ===================================================================== */
+function MiningNonceSearchDiagram() {
+  const tries = [
+    { nonce: "0x00000001", hash: "f2a91d4e...", ok: false },
+    { nonce: "0x00000002", hash: "a13c08b1...", ok: false },
+    { nonce: "0x00000003", hash: "8d7be902...", ok: false },
+    { nonce: "...", hash: "...", ok: false },
+    { nonce: "0x4f8a7c0e", hash: "0000000000000000abc4d...", ok: true },
+  ];
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="Mining as a brute-force search. The miner increments a 4-byte nonce, hashes the block header, and checks whether the resulting hash has enough leading zeros. After billions of failed attempts, one nonce produces a valid hash."
+    >
+      <text x="0" y="20" className={groupTitle}>MINING: guess a nonce, hash, repeat (billions of times per second)</text>
+
+      <text x="0" y="50" className={cellLabel}>TARGET</text>
+      <rect x={0} y={60} width={700} height={36} className={`${cell} tone-magenta`} rx="3" />
+      <text x={14} y={83} className={`${cellValue} tone-magenta`} style={{ fontSize: "13px" }}>
+        hash must start with 18+ zero digits (a number much smaller than 2^180)
+      </text>
+
+      <text x="0" y="125" className={cellLabel}>ATTEMPTS</text>
+      {tries.map((t, i) => {
+        const y = 140 + i * 30;
+        const tone: Tone = t.ok ? "lime" : "mute";
+        return (
+          <g key={i}>
+            <rect x={0} y={y} width={180} height={24} className={`${cell} tone-${tone}`} rx="3" />
+            <text x={12} y={y + 17} className={`${cellValue} tone-${tone}`} style={{ fontSize: "12px" }}>
+              {t.nonce}
+            </text>
+
+            <text x={200} y={y + 17} className={note} style={{ fontSize: "11px" }}>
+              sha256(header)
+            </text>
+            <line className={`${arrow} tone-${tone}`} x1={290} y1={y + 12} x2={320} y2={y + 12} markerEnd={`url(#diag-arrow-${tone})`} />
+
+            <rect x={330} y={y} width={300} height={24} className={`${cell} tone-${tone}`} rx="3" />
+            <text x={342} y={y + 17} className={`${cellValue} tone-${tone}`} style={{ fontSize: "12px" }}>
+              {t.hash}
+            </text>
+
+            <text x={645} y={y + 17} className={`${note} ${t.ok ? "" : "miss"}`}>
+              {t.ok ? "valid!" : "reject"}
+            </text>
+          </g>
+        );
+      })}
+
+      <text x="0" y="305" className={note}>
+        no shortcut, only brute force; electricity transformed into a number that begins with zeros
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -2229,6 +2393,9 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "node-three-meanings": NodeThreeMeaningsDiagram,
   "data-structure-nodes": DataStructureNodesDiagram,
   "blockchain-node-types": BlockchainNodeTypesDiagram,
+  "computing-stack-ladder": ComputingStackLadderDiagram,
+  "bitcoin-block-detail": BitcoinBlockDetailDiagram,
+  "mining-nonce-search": MiningNonceSearchDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

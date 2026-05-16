@@ -60,6 +60,7 @@
   --neon-flame: #ff8a3d;
   --neon-sky: #38bdf8;
   --neon-teal: #2dd4bf;
+  --neon-bitcoin: #f7931a;
 
   --lvl-beginner: var(--neon-lime);
   --lvl-intermediate: var(--neon-cyan);
@@ -2624,6 +2625,8 @@ tr:hover td {
 .diagram-cell.tone-flame     { stroke: var(--neon-flame);    fill: rgba(255, 138, 61, 0.08); }
 .diagram-cell.tone-sky       { stroke: var(--neon-sky);      fill: rgba(56, 189, 248, 0.07); }
 .diagram-cell.tone-teal      { stroke: var(--neon-teal);     fill: rgba(45, 212, 191, 0.08); }
+.diagram-cell.tone-bitcoin   { stroke: var(--neon-bitcoin);  fill: rgba(247, 147, 26, 0.10); }
+.diagram-cell.tone-mint      { stroke: var(--neon-mint);     fill: rgba(92, 255, 200, 0.07); }
 
 .diagram-cell-label {
   fill: var(--fg-mute);
@@ -2651,6 +2654,8 @@ tr:hover td {
 .diagram-cell-value.tone-flame     { fill: var(--neon-flame); }
 .diagram-cell-value.tone-sky       { fill: var(--neon-sky); }
 .diagram-cell-value.tone-teal      { fill: var(--neon-teal); }
+.diagram-cell-value.tone-bitcoin   { fill: var(--neon-bitcoin); }
+.diagram-cell-value.tone-mint      { fill: var(--neon-mint); }
 
 .diagram-note {
   fill: var(--fg-mute);
@@ -2685,6 +2690,7 @@ tr:hover td {
 .diagram-arrow.tone-flame   { stroke: var(--neon-flame); }
 .diagram-arrow.tone-sky     { stroke: var(--neon-sky); }
 .diagram-arrow.tone-teal    { stroke: var(--neon-teal); }
+.diagram-arrow.tone-bitcoin { stroke: var(--neon-bitcoin); }
 
 .diagram-divider {
   stroke: var(--line-strong);

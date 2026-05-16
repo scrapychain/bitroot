@@ -38,7 +38,10 @@ export type DiagramName =
   | "bitcoin-gossip"
   | "node-three-meanings"
   | "data-structure-nodes"
-  | "blockchain-node-types";
+  | "blockchain-node-types"
+  | "computing-stack-ladder"
+  | "bitcoin-block-detail"
+  | "mining-nonce-search";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -75,7 +78,8 @@ export interface PageContent {
     | "hashing"
     | "nodes"
     | "networking"
-    | "compile-vs-runtime";
+    | "compile-vs-runtime"
+    | "blockchain";
   hexLabel: string;
   category: string;
   hero: {
