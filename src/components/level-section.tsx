@@ -5,6 +5,7 @@ import { CardGrid } from "./card-grid";
 import { GateGrid } from "./gate-diagram";
 import { AsciiGrid } from "./ascii-grid";
 import { Diagram } from "./diagrams";
+import { DistributedWidget } from "./distributed-widgets";
 import type { Block, LevelContent } from "@/types/content";
 
 function renderTitle(html: string) {
@@ -32,6 +33,8 @@ async function RenderBlock({ block }: { block: Block }) {
       return <AsciiGrid />;
     case "diagram":
       return <Diagram name={block.name} caption={block.caption} />;
+    case "widget":
+      return <DistributedWidget name={block.name} />;
     case "raw":
       return <div dangerouslySetInnerHTML={{ __html: block.html }} />;
   }

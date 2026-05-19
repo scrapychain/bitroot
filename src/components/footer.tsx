@@ -65,7 +65,10 @@ export function Footer() {
           <h4 style={{ marginTop: "1.4rem" }}>elsewhere</h4>
           <ul>
             <li>
-              <Link href="/pricing">Sponsor BitRoot</Link>
+              <Link href="/sponsors">Sponsorship tiers</Link>
+            </li>
+            <li>
+              <Link href="/pricing">Sponsor details &amp; FAQ</Link>
             </li>
           </ul>
         </div>

@@ -1,6 +1,6 @@
 import type { DiagramName } from "@/types/content";
 
-type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute" | "iris" | "flame" | "sky" | "teal" | "bitcoin" | "mint";
+type Tone = "cyan" | "magenta" | "lime" | "amber" | "violet" | "azure" | "rose" | "mute" | "iris" | "flame" | "sky" | "teal" | "bitcoin" | "mint" | "indigo";
 
 const cell = "diagram-cell";
 const cellLabel = "diagram-cell-label";
@@ -148,6 +148,17 @@ function DiagramFrame({ viewBox, children, caption: cap, ariaLabel }: FrameProps
             orient="auto-start-reverse"
           >
             <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-bitcoin)" />
+          </marker>
+          <marker
+            id="diag-arrow-indigo"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-indigo)" />
           </marker>
         </defs>
         {children}
@@ -2363,6 +2374,117 @@ function MiningNonceSearchDiagram() {
 }
 
 /* =====================================================================
+   31. Distributed truth poster (distributed-systems advanced)
+   ===================================================================== */
+function DistributedTruthPosterDiagram() {
+  const ring = [
+    { x: 120, y: 80, label: "N1", alive: true, tone: "indigo" as Tone },
+    { x: 280, y: 60, label: "N2", alive: true, tone: "indigo" as Tone },
+    { x: 440, y: 80, label: "N3", alive: true, tone: "indigo" as Tone },
+    { x: 560, y: 200, label: "N4", alive: true, tone: "indigo" as Tone },
+    { x: 480, y: 340, label: "N5", alive: false, tone: "mute" as Tone },
+    { x: 280, y: 380, label: "N6", alive: true, tone: "indigo" as Tone },
+    { x: 100, y: 320, label: "N7", alive: true, tone: "indigo" as Tone },
+    { x: 30, y: 200, label: "N8", alive: true, tone: "indigo" as Tone },
+  ];
+
+  // Each node connects to two ring-neighbours and one cross-link
+  const edges: Array<[number, number]> = [];
+  for (let i = 0; i < ring.length; i++) {
+    edges.push([i, (i + 1) % ring.length]);
+    edges.push([i, (i + 3) % ring.length]);
+  }
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 460"
+      ariaLabel="A circular network of eight nodes around a central blockchain. One node is offline; the network's gossip edges route around it. Binary message packets flow between live nodes, all converging on a single shared chain at the centre."
+    >
+      <text x="0" y="20" className={groupTitle}>NO SINGLE MACHINE KNOWS EVERYTHING</text>
+      <text x="0" y="40" className={note}>many nodes, one shared truth — and the network routes around the failed one</text>
+
+      {/* Edges */}
+      {edges.map(([a, b], i) => {
+        const dead = !ring[a].alive || !ring[b].alive;
+        return (
+          <line
+            key={i}
+            x1={ring[a].x}
+            y1={ring[a].y}
+            x2={ring[b].x}
+            y2={ring[b].y}
+            stroke={dead ? "var(--fg-mute)" : "var(--line-strong)"}
+            strokeWidth="1"
+            strokeDasharray={dead ? "2 6" : "3 4"}
+            opacity={dead ? 0.3 : 0.7}
+          />
+        );
+      })}
+
+      {/* Central chain */}
+      {[0, 1, 2].map((i) => (
+        <g key={`b-${i}`}>
+          <rect
+            x={250 + i * 60}
+            y={210}
+            width={56}
+            height={36}
+            className={`${cell} tone-bitcoin`}
+            rx="4"
+          />
+          <text x={278 + i * 60} y={233} textAnchor="middle" className={`${cellValue} tone-bitcoin`} style={{ fontSize: "12px" }}>
+            B{i + 1}
+          </text>
+        </g>
+      ))}
+
+      {/* Arrows to/from each live node toward the chain */}
+      {ring.map((n, i) =>
+        n.alive ? (
+          <line
+            key={`f-${i}`}
+            className={`${arrow} tone-indigo`}
+            x1={n.x}
+            y1={n.y}
+            x2={360}
+            y2={228}
+            markerEnd="url(#diag-arrow-indigo)"
+            opacity={0.35}
+          />
+        ) : null,
+      )}
+
+      {/* Nodes on top */}
+      {ring.map((n) => (
+        <g key={n.label}>
+          <circle cx={n.x} cy={n.y} r={28} className={`${cell} tone-${n.tone}`} />
+          <text x={n.x} y={n.y + 5} textAnchor="middle" className={`${cellValue} tone-${n.tone}`}>
+            {n.label}
+          </text>
+          {!n.alive && (
+            <text x={n.x} y={n.y + 48} textAnchor="middle" className={`${note} miss`}>
+              offline
+            </text>
+          )}
+        </g>
+      ))}
+
+      {/* Caption row */}
+      <text x="360" y="270" textAnchor="middle" className={`${cellValue} tone-bitcoin`} style={{ fontSize: "13px" }}>
+        SHARED CHAIN
+      </text>
+      <text x="360" y="288" textAnchor="middle" className={note}>
+        every live node holds a copy
+      </text>
+
+      <text x="0" y="440" className={note}>
+        N5 is offline; gossip flows around it. when it returns it asks peers for what it missed.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -2396,6 +2518,7 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "computing-stack-ladder": ComputingStackLadderDiagram,
   "bitcoin-block-detail": BitcoinBlockDetailDiagram,
   "mining-nonce-search": MiningNonceSearchDiagram,
+  "distributed-truth-poster": DistributedTruthPosterDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

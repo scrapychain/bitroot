@@ -402,9 +402,9 @@ export const networking: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x10",
-    title: "The capstone. From one transistor in 1947 to a financial network nobody owns.",
-    href: "/blockchain",
-    label: "blockchain",
+    title: "No single machine knows everything. Many machines, no boss, eventual agreement.",
+    href: "/distributed-systems",
+    label: "distributed systems",
     variant: "magenta",
   },
 };

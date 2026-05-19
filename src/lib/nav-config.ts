@@ -139,9 +139,17 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/distributed-systems",
+    label: "Distributed Systems",
+    num: "16",
+    accent: "var(--neon-indigo)",
+    desc: "No single machine knows everything. Many computers, no central authority, eventual agreement. CAP theorem, gossip, Byzantine fault tolerance, and why this is the page right before blockchain.",
+    levels: 3,
+  },
+  {
     href: "/blockchain",
     label: "Blockchain",
-    num: "16",
+    num: "17",
     accent: "var(--neon-bitcoin)",
     desc: "The capstone. From one transistor in 1947 to a financial network nobody owns. How every previous topic stacks into Bitcoin, end to end, with nothing missing.",
     levels: 3,

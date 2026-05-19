@@ -61,6 +61,7 @@
   --neon-sky: #38bdf8;
   --neon-teal: #2dd4bf;
   --neon-bitcoin: #f7931a;
+  --neon-indigo: #818cf8;
 
   --lvl-beginner: var(--neon-lime);
   --lvl-intermediate: var(--neon-cyan);
@@ -2627,6 +2628,7 @@ tr:hover td {
 .diagram-cell.tone-teal      { stroke: var(--neon-teal);     fill: rgba(45, 212, 191, 0.08); }
 .diagram-cell.tone-bitcoin   { stroke: var(--neon-bitcoin);  fill: rgba(247, 147, 26, 0.10); }
 .diagram-cell.tone-mint      { stroke: var(--neon-mint);     fill: rgba(92, 255, 200, 0.07); }
+.diagram-cell.tone-indigo    { stroke: var(--neon-indigo);   fill: rgba(129, 140, 248, 0.08); }
 
 .diagram-cell-label {
   fill: var(--fg-mute);
@@ -2656,6 +2658,7 @@ tr:hover td {
 .diagram-cell-value.tone-teal      { fill: var(--neon-teal); }
 .diagram-cell-value.tone-bitcoin   { fill: var(--neon-bitcoin); }
 .diagram-cell-value.tone-mint      { fill: var(--neon-mint); }
+.diagram-cell-value.tone-indigo    { fill: var(--neon-indigo); }
 
 .diagram-note {
   fill: var(--fg-mute);
@@ -2691,6 +2694,7 @@ tr:hover td {
 .diagram-arrow.tone-sky     { stroke: var(--neon-sky); }
 .diagram-arrow.tone-teal    { stroke: var(--neon-teal); }
 .diagram-arrow.tone-bitcoin { stroke: var(--neon-bitcoin); }
+.diagram-arrow.tone-indigo  { stroke: var(--neon-indigo); }
 
 .diagram-divider {
   stroke: var(--line-strong);
@@ -2728,4 +2732,422 @@ tr:hover td {
 /* In-text tspan tones for accents inside group titles */
 .diagram-svg tspan.tone-rose { fill: var(--neon-rose); }
 .diagram-svg tspan.tone-lime { fill: var(--neon-lime); }
+
+/* ============================================
+   SPONSORS PAGE — tier blocks in a framed grid
+   ============================================ */
+.sponsors-hero {
+  max-width: 760px;
+  margin: 3rem 0 2rem;
+}
+
+.sponsors-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin: 0 0 1rem;
+}
+.sponsors-title .accent-cyan { color: var(--neon-cyan); }
+
+.sponsors-lede {
+  font-size: 1rem;
+  color: var(--fg-dim);
+  line-height: 1.65;
+  max-width: 640px;
+  margin: 0;
+}
+.sponsors-lede strong { color: var(--fg); }
+
+.sponsor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 2.5rem 0 3rem;
+}
+
+@media (max-width: 780px) {
+  .sponsor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sponsor-tier-card {
+  background: var(--bg-2);
+  padding: clamp(1.4rem, 3.5vw, 2rem) clamp(1.2rem, 3vw, 1.8rem);
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.2s ease;
+  min-width: 0;
+}
+
+.sponsor-tier-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--card-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.sponsor-tier-card:hover { background: var(--bg-3); }
+.sponsor-tier-card:hover::after { transform: scaleX(1); }
+.sponsor-tier-card:hover .sponsor-tier-arrow {
+  gap: 0.9rem;
+  color: var(--card-accent);
+}
+
+.sponsor-tier-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sponsor-tier-num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--fg-dim);
+}
+
+.sponsor-tier-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: var(--card-accent);
+  color: var(--bg-0);
+  padding: 0.18rem 0.5rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.sponsor-tier-name {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--card-accent, var(--fg));
+  line-height: 1;
+  margin-top: 0.2rem;
+}
+
+.sponsor-tier-unit {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-mute);
+  letter-spacing: 0.04em;
+}
+
+.sponsor-tier-price {
+  margin-top: 0.4rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.sponsor-tier-amount {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+}
+
+.sponsor-tier-duration {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.sponsor-tier-permonth {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-dim);
+}
+
+.sponsor-tier-desc {
+  font-size: 0.88rem;
+  color: var(--fg-dim);
+  line-height: 1.65;
+  margin: 0.6rem 0 0;
+}
+
+.sponsor-tier-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.sponsor-tier-features li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--fg-dim);
+  line-height: 1.55;
+}
+
+.sponsor-tier-features li::before {
+  content: "+";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-mono);
+  color: var(--card-accent, var(--neon-cyan));
+  font-weight: 700;
+}
+
+.sponsor-tier-arrow {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg);
+  margin-top: auto;
+  padding-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: gap 0.2s ease, color 0.2s ease;
+}
+
+/* footer notes + final CTA */
+.sponsors-foot {
+  margin: 1.2rem 0 2.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sponsors-foot-note {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-mute);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.sponsors-foot-link {
+  color: var(--neon-cyan);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sponsors-cta {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: clamp(1.6rem, 4vw, 2.4rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 0 0 4rem;
+}
+
+.sponsors-cta-text { flex: 1 1 320px; min-width: 0; }
+
+.sponsors-cta-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 0.6rem;
+}
+
+.sponsors-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3.4vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-bottom: 0.6rem;
+}
+
+.sponsors-cta-desc {
+  font-size: 0.92rem;
+  color: var(--fg-dim);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.sponsors-cta-button {
+  background: var(--neon-cyan);
+  color: var(--bg-0);
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.9rem 1.4rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+.sponsors-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+}
+
+/* ============================================
+   DISTRIBUTED-SYSTEMS INTERACTIVE WIDGETS
+   ============================================ */
+.widget-wrap {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  margin: 1.4rem 0;
+}
+
+.widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.widget-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+}
+
+.widget-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.widget-btn {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  color: var(--fg-dim);
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.widget-btn:hover {
+  background: var(--bg-3);
+  color: var(--fg);
+  border-color: var(--neon-indigo);
+}
+.widget-btn.is-active {
+  background: var(--neon-indigo);
+  color: var(--bg-0);
+  border-color: var(--neon-indigo);
+}
+
+.widget-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.widget-node {
+  cursor: pointer;
+  transition: r 0.2s ease, filter 0.2s ease;
+}
+
+.widget-node:hover {
+  filter: drop-shadow(0 0 8px var(--neon-indigo));
+}
+
+.widget-caption {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-mute);
+  margin-top: 0.8rem;
+  line-height: 1.55;
+}
+
+.widget-message {
+  fill: var(--neon-cyan);
+  pointer-events: none;
+}
+
+/* CAP triangle */
+.cap-vertex {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.cap-vertex-desc {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--fg-mute);
+}
+
+.cap-edge {
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+  fill: none;
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+.cap-edge.is-chosen {
+  stroke: var(--neon-indigo);
+  stroke-width: 3;
+}
+
+/* ============================================
+   LINK-CARDS GRID (cards that link to topic pages)
+   ============================================ */
+a.card,
+.card[href] {
+  text-decoration: none;
+}
+
+.card-link-arrow {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--neon-cyan);
+  letter-spacing: 0.06em;
+  transition: gap 0.2s ease;
+}
+
+.grid .card.is-link {
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.grid .card.is-link:hover {
+  background: var(--bg-2);
+  border-color: var(--neon-indigo);
+}
+.grid .card.is-link:hover .card-link-arrow {
+  color: var(--neon-indigo);
+}
 

@@ -41,7 +41,13 @@ export type DiagramName =
   | "blockchain-node-types"
   | "computing-stack-ladder"
   | "bitcoin-block-detail"
-  | "mining-nonce-search";
+  | "mining-nonce-search"
+  | "distributed-truth-poster";
+
+export type WidgetName =
+  | "gossip-network"
+  | "cap-triangle"
+  | "network-partition";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -49,7 +55,12 @@ export type Block =
   | { kind: "codepair"; pair: CodePair }
   | { kind: "callout"; variant: "info" | "warn"; title: string; body: string }
   | { kind: "table"; headers: string[]; rows: string[][] }
-  | { kind: "grid"; columns?: 2 | 3 | 4; cards: { label: string; value: string; desc: string }[] }
+  | {
+      kind: "grid";
+      columns?: 2 | 3 | 4;
+      cards: { label: string; value: string; desc: string; href?: string }[];
+    }
+  | { kind: "widget"; name: WidgetName }
   | { kind: "gates"; gates: Array<"AND" | "OR" | "NOT" | "XOR" | "NAND" | "NOR"> }
   | { kind: "asciiGrid" }
   | { kind: "diagram"; name: DiagramName; caption?: string }
@@ -79,6 +90,7 @@ export interface PageContent {
     | "nodes"
     | "networking"
     | "compile-vs-runtime"
+    | "distributed-systems"
     | "blockchain";
   hexLabel: string;
   category: string;
