@@ -84,6 +84,41 @@ int main(void) {
     return 0;
 }`;
 
+const cBitcoinHeader = `#include <stdint.h>
+
+// The Bitcoin P2P network message header,
+// from Bitcoin Core's primary header file.
+struct MessageHeader {
+    uint32_t magic;        // 0xD9B4BEF9 for mainnet
+    char     command[12];  // ASCII, NUL-padded
+    uint32_t length;       // payload size
+    uint32_t checksum;     // first 4 bytes of SHA256d
+};
+
+// "version" command name as 12 ASCII bytes:
+//   76 65 72 73 69 6F 6E 00 00 00 00 00
+//   v  e  r  s  i  o  n  \\0 \\0 \\0 \\0 \\0
+//
+// NUL (0x00, the first control code in ASCII)
+// pads the command name to fill the field.`;
+
+const rustBitcoinHeader = `// Same header, in Rust.
+#[repr(C)]
+struct MessageHeader {
+    magic:    u32,        // 0xD9B4BEF9 for mainnet
+    command:  [u8; 12],   // ASCII, NUL-padded
+    length:   u32,        // payload size
+    checksum: [u8; 4],    // first 4 bytes of SHA256d
+}
+
+// "version" command name as a 12-byte ASCII literal.
+const VERSION_COMMAND: [u8; 12] = *b"version\\0\\0\\0\\0\\0";
+// b"..."  creates a byte array;
+// each character is its ASCII value;
+// \\0 is the NUL control code as a padding byte.
+
+// 76 65 72 73 69 6F 6E 00 00 00 00 00 = the bytes on the wire.`;
+
 export const ascii: PageContent = {
   slug: "ascii",
   hexLabel: "0x03",
@@ -99,6 +134,13 @@ export const ascii: PageContent = {
       number: "01",
       title: "What is **ASCII**?",
       blocks: [
+        {
+          kind: "prose",
+          html: `<p>In 1963 engineers had a problem. IBM's computers used one code for the letter <code>A</code>. Honeywell used a different one. They literally could not talk to each other.</p>
+<p>So a committee sat down and built a universal dictionary. 128 characters. One number each. Agreed on by everyone. Forever.</p>
+<p>They called it the <strong>American Standard Code for Information Interchange</strong>. <strong>ASCII</strong>.</p>
+<p>Your computer has never read a single letter in its entire life. It only ever reads numbers. ASCII is how numbers pretend to be language.</p>`,
+        },
         {
           kind: "prose",
           html: `<p><strong>ASCII</strong> stands for <em>American Standard Code for Information Interchange</em>. It's a lookup table from 1963 that maps numbers <code>0</code> to <code>127</code> to characters: letters, digits, punctuation, and a handful of control codes for old teletype machines.</p>
@@ -120,6 +162,13 @@ export const ascii: PageContent = {
         {
           kind: "prose",
           html: `<p>Notice <code>A</code> = 65 and <code>a</code> = 97. Exactly 32 apart. Their binary forms differ by one bit (bit 5). That's why uppercase ↔ lowercase conversion is a single XOR operation: <code>'A' ^ 0x20 == 'a'</code>. Cleverness baked right into the table.</p>`,
+        },
+        { kind: "heading", text: "Try it: one character, one byte" },
+        { kind: "widget", name: "char-explorer" },
+        { kind: "widget", name: "text-encoder" },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Each of those bytes lives at a specific memory address in RAM. The OS allocated that space when your program started. <a href="/memory">← see: memory</a></p>`,
         },
         { kind: "heading", text: 'Print "Hi" character by character' },
         {
@@ -161,6 +210,10 @@ export const ascii: PageContent = {
             ["127", "DEL", "(none)", "Delete"],
           ],
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The ESC character (27) powers every terminal color you have ever seen. <code>\\x1b[31m</code> turns text red. <code>\\x1b[0m</code> resets it. Your terminal is just a stream of ASCII bytes with ESC sequences as the control channel. <a href="/operating-system">← see: operating system</a></p>`,
+        },
         { kind: "heading", text: "The printable ASCII table (32 to 126)" },
         {
           kind: "raw",
@@ -184,6 +237,10 @@ export const ascii: PageContent = {
           variant: "info",
           title: "// trivia worth keeping",
           body: `The <code>ESC</code> control code (27) is the gateway to <strong>ANSI escape sequences</strong>. That's how every CLI tool, from <code>git</code> to <code>htop</code>, draws colors and moves the cursor. They're literally just bytes: <code>ESC [ 31 m</code> = "switch to red".`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">HTTP, the protocol your browser uses, sends its headers as plain ASCII text. <code>GET /index.html HTTP/1.1</code> and <code>Host: bitroot.dev</code> are ASCII bytes wrapped in a TCP packet and sent as binary across the internet. <a href="/networking">← see: networking</a></p>`,
         },
       ],
     },
@@ -232,6 +289,89 @@ export const ascii: PageContent = {
           variant: "warn",
           title: "// the trap",
           body: `In C, <code>strlen("नमस्ते")</code> returns <strong>18</strong>, not 6. <code>str[0]</code> gives you a single byte, which is half a character. Slicing UTF-8 strings naively will corrupt them. Rust's <code>&amp;str</code> guarantees valid UTF-8 at the type level; that's one of the language's quiet superpowers.`,
+        },
+        { kind: "heading", text: "ASCII in blockchain and networking" },
+        {
+          kind: "prose",
+          html: `<p>ASCII shows up everywhere in the infrastructure that runs Bitcoin. When your Bitcoin node connects to another node it sends a handshake message. That message header is ASCII text.</p>
+<p>Bitcoin Core uses ASCII command names in its network protocol: <code>version</code>, <code>verack</code>, <code>inv</code>, <code>tx</code>, <code>block</code>. Each command is a 12-byte ASCII string padded with null bytes (<code>0x00</code>) to fill the field. <strong>NUL</strong>, the very first control code in ASCII, is still doing its job inside the Bitcoin network protocol sixty years after ASCII was invented.</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustBitcoinHeader },
+            c: { language: "c", code: cBitcoinHeader },
+          },
+        },
+        {
+          kind: "prose",
+          html: `<p>And the checksum in that header? SHA-256, applied twice. The same hash function built from AND gates and XOR gates that you will see on the hashing page.</p>
+<p>ASCII named the commands. Binary carries the bytes. SHA-256 verifies the integrity. TCP/IP delivers the packet. All four concepts. One message header.</p>`,
+        },
+        { kind: "heading", text: "Where ASCII appears in BitRoot" },
+        {
+          kind: "prose",
+          html: `<p>ASCII is the most quoted page on the site. Every later topic uses it for something.</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 3,
+          cards: [
+            {
+              label: "0x02 / binary",
+              value: "Letters as bit patterns",
+              desc: "ASCII codes are binary numbers. 'A' = 65 = 01000001. Seven bits that carry the weight of an entire alphabet.",
+              href: "/binary",
+            },
+            {
+              label: "0x01 / number systems",
+              value: "Three masks, one number",
+              desc: "ASCII codes are decimal (65), hex (0x41), and binary (01000001). The same number in three masks.",
+              href: "/number-systems",
+            },
+            {
+              label: "0x04 / logic gates",
+              value: "Case toggle is one XOR",
+              desc: "Uppercase to lowercase is one XOR operation. 'A' ^ 0x20 = 'a'. XOR is a logic gate. A logic gate is transistors. The alphabet runs on silicon.",
+              href: "/logic-gates",
+            },
+            {
+              label: "0x06 / memory",
+              value: "Strings live in RAM",
+              desc: "A string is a sequence of bytes at consecutive memory addresses. 'Hello' is five bytes starting at one address, ending five addresses later.",
+              href: "/memory",
+            },
+            {
+              label: "0x09 / pointers",
+              value: "char* is just an address",
+              desc: "In C a string is a pointer. char* str = \"Hello\" makes str the address of the H. The string only exists because the pointer knows where it starts.",
+              href: "/pointers",
+            },
+            {
+              label: "0x0B / arrays",
+              value: "char arrays + NUL",
+              desc: "A string is a char array. Each element one ASCII byte. C strings end with NUL (0x00), the first control code, still working after sixty years.",
+              href: "/arrays",
+            },
+            {
+              label: "0x0D / hashing",
+              value: "Bytes in, hash out",
+              desc: "SHA-256 hashes strings as bytes. 'Hello' becomes its ASCII bytes (72 101 108 108 111) then gets hashed to 256 bits. The input is always ASCII or UTF-8 bytes.",
+              href: "/hashing",
+            },
+            {
+              label: "0x0F / networking",
+              value: "HTTP is ASCII text",
+              desc: "HTTP headers are ASCII text. 'GET / HTTP/1.1' is ASCII. Every web request you have ever made started as ASCII characters converted to binary wrapped in a TCP packet.",
+              href: "/networking",
+            },
+            {
+              label: "0x11 / blockchain",
+              value: "12-byte ASCII commands",
+              desc: "Bitcoin network commands are 12-byte ASCII strings. 'version', 'tx', 'block', NUL-padded to fill the field. ASCII is inside the protocol that moves every Bitcoin transaction.",
+              href: "/blockchain",
+            },
+          ],
         },
         { kind: "heading", text: "Connecting back to bits" },
         {

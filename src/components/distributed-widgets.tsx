@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { WidgetName } from "@/types/content";
 
 interface NodePos {
@@ -197,7 +197,7 @@ function CapTriangleWidget() {
   return (
     <div className="widget-wrap">
       <div className="widget-head">
-        <span className="widget-title">{"// CAP theorem — pick any two"}</span>
+        <span className="widget-title">{"// CAP theorem - pick any two"}</span>
         <div className="widget-controls">
           {(Object.keys(CAP_SYSTEMS) as CapSystem[]).map((sys) => (
             <button
@@ -383,170 +383,301 @@ function NetworkPartitionWidget() {
       </svg>
 
       <p className="widget-caption">
-        partition the network, then write on either side — values diverge. heal the partition and the system reconciles (here: highest value wins; real CRDTs use more sophisticated merge rules).
+        partition the network, then write on either side - values diverge. heal the partition and the system reconciles (here: highest value wins; real CRDTs use more sophisticated merge rules).
       </p>
     </div>
   );
 }
 
 /* =====================================================================
-   4. Base converter: type any number, see it in all four bases instantly.
-      Bit squares are clickable — toggle a bit and every display updates.
+   4. Bit toggle: click bits, see the number they spell out
    ===================================================================== */
-function BaseConverterWidget() {
-  const [inputText, setInputText] = useState("173");
-  const [value, setValue] = useState(173);
-  const [isValid, setIsValid] = useState(true);
+const BIT_PRESETS: Array<{ label: string; value: number; note?: { text: string; href: string } }> = [
+  { label: "Try: 10", value: 10 },
+  {
+    label: "Try: 72 = 'H'",
+    value: 72,
+    note: { text: "This is the letter H in ASCII", href: "/ascii" },
+  },
+  { label: "Try: 255", value: 255 },
+  { label: "Try: 42", value: 42 },
+];
 
-  function parse(s: string): number | null {
-    const t = s.trim();
-    if (!t) return null;
-    let n: number;
-    if (/^0[xX][0-9a-fA-F]+$/.test(t))      n = parseInt(t, 16);
-    else if (/^0[bB][01]+$/.test(t))          n = parseInt(t.slice(2), 2);
-    else if (/^0[oO][0-7]+$/.test(t))         n = parseInt(t.slice(2), 8);
-    else if (/^[0-9]+$/.test(t))              n = parseInt(t, 10);
-    else return null;
-    return n >= 0 && n <= 0xffffffff ? n : null;
-  }
+function bitsOf(n: number): boolean[] {
+  // MSB on the left, LSB on the right
+  return Array.from({ length: 8 }, (_, i) => ((n >> (7 - i)) & 1) === 1);
+}
 
-  function handleInput(s: string) {
-    setInputText(s);
-    const n = parse(s);
-    if (n !== null) { setValue(n); setIsValid(true); }
-    else setIsValid(false);
-  }
+function valueOf(bits: boolean[]): number {
+  return bits.reduce((acc, b, i) => acc + (b ? 1 << (7 - i) : 0), 0);
+}
 
-  function quickSet(raw: string, n: number) {
-    setInputText(raw);
-    setValue(n);
-    setIsValid(true);
-  }
+function BitToggleWidget() {
+  const [bits, setBits] = useState<boolean[]>(bitsOf(72));
+  const [activePreset, setActivePreset] = useState<number | null>(72);
 
-  const bitWidth = value > 0xffff ? 32 : value > 0xff ? 16 : 8;
-  const bits = Array.from({ length: bitWidth }, (_, i) =>
-    (value >>> (bitWidth - 1 - i)) & 1,
-  );
+  const toggle = (i: number) => {
+    setBits((cur) => cur.map((b, idx) => (idx === i ? !b : b)));
+    setActivePreset(null);
+  };
 
-  function toggleBit(i: number) {
-    const pos = bitWidth - 1 - i;
-    const newVal = (value ^ (pos === 31 ? 0x80000000 : 1 << pos)) >>> 0;
-    setValue(newVal);
-    setInputText(String(newVal));
-    setIsValid(true);
-  }
+  const setFrom = (n: number) => {
+    setBits(bitsOf(n));
+    setActivePreset(n);
+  };
 
-  const setBits = bits
-    .map((b, i) => ({ b, pos: bitWidth - 1 - i, contrib: b * 2 ** (bitWidth - 1 - i) }))
-    .filter((x) => x.b === 1);
-
-  const QUICK = [
-    { label: "255",        raw: "255",        n: 255 },
-    { label: "72 (H)",     raw: "72",         n: 72 },
-    { label: "0xDEADBEEF", raw: "0xDEADBEEF", n: 0xdeadbeef },
-    { label: "65535",      raw: "65535",      n: 65535 },
-  ];
-
-  // Build bit display with nibble separators between groups of 4
-  const bitElements: React.ReactNode[] = [];
-  bits.forEach((b, i) => {
-    if (i > 0 && (bitWidth - i) % 4 === 0) {
-      bitElements.push(
-        <span key={`sep-${i}`} className="bc-nibble-sep" aria-hidden="true" />,
-      );
-    }
-    bitElements.push(
-      <button
-        key={i}
-        type="button"
-        className={`bc-bit${b ? " is-on" : " is-off"}`}
-        onClick={() => toggleBit(i)}
-        aria-label={`bit ${bitWidth - 1 - i} is ${b}, click to toggle`}
-        title={`2^${bitWidth - 1 - i} = ${(2 ** (bitWidth - 1 - i)).toLocaleString()}`}
-      >
-        {b}
-      </button>,
-    );
-  });
+  const value = valueOf(bits);
+  const binStr = bits.map((b) => (b ? "1" : "0")).join("");
+  const hexStr = value.toString(16).toUpperCase().padStart(2, "0");
+  const contributions = bits
+    .map((b, i) => (b ? 1 << (7 - i) : 0))
+    .map((v) => String(v));
+  const activeContributions = bits
+    .map((b, i) => (b ? 1 << (7 - i) : 0))
+    .filter((v) => v > 0);
+  const activeNote = activePreset === 72 ? BIT_PRESETS[1].note : null;
 
   return (
     <div className="widget-wrap">
       <div className="widget-head">
-        <span className="widget-title">{"// base converter"}</span>
+        <span className="widget-title">{"// the bit toggle — click any bit"}</span>
         <div className="widget-controls">
-          {QUICK.map((q) => (
+          {BIT_PRESETS.map((p) => (
             <button
-              key={q.n}
+              key={p.label}
               type="button"
-              className="widget-btn"
-              onClick={() => quickSet(q.raw, q.n)}
+              className={`widget-btn ${activePreset === p.value ? "is-active" : ""}`}
+              onClick={() => setFrom(p.value)}
             >
-              {q.label}
+              {p.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="bc-input-wrap">
-        <input
-          className={`bc-input${isValid ? "" : " is-error"}`}
-          value={inputText}
-          onChange={(e) => handleInput(e.target.value)}
-          placeholder="type a number: 255, 0xFF, 0b11111111, 0o377"
-          spellCheck={false}
-          aria-label="number input — accepts decimal, 0x hex, 0b binary, 0o octal"
-        />
+      <div className="bit-row">
+        {bits.map((b, i) => {
+          const power = 7 - i;
+          return (
+            <button
+              key={i}
+              type="button"
+              className={`bit-cell ${b ? "is-on" : ""}`}
+              onClick={() => toggle(i)}
+              aria-label={`bit at position 2^${power}, currently ${b ? "on" : "off"}`}
+            >
+              <span className="bit-power">2{["⁷", "⁶", "⁵", "⁴", "³", "²", "¹", "⁰"][i]}</span>
+              <span className="bit-value">{b ? "1" : "0"}</span>
+              <span className="bit-contrib">{b ? contributions[i] : "·"}</span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="bc-outputs">
-        {[
-          { label: "decimal", val: isValid ? value.toLocaleString()               : "—", cls: "" },
-          { label: "hex",     val: isValid ? "0x" + value.toString(16).toUpperCase() : "—", cls: " is-cyan" },
-          { label: "octal",   val: isValid ? "0o" + value.toString(8)             : "—", cls: " is-amber" },
-          { label: "binary",  val: isValid ? "0b" + value.toString(2)             : "—", cls: " is-violet" },
-        ].map((o) => (
-          <div key={o.label} className="bc-output">
-            <span className="bc-output-label">{o.label}</span>
-            <span className={`bc-output-value${o.cls}`}>{o.val}</span>
-          </div>
-        ))}
+      <div className="bit-sum">
+        <span className="bit-sum-eq">
+          {(activeContributions.length > 0 ? activeContributions.join(" + ") : "0")} = {value}
+        </span>
       </div>
 
-      {isValid && (
-        <>
-          <div
-            className="bc-bits"
-            role="group"
-            aria-label={`${bitWidth}-bit representation, click any bit to toggle`}
-          >
-            {bitElements}
-          </div>
+      <div className="bit-readout">
+        <div className="bit-readout-item">
+          <span className="bit-readout-label">decimal</span>
+          <span className="bit-readout-value bit-readout-big">{value}</span>
+        </div>
+        <div className="bit-readout-item">
+          <span className="bit-readout-label">binary</span>
+          <span className="bit-readout-value">{binStr}</span>
+        </div>
+        <div className="bit-readout-item">
+          <span className="bit-readout-label">hex</span>
+          <span className="bit-readout-value">0x{hexStr}</span>
+        </div>
+      </div>
 
-          {setBits.length > 0 ? (
-            <p className="bc-breakdown">
-              {setBits.map((x, i) => (
-                <span key={i}>
-                  {i > 0 && <span className="bc-op"> + </span>}
-                  <span className="bc-term">
-                    2<sup>{x.pos}</sup>
-                  </span>
-                  <span className="bc-contrib">({x.contrib.toLocaleString()})</span>
-                </span>
-              ))}
-              <span className="bc-result"> = {value.toLocaleString()}</span>
-            </p>
-          ) : (
-            <p className="bc-breakdown">
-              <span className="bc-term">0</span>
-              <span className="bc-result"> = 0</span>
-            </p>
-          )}
-        </>
+      {activeNote && (
+        <a className="bit-link-callout" href={activeNote.href}>
+          → {activeNote.text}
+        </a>
       )}
 
       <p className="widget-caption">
-        click any bit to toggle it — all four displays update instantly. accepts decimal,{" "}
-        <code>0x</code>hex, <code>0b</code>binary, <code>0o</code>octal. max 32 bits (4,294,967,295).
+        click any bit to toggle it. the binary, decimal, and hex below all update in lockstep. they are three notations for the same eight switch-states.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
+   5. Character explorer: type one char, see decimal / hex / binary / bits
+   ===================================================================== */
+const CHAR_QUICK_PICKS: string[] = ["A", "a", "Z", "0", "9", " ", "H", "i"];
+
+function CharExplorerWidget() {
+  const [ch, setCh] = useState<string>("H");
+
+  const code = ch.length > 0 ? ch.charCodeAt(0) : 0;
+  const safe = code >= 0 && code <= 127;
+  const bits = Array.from({ length: 8 }, (_, i) => ((code >> (7 - i)) & 1) === 1);
+  const binStr = bits.map((b) => (b ? "1" : "0")).join("");
+  const hexStr = code.toString(16).toUpperCase().padStart(2, "0");
+
+  const note =
+    ch === "H"
+      ? {
+          text: "this is the first byte of 'Hi'. the next page shows how your CPU processes this exact bit pattern.",
+          href: "/cpu",
+          linkLabel: "see: cpu",
+        }
+      : ch === " "
+        ? {
+            text: "space = 32 = 0x20 = 00100000. the same bit that separates uppercase from lowercase ('A' ^ 0x20 = 'a').",
+            href: "/logic-gates",
+            linkLabel: "see: logic gates",
+          }
+        : null;
+
+  const display = ch === " " ? "␣" : ch || "?";
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// character explorer — type any letter"}</span>
+        <div className="widget-controls">
+          {CHAR_QUICK_PICKS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={`widget-btn ${ch === c ? "is-active" : ""}`}
+              onClick={() => setCh(c)}
+            >
+              {c === " " ? "space" : c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="char-explorer">
+        <div className="char-display">
+          <div className="char-glyph">{display}</div>
+          <input
+            className="char-input"
+            value={ch}
+            maxLength={1}
+            onChange={(e) => setCh(e.target.value.slice(-1))}
+            aria-label="character"
+            placeholder="H"
+          />
+        </div>
+
+        <div className="char-readout">
+          <div className="char-readout-item">
+            <span className="char-readout-label">decimal</span>
+            <span className="char-readout-value">{safe ? code : "?"}</span>
+          </div>
+          <div className="char-readout-item">
+            <span className="char-readout-label">hex</span>
+            <span className="char-readout-value">0x{hexStr}</span>
+          </div>
+          <div className="char-readout-item">
+            <span className="char-readout-label">binary</span>
+            <span className="char-readout-value">{binStr}</span>
+          </div>
+        </div>
+
+        <div className="bit-row bit-row-sm">
+          {bits.map((b, i) => {
+            const power = 7 - i;
+            return (
+              <div key={i} className={`bit-cell bit-cell-sm ${b ? "is-on" : ""}`}>
+                <span className="bit-power">2{["⁷", "⁶", "⁵", "⁴", "³", "²", "¹", "⁰"][i]}</span>
+                <span className="bit-value">{b ? "1" : "0"}</span>
+                <span className="bit-contrib">{b ? String(1 << power) : "·"}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="char-tag">8 transistors in your CPU, in one of 256 patterns.</p>
+
+        {note && (
+          <a className="bit-link-callout" href={note.href}>
+            {note.text} <span style={{ opacity: 0.7 }}>·</span> {note.linkLabel} →
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* =====================================================================
+   6. Text encoder: type a word, see each character as bytes/bits
+   ===================================================================== */
+const TEXT_PRESETS = ["Hello", "BitRoot", "ASCII", "Hi"];
+
+function TextEncoderWidget() {
+  const [text, setText] = useState<string>("Hello");
+
+  const chars = text.split("").slice(0, 8);
+  const totalBytes = chars.length;
+  const totalBits = totalBytes * 8;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// text encoder — every character becomes 8 bits"}</span>
+        <div className="widget-controls">
+          {TEXT_PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`widget-btn ${text === p ? "is-active" : ""}`}
+              onClick={() => setText(p)}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <input
+        className="text-encoder-input"
+        value={text}
+        maxLength={8}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Hello"
+        aria-label="text to encode"
+      />
+
+      <div className="text-encoder-grid">
+        {chars.length === 0 && (
+          <p className="char-tag" style={{ gridColumn: "1 / -1" }}>
+            type a word above to see it become bytes.
+          </p>
+        )}
+        {chars.map((c, idx) => {
+          const code = c.charCodeAt(0);
+          const bits = Array.from({ length: 8 }, (_, i) => ((code >> (7 - i)) & 1) === 1);
+          const display = c === " " ? "␣" : c;
+          return (
+            <div key={idx} className="text-encoder-card">
+              <div className="text-encoder-glyph">{display}</div>
+              <div className="text-encoder-meta">
+                <span>{code}</span>
+                <span className="text-encoder-bin">{bits.map((b) => (b ? "1" : "0")).join("")}</span>
+              </div>
+              <div className="text-encoder-bits">
+                {bits.map((b, i) => (
+                  <span key={i} className={`text-encoder-bit ${b ? "is-on" : ""}`} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-encoder-summary">
+        {totalBytes} character{totalBytes === 1 ? "" : "s"} → {totalBits} bits → {totalBytes} byte{totalBytes === 1 ? "" : "s"} in memory.
       </p>
     </div>
   );
@@ -563,8 +694,12 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <CapTriangleWidget />;
     case "network-partition":
       return <NetworkPartitionWidget />;
-    case "base-converter":
-      return <BaseConverterWidget />;
+    case "bit-toggle":
+      return <BitToggleWidget />;
+    case "char-explorer":
+      return <CharExplorerWidget />;
+    case "text-encoder":
+      return <TextEncoderWidget />;
     default:
       return null;
   }

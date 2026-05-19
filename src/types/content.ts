@@ -48,7 +48,10 @@ export type WidgetName =
   | "gossip-network"
   | "cap-triangle"
   | "network-partition"
-  | "base-converter";
+  | "base-converter"
+  | "bit-toggle"
+  | "char-explorer"
+  | "text-encoder";
 
 export type Block =
   | { kind: "prose"; html: string }

@@ -93,6 +93,33 @@ int main(void) {
     return 0;
 }`;
 
+const rustSatoshis = `fn satoshis_to_btc(satoshis: u64) -> f64 {
+    satoshis as f64 / 100_000_000.0
+    // note: display only; never use floats
+    // for actual Bitcoin arithmetic
+}
+
+fn main() {
+    let balance: u64 = 100_000_000; // 1 BTC in satoshis
+    println!("Balance: {} BTC", satoshis_to_btc(balance));
+
+    // Bitcoin amounts as integer bits
+    println!("As bits: {:064b}", balance);
+    println!("As hex:  {:#018x}", balance);
+    // 0x0000000005f5e100
+}`;
+
+const cSatoshis = `#include <stdio.h>
+#include <stdint.h>
+
+int main(void) {
+    uint64_t balance = 100000000; // 1 BTC in satoshis
+    printf("Balance: %.8f BTC\\n", balance / 100000000.0);
+    printf("As hex: 0x%016lx\\n", balance);
+    // 0x0000000005f5e100
+    return 0;
+}`;
+
 export const binary: PageContent = {
   slug: "binary",
   hexLabel: "0x02",
@@ -108,6 +135,12 @@ export const binary: PageContent = {
       number: "01",
       title: "What is **binary**, really?",
       blocks: [
+        {
+          kind: "prose",
+          html: `<p>In 1947, a physicist at Bell Labs made electricity change direction. He called it a <strong>transistor</strong>.</p>
+<p>A transistor is just a switch. It has two states. High voltage or low voltage. On or off. <code>1</code> or <code>0</code>.</p>
+<p>That is the entire foundation of every computer ever built. Not because someone chose binary arbitrarily; because physics made it inevitable. A switch with two states is the simplest reliable building block that exists. Everything else is just what you can build when you wire enough of them together.</p>`,
+        },
         {
           kind: "prose",
           html: `<p>You already know how to count. When you write <code>237</code>, you don't think about it, but you're using a system called <strong>base-10</strong>: ten symbols (<code>0</code> through <code>9</code>), and each position is worth ten times more than the one to its right.</p>
@@ -133,6 +166,12 @@ export const binary: PageContent = {
         {
           kind: "prose",
           html: `<p>Computers are built from billions of tiny switches. A switch has two natural states: <strong>off</strong> (low voltage) and <strong>on</strong> (high voltage). Map <code>0</code> to off, <code>1</code> to on, and suddenly numbers, letters, images, and code are all just patterns of switch-states. The switch itself, the transistor, gets its own page later on.</p>`,
+        },
+        { kind: "heading", text: "Try it: toggle eight switches" },
+        { kind: "widget", name: "bit-toggle" },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Every transistor in your CPU is one of these switches. Your CPU has about 100 billion of them. <a href="/logic-gates">← see: logic gates</a></p>`,
         },
         { kind: "heading", text: "Your first program: print a number in binary" },
         {
@@ -189,6 +228,10 @@ export const binary: PageContent = {
           kind: "prose",
           html: `<p>The genius: addition <em>just works</em>. <code>5 + (−5)</code> as bits is <code>00000101 + 11111011 = 100000000</code>. The 9th bit overflows out, and you're left with <code>00000000</code> = 0. The hardware doesn't need separate adders for signed and unsigned numbers.</p>`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">SHA-256, the algorithm that secures Bitcoin, is 64 rounds of AND, OR, XOR, NOT, bit rotations and bit shifts. The same six operations in the table above. Logic gates doing mathematics at billions of cycles per second. <a href="/hashing">← see: hashing</a></p>`,
+        },
         { kind: "heading", text: "Bit tricks you'll actually use" },
         {
           kind: "codepair",
@@ -202,6 +245,10 @@ export const binary: PageContent = {
           variant: "info",
           title: "// the pattern",
           body: `<strong>Test</strong> a bit with <code>&amp;</code>, <strong>set</strong> with <code>|</code>, <strong>clear</strong> with <code>&amp; ~</code>, <strong>toggle</strong> with <code>^</code>. Memorise this and bit manipulation becomes muscle memory.`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">When the OS marks a file as readable, writable, or executable it sets three bits in a permission byte. <code>chmod 755</code> is just three octal digits. Each one is three bits. Your entire filesystem security model is bitwise flags. <a href="/operating-system">← see: operating system</a></p>`,
         },
       ],
     },
@@ -261,6 +308,81 @@ export const binary: PageContent = {
           variant: "warn",
           title: "// gotcha",
           body: `Never compare floats with <code>==</code>. Compare with an epsilon: <code>(a − b).abs() &lt; 1e-6</code>. Use integer or fixed-point math when correctness matters (currency, accounting, blockchain consensus).`,
+        },
+        { kind: "heading", text: "Binary in blockchain" },
+        {
+          kind: "prose",
+          html: `<p>Every concept on this page appears inside a Bitcoin node.</p>
+<p><strong>SHA-256</strong> uses bitwise AND, XOR, NOT and bit rotations: the exact operations from the intermediate section above. 64 rounds, billions of times per second.</p>
+<p>Bitcoin transaction amounts are <strong>64-bit unsigned integers</strong> (<code>u64</code> in Rust). Stored in little-endian byte order. The same endianness your x86 CPU uses.</p>
+<p>The <code>0.1 + 0.2</code> problem is why blockchain ledgers <em>never</em> use floats. Every balance is stored as an integer. In Bitcoin, the unit is <strong>satoshis</strong>. <code>1 BTC = 100,000,000 satoshis</code>. Integer math, exact, always.</p>
+<p>A blockchain private key is <strong>256 bits</strong> of random data. 32 bytes. The same bit patterns this page is about, just 256 of them. Chosen once, never shared, never lost.</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustSatoshis },
+            c: { language: "c", code: cSatoshis },
+          },
+        },
+        { kind: "heading", text: "Where binary appears in BitRoot" },
+        {
+          kind: "prose",
+          html: `<p>This page is the substrate; every other topic on the site rests on it somewhere. The shortest path from any of them back to here:</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 3,
+          cards: [
+            {
+              label: "0x01 / number systems",
+              value: "Base 2 explained",
+              desc: "Binary is base 2. The number-systems page is why that base exists and what it means.",
+              href: "/number-systems",
+            },
+            {
+              label: "0x03 / ascii",
+              value: "Bit patterns with names",
+              desc: "'H' = 72 = 01001000. ASCII is 128 specific binary patterns given names.",
+              href: "/ascii",
+            },
+            {
+              label: "0x04 / logic gates",
+              value: "Transistors wired together",
+              desc: "Logic gates are transistors wired to compute binary operations. AND, OR, XOR: all binary.",
+              href: "/logic-gates",
+            },
+            {
+              label: "0x05 / cpu",
+              value: "Machine code is binary",
+              desc: "The CPU's fetch-decode-execute cycle operates entirely on binary instructions. Every opcode is bits.",
+              href: "/cpu",
+            },
+            {
+              label: "0x06 / memory",
+              value: "Organised binary",
+              desc: "Every byte in RAM is 8 bits. Every address is a binary number. Memory is organised binary.",
+              href: "/memory",
+            },
+            {
+              label: "0x0D / hashing",
+              value: "64 rounds of binary",
+              desc: "SHA-256 is 64 rounds of binary operations: AND, XOR, bit rotations. The output is 256 bits of binary.",
+              href: "/hashing",
+            },
+            {
+              label: "0x0F / networking",
+              value: "Binary at planet scale",
+              desc: "Every packet is binary. Every IP address is 32 bits of binary. The internet is binary at scale.",
+              href: "/networking",
+            },
+            {
+              label: "0x11 / blockchain",
+              value: "256-bit keys, u64 amounts",
+              desc: "Bitcoin private keys are 256 random bits. Transaction amounts are 64-bit integers. The entire chain is hashes of hashes of hashes, all of it binary, all of it integer math.",
+              href: "/blockchain",
+            },
+          ],
         },
         { kind: "heading", text: "Where this lands you" },
         {
