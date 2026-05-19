@@ -47,7 +47,8 @@ export type DiagramName =
 export type WidgetName =
   | "gossip-network"
   | "cap-triangle"
-  | "network-partition";
+  | "network-partition"
+  | "base-converter";
 
 export type Block =
   | { kind: "prose"; html: string }

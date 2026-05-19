@@ -163,6 +163,18 @@ export const numberSystems: PageContent = {
       blocks: [
         {
           kind: "prose",
+          html: `<p><em>Your computer has never seen the number 173.</em><br>
+<em>It has only ever seen <code>10101101</code>.</em><br>
+<em>But your browser shows you <code>173</code>.</em><br>
+<em>And your debugger shows you <code>0xAD</code>.</em><br>
+<em>And your Unix terminal shows you <code>0o255</code>.</em></p>
+<p><em>Same value.<br>
+Four different masks.<br>
+All hiding the same binary underneath.</em></p>
+<p><strong>This is number systems.</strong></p>`,
+        },
+        {
+          kind: "prose",
           html: `<p>A <strong>base</strong> (or <em>radix</em>) is just the number of distinct symbols you use to write numbers, plus the rule that <em>each position to the left is worth that many times more than the one to its right</em>. That's the whole idea. Once you see it, every base in the world reduces to the same shape.</p>
 <p>You write <code>237</code> in <strong>base 10</strong> because you have ten symbols (<code>0</code> to <code>9</code>) and each position is a power of ten:</p>`,
         },
@@ -215,6 +227,8 @@ export const numberSystems: PageContent = {
 </ul>
 <p>Hex works for this because <strong>16 = 2⁴</strong>: every hex digit is exactly four binary digits. Splitting a 32-bit value into 8 hex digits is a no-arithmetic operation. Octal works the same way (8 = 2³, three bits per octal digit), and that's the reason it ever existed at all.</p>`,
         },
+        { kind: "heading", text: "Try it: convert any number" },
+        { kind: "widget", name: "base-converter" },
         { kind: "heading", text: "Same value, four ways of writing it" },
         {
           kind: "codepair",
@@ -238,7 +252,7 @@ export const numberSystems: PageContent = {
       blocks: [
         {
           kind: "prose",
-          html: `<p>Once you know binary, hex is almost free. Each hex digit is one nibble: four bits. Memorise the table once and you'll read byte dumps for the rest of your life.</p>`,
+          html: `<p>Once you know binary, hex is almost free. Every hex digit is exactly four bits. Memorise that table once and you will read memory dumps for the rest of your life.</p>`,
         },
         {
           kind: "table",
@@ -290,6 +304,12 @@ export const numberSystems: PageContent = {
               desc: "Java <code>.class</code> files start with <code>CAFEBABE</code>; PNG starts with <code>89 50 4E 47</code>; ELF with <code>7F 45 4C 46</code>. File-format signatures are pure hex.",
             },
           ],
+        },
+        {
+          kind: "callout",
+          variant: "info",
+          title: "// connection: hashing",
+          body: `Every SHA-256 hash is 64 hex characters. 64 hex × 4 bits = <strong>256 bits</strong>. That's the entire security model of Bitcoin — one 256-bit number that's practically impossible to reverse. <a href="/hashing" class="inline-link">← See: Hashing</a>`,
         },
         { kind: "heading", text: "Octal: the survivor" },
         {
@@ -378,10 +398,22 @@ export const numberSystems: PageContent = {
             c: { language: "c", code: cGray },
           },
         },
+        {
+          kind: "callout",
+          variant: "info",
+          title: "// the full chain",
+          body: `Gray code uses XOR and bit shifts. XOR is a logic gate. A logic gate is transistors wired together. The same transistors that started this entire story. <a href="/logic-gates" class="inline-link">← See: Logic Gates</a>`,
+        },
         { kind: "heading", text: "Base 64 (and friends)" },
         {
           kind: "prose",
           html: `<p>When binary data has to travel through a text-only channel (email bodies, JSON, URLs), it's encoded in <strong>base 64</strong>: 6 bits per character (2⁶ = 64 symbols, the alphabet <code>A</code> to <code>Z</code>, <code>a</code> to <code>z</code>, <code>0</code> to <code>9</code>, <code>+</code>, <code>/</code>). Three bytes (24 bits) become four base-64 characters; size grows by 33%. Variants include <em>base32</em> (case-insensitive, 5 bits per char) and <em>base58</em> (Bitcoin addresses, omits visually ambiguous <code>0OIl</code>).</p>`,
+        },
+        {
+          kind: "callout",
+          variant: "info",
+          title: "// base58: a safety decision disguised as a number system",
+          body: `Bitcoin addresses use Base 58. Base 58 removes <code>0</code>, <code>O</code>, <code>I</code>, <code>l</code> — the characters that look the same in most fonts. Because a single misread character means your Bitcoin is gone forever. The encoding choice is a user-safety decision disguised as a number system. <a href="/blockchain" class="inline-link">← See: Blockchain</a>`,
         },
         { kind: "heading", text: "Larger and stranger bases" },
         {
@@ -421,6 +453,49 @@ export const numberSystems: PageContent = {
           variant: "info",
           title: "// from numbers to bits",
           body: `Decimal lives in your head. Hex lives in your debugger. Binary lives in the wires. The next page goes all the way down to that last layer: what binary actually <em>is</em>, and what you can do with it once you're there.`,
+        },
+        { kind: "heading", text: "Where number systems appear in BitRoot" },
+        {
+          kind: "grid",
+          columns: 3,
+          cards: [
+            {
+              label: "binary",
+              value: "base 2",
+              desc: "Binary is base 2. This page explains why — the next page shows what you do with it.",
+              href: "/binary",
+            },
+            {
+              label: "ascii",
+              value: "'H' = 72 = 0x48",
+              desc: "'H' = 72 decimal = 0x48 hex = 01001000 binary. Every character is a number in disguise.",
+              href: "/ascii",
+            },
+            {
+              label: "memory",
+              value: "0x7ffeef3a…",
+              desc: "Every memory address is a hex number. Understanding hex is required reading before touching pointers.",
+              href: "/memory",
+            },
+            {
+              label: "hashing",
+              value: "64 hex chars",
+              desc: "SHA-256 outputs 64 hex characters = 256 bits. The entire cryptographic security model is built on this one number.",
+              href: "/hashing",
+            },
+            {
+              label: "networking",
+              value: "192.168.0.1",
+              desc: "IP addresses are binary written as decimal. MAC addresses are hex. Two number systems in the same packet header.",
+              href: "/networking",
+            },
+            {
+              label: "blockchain",
+              value: "256-bit hex",
+              desc: "Bitcoin private keys are 256-bit hex numbers. Every hash is hex. Every block ID is hex. The whole chain is hex.",
+              href: "/blockchain",
+            },
+          ],
         },
       ],
     },

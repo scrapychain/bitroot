@@ -1811,7 +1811,7 @@ function PacketReassemblyDiagram() {
       ariaLabel="A message is split into four packets numbered 1 through 4 by the sender. They arrive at the receiver out of order: 2, 4, 1, 3. The receiver uses the sequence numbers to reassemble the packets back into the original ordered sequence 1, 2, 3, 4."
     >
       {/* Sent */}
-      <text x="0" y="20" className={groupTitle}>SENT — in order</text>
+      <text x="0" y="20" className={groupTitle}>SENT - in order</text>
       {[1, 2, 3, 4].map((n, i) => (
         <g key={`s-${n}`}>
           <rect x={20 + i * 110} y={35} width={90} height={42} className={`${cell} tone-cyan`} rx="3" />
@@ -1827,7 +1827,7 @@ function PacketReassemblyDiagram() {
       </text>
 
       {/* Arrived */}
-      <text x="0" y="135" className={groupTitle}>ARRIVED — out of order</text>
+      <text x="0" y="135" className={groupTitle}>ARRIVED -out of order</text>
       {[2, 4, 1, 3].map((n, i) => (
         <g key={`a-${i}`}>
           <rect x={20 + i * 110} y={150} width={90} height={42} className={`${cell} tone-flame`} rx="3" />
@@ -2139,7 +2139,7 @@ function DataStructureNodesDiagram() {
       </text>
 
       <text x="0" y="295" className={note}>
-        SAME node, more pointers per slot — list (1), tree (2), graph (many), hash-map bucket (chain).
+        SAME node, more pointers per slot - list (1), tree (2), graph (many), hash-map bucket (chain).
       </text>
       <text x="0" y="313" className={note}>
         The data structure is just a choice about how many neighbours a single node can know.
@@ -2183,7 +2183,7 @@ function BlockchainNodeTypesDiagram() {
       viewBox="0 0 720 360"
       ariaLabel="Four kinds of blockchain node. Full nodes store and verify everything. Light or SPV nodes store only block headers. Mining or validator nodes propose new blocks. Archive nodes keep full state at every historical block."
     >
-      <text x="0" y="20" className={groupTitle}>BLOCKCHAIN NODE TYPES — what each one stores and does</text>
+      <text x="0" y="20" className={groupTitle}>BLOCKCHAIN NODE TYPES - what each one stores and does</text>
 
       {types.map((t, i) => {
         const col = i % 2;
@@ -2214,7 +2214,7 @@ function BlockchainNodeTypesDiagram() {
       })}
 
       <text x="0" y="350" className={note}>
-        every type speaks the same protocol over TCP/IP — the differences are in what they bother to keep
+        every type speaks the same protocol over TCP/IP - the differences are in what they bother to keep
       </text>
     </DiagramFrame>
   );
@@ -2401,7 +2401,7 @@ function DistributedTruthPosterDiagram() {
       ariaLabel="A circular network of eight nodes around a central blockchain. One node is offline; the network's gossip edges route around it. Binary message packets flow between live nodes, all converging on a single shared chain at the centre."
     >
       <text x="0" y="20" className={groupTitle}>NO SINGLE MACHINE KNOWS EVERYTHING</text>
-      <text x="0" y="40" className={note}>many nodes, one shared truth — and the network routes around the failed one</text>
+      <text x="0" y="40" className={note}>many nodes, one shared truth - and the network routes around the failed one</text>
 
       {/* Edges */}
       {edges.map(([a, b], i) => {

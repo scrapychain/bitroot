@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { WidgetName } from "@/types/content";
 
 interface NodePos {
@@ -161,7 +161,7 @@ function GossipNetworkWidget() {
       </svg>
 
       <p className="widget-caption">
-        click any node — it broadcasts to its three peers; each of those forwards to theirs; within a few hops every node has the message. no coordinator, just forwarding.
+        click any node, it broadcasts to its three peers; each of those forwards to theirs; within a few hops every node has the message. no coordinator, just forwarding.
       </p>
     </div>
   );
@@ -390,6 +390,169 @@ function NetworkPartitionWidget() {
 }
 
 /* =====================================================================
+   4. Base converter: type any number, see it in all four bases instantly.
+      Bit squares are clickable — toggle a bit and every display updates.
+   ===================================================================== */
+function BaseConverterWidget() {
+  const [inputText, setInputText] = useState("173");
+  const [value, setValue] = useState(173);
+  const [isValid, setIsValid] = useState(true);
+
+  function parse(s: string): number | null {
+    const t = s.trim();
+    if (!t) return null;
+    let n: number;
+    if (/^0[xX][0-9a-fA-F]+$/.test(t))      n = parseInt(t, 16);
+    else if (/^0[bB][01]+$/.test(t))          n = parseInt(t.slice(2), 2);
+    else if (/^0[oO][0-7]+$/.test(t))         n = parseInt(t.slice(2), 8);
+    else if (/^[0-9]+$/.test(t))              n = parseInt(t, 10);
+    else return null;
+    return n >= 0 && n <= 0xffffffff ? n : null;
+  }
+
+  function handleInput(s: string) {
+    setInputText(s);
+    const n = parse(s);
+    if (n !== null) { setValue(n); setIsValid(true); }
+    else setIsValid(false);
+  }
+
+  function quickSet(raw: string, n: number) {
+    setInputText(raw);
+    setValue(n);
+    setIsValid(true);
+  }
+
+  const bitWidth = value > 0xffff ? 32 : value > 0xff ? 16 : 8;
+  const bits = Array.from({ length: bitWidth }, (_, i) =>
+    (value >>> (bitWidth - 1 - i)) & 1,
+  );
+
+  function toggleBit(i: number) {
+    const pos = bitWidth - 1 - i;
+    const newVal = (value ^ (pos === 31 ? 0x80000000 : 1 << pos)) >>> 0;
+    setValue(newVal);
+    setInputText(String(newVal));
+    setIsValid(true);
+  }
+
+  const setBits = bits
+    .map((b, i) => ({ b, pos: bitWidth - 1 - i, contrib: b * 2 ** (bitWidth - 1 - i) }))
+    .filter((x) => x.b === 1);
+
+  const QUICK = [
+    { label: "255",        raw: "255",        n: 255 },
+    { label: "72 (H)",     raw: "72",         n: 72 },
+    { label: "0xDEADBEEF", raw: "0xDEADBEEF", n: 0xdeadbeef },
+    { label: "65535",      raw: "65535",      n: 65535 },
+  ];
+
+  // Build bit display with nibble separators between groups of 4
+  const bitElements: React.ReactNode[] = [];
+  bits.forEach((b, i) => {
+    if (i > 0 && (bitWidth - i) % 4 === 0) {
+      bitElements.push(
+        <span key={`sep-${i}`} className="bc-nibble-sep" aria-hidden="true" />,
+      );
+    }
+    bitElements.push(
+      <button
+        key={i}
+        type="button"
+        className={`bc-bit${b ? " is-on" : " is-off"}`}
+        onClick={() => toggleBit(i)}
+        aria-label={`bit ${bitWidth - 1 - i} is ${b}, click to toggle`}
+        title={`2^${bitWidth - 1 - i} = ${(2 ** (bitWidth - 1 - i)).toLocaleString()}`}
+      >
+        {b}
+      </button>,
+    );
+  });
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// base converter"}</span>
+        <div className="widget-controls">
+          {QUICK.map((q) => (
+            <button
+              key={q.n}
+              type="button"
+              className="widget-btn"
+              onClick={() => quickSet(q.raw, q.n)}
+            >
+              {q.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bc-input-wrap">
+        <input
+          className={`bc-input${isValid ? "" : " is-error"}`}
+          value={inputText}
+          onChange={(e) => handleInput(e.target.value)}
+          placeholder="type a number: 255, 0xFF, 0b11111111, 0o377"
+          spellCheck={false}
+          aria-label="number input — accepts decimal, 0x hex, 0b binary, 0o octal"
+        />
+      </div>
+
+      <div className="bc-outputs">
+        {[
+          { label: "decimal", val: isValid ? value.toLocaleString()               : "—", cls: "" },
+          { label: "hex",     val: isValid ? "0x" + value.toString(16).toUpperCase() : "—", cls: " is-cyan" },
+          { label: "octal",   val: isValid ? "0o" + value.toString(8)             : "—", cls: " is-amber" },
+          { label: "binary",  val: isValid ? "0b" + value.toString(2)             : "—", cls: " is-violet" },
+        ].map((o) => (
+          <div key={o.label} className="bc-output">
+            <span className="bc-output-label">{o.label}</span>
+            <span className={`bc-output-value${o.cls}`}>{o.val}</span>
+          </div>
+        ))}
+      </div>
+
+      {isValid && (
+        <>
+          <div
+            className="bc-bits"
+            role="group"
+            aria-label={`${bitWidth}-bit representation, click any bit to toggle`}
+          >
+            {bitElements}
+          </div>
+
+          {setBits.length > 0 ? (
+            <p className="bc-breakdown">
+              {setBits.map((x, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="bc-op"> + </span>}
+                  <span className="bc-term">
+                    2<sup>{x.pos}</sup>
+                  </span>
+                  <span className="bc-contrib">({x.contrib.toLocaleString()})</span>
+                </span>
+              ))}
+              <span className="bc-result"> = {value.toLocaleString()}</span>
+            </p>
+          ) : (
+            <p className="bc-breakdown">
+              <span className="bc-term">0</span>
+              <span className="bc-result"> = 0</span>
+            </p>
+          )}
+        </>
+      )}
+
+      <p className="widget-caption">
+        click any bit to toggle it — all four displays update instantly. accepts decimal,{" "}
+        <code>0x</code>hex, <code>0b</code>binary, <code>0o</code>octal. max 32 bits (4,294,967,295).
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -400,6 +563,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <CapTriangleWidget />;
     case "network-partition":
       return <NetworkPartitionWidget />;
+    case "base-converter":
+      return <BaseConverterWidget />;
     default:
       return null;
   }
