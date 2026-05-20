@@ -147,9 +147,17 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/cap-theorem",
+    label: "CAP Theorem",
+    num: "17",
+    accent: "var(--neon-crimson)",
+    desc: "You can only guarantee two. Consistency, availability, partition tolerance: pick any two. The silent tradeoff every database, app, and blockchain quietly made without telling you.",
+    levels: 3,
+  },
+  {
     href: "/blockchain",
     label: "Blockchain",
-    num: "17",
+    num: "18",
     accent: "var(--neon-bitcoin)",
     desc: "The capstone. From one transistor in 1947 to a financial network nobody owns. How every previous topic stacks into Bitcoin, end to end, with nothing missing.",
     levels: 3,

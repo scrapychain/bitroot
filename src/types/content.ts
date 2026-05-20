@@ -52,7 +52,8 @@ export type WidgetName =
   | "bit-toggle"
   | "char-explorer"
   | "text-encoder"
-  | "gate-simulator";
+  | "gate-simulator"
+  | "cap-visualiser";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -96,6 +97,7 @@ export interface PageContent {
     | "networking"
     | "compile-vs-runtime"
     | "distributed-systems"
+    | "cap-theorem"
     | "blockchain";
   hexLabel: string;
   category: string;

@@ -106,10 +106,10 @@ struct BitcoinMessage {
 
 export const blockchain: PageContent = {
   slug: "blockchain",
-  hexLabel: "0x11",
+  hexLabel: "0x12",
   category: "system",
   hero: {
-    eyebrow: "root.system / 0x11 / system",
+    eyebrow: "root.system / 0x12 / system",
     title: `From one switch<br><span class="highlight">to a financial network nobody owns.</span>`,
     lede: `Bell Labs, 1947. A small piece of germanium let electricity change direction on command. Two states, one switch. In 2008, nine pages by Satoshi Nakamoto turned that same primitive, scaled by billions, into a network that lets thousands of strangers agree on a shared truth without trusting each other. This page is the bridge between those two events. It's the capstone: every other page on the site shows up here, in order, with nothing missing.`,
   },

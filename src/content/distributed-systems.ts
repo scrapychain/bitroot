@@ -453,9 +453,9 @@ export const distributedSystems: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x11",
-    title: "The capstone. From one transistor in 1947 to a financial network nobody owns.",
-    href: "/blockchain",
-    label: "blockchain",
+    title: "You can only guarantee two. The silent tradeoff every system makes.",
+    href: "/cap-theorem",
+    label: "cap theorem",
     variant: "magenta",
   },
 };

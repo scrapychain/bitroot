@@ -807,6 +807,231 @@ function GateSimulatorWidget() {
 }
 
 /* =====================================================================
+   8. CAP visualiser: a live two-datacentre partition simulator
+   ===================================================================== */
+type CapPick = "CP" | "AP";
+
+const START_BALANCE = 500;
+
+function nowStamp(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+function CapVisualiserWidget() {
+  const [connected, setConnected] = useState(true);
+  const [choice, setChoice] = useState<CapPick>("CP");
+  const [london, setLondon] = useState(START_BALANCE);
+  const [ny, setNy] = useState(START_BALANCE);
+  // balance captured at the moment of the cut, for reconciliation math
+  const [partitionBase, setPartitionBase] = useState(START_BALANCE);
+  const [diverged, setDiverged] = useState(false);
+  const [amount, setAmount] = useState(300);
+  const [log, setLog] = useState<Array<{ t: string; msg: string; tone: string }>>([
+    { t: nowStamp(), msg: "both data centres online and synced at $500", tone: "ok" },
+  ]);
+  const [banner, setBanner] = useState<{ msg: string; tone: string } | null>(null);
+
+  const addLog = (msg: string, tone: string) =>
+    setLog((cur) => [{ t: nowStamp(), msg, tone }, ...cur].slice(0, 8));
+
+  const cutNetwork = () => {
+    setConnected(false);
+    setPartitionBase(london); // london === ny while synced
+    addLog("network partition: London and New York can no longer talk", "warn");
+    setBanner({ msg: "Network partitioned. The theorem is now active.", tone: "warn" });
+  };
+
+  const restore = () => {
+    if (choice === "AP" && diverged) {
+      // reconcile
+      const withdrawn = partitionBase - london + (partitionBase - ny);
+      const finalBalance = partitionBase - withdrawn;
+      if (finalBalance < 0) {
+        addLog(
+          `reconcile failed: $${withdrawn} withdrawn against a $${partitionBase} balance`,
+          "bad",
+        );
+        setBanner({
+          msg: `Conflict detected: total withdrawals ($${withdrawn}) exceed the original balance ($${partitionBase}). This is a double-spend.`,
+          tone: "bad",
+        });
+        // leave balances diverged to show the damage
+        setConnected(true);
+        return;
+      }
+      setLondon(finalBalance);
+      setNy(finalBalance);
+      setDiverged(false);
+      addLog(`reconciled: both servers agree on $${finalBalance}`, "ok");
+      setBanner({ msg: `Reconciled successfully. Both servers now hold $${finalBalance}.`, tone: "ok" });
+    } else {
+      addLog("connection restored, servers in sync", "ok");
+      setBanner({ msg: "Connection restored.", tone: "ok" });
+    }
+    setConnected(true);
+  };
+
+  const withdraw = (server: "london" | "ny") => {
+    const amt = Math.max(0, Math.floor(amount) || 0);
+    const label = server === "london" ? "London" : "New York";
+
+    if (connected) {
+      // synced: both copies update together
+      const next = (server === "london" ? london : ny) - amt;
+      if (next < 0) {
+        addLog(`${label} rejected $${amt}: insufficient funds`, "bad");
+        setBanner({ msg: "Insufficient funds.", tone: "bad" });
+        return;
+      }
+      setLondon(next);
+      setNy(next);
+      addLog(`${label} withdrew $${amt}, replicated to both servers, balance $${next}`, "ok");
+      setBanner({ msg: `Synced withdrawal applied to both servers. Balance $${next}.`, tone: "ok" });
+      return;
+    }
+
+    // partitioned
+    if (choice === "CP") {
+      addLog(`${label} rejected $${amt}: cannot verify with primary server`, "warn");
+      setBanner({
+        msg: "Transaction rejected. Cannot verify with the primary server. The system is protecting data integrity.",
+        tone: "warn",
+      });
+      return;
+    }
+
+    // AP: accept locally even though we cannot sync
+    if (server === "london") {
+      setLondon((v) => v - amt);
+    } else {
+      setNy((v) => v - amt);
+    }
+    setDiverged(true);
+    addLog(`${label} accepted $${amt} locally, servers now diverged`, "warn");
+    setBanner({
+      msg: "System accepted the transaction. Warning: the servers have diverged. They will reconcile when the connection restores.",
+      tone: "warn",
+    });
+  };
+
+  const reset = () => {
+    setConnected(true);
+    setLondon(START_BALANCE);
+    setNy(START_BALANCE);
+    setPartitionBase(START_BALANCE);
+    setDiverged(false);
+    setBanner(null);
+    setLog([{ t: nowStamp(), msg: "reset: both data centres synced at $500", tone: "ok" }]);
+  };
+
+  const status = connected ? "ONLINE" : "PARTITIONED";
+
+  return (
+    <div className="widget-wrap cap-vis">
+      <div className="widget-head">
+        <span className="widget-title">{"// CAP visualiser — cut the network and choose a side"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      {/* two data centres */}
+      <div className="cap-dc-row">
+        <div className={`cap-dc ${connected ? "is-online" : "is-partitioned"} ${diverged ? "is-diverged" : ""}`}>
+          <div className="cap-dc-head">
+            <span className="cap-dc-name">Data Centre A · London</span>
+            <span className={`cap-dc-badge ${connected ? "ok" : "warn"}`}>{status}</span>
+          </div>
+          <div className="cap-dc-balance">${london}</div>
+          <div className="cap-dc-sub">{connected ? "synced" : choice === "CP" ? "locked" : diverged ? "local only" : "synced"}</div>
+        </div>
+
+        <div className="cap-link">
+          <div className={`cap-link-line ${connected ? "is-up" : "is-down"}`} />
+          <button
+            type="button"
+            className={`cap-link-btn ${connected ? "" : "is-cut"}`}
+            onClick={connected ? cutNetwork : restore}
+          >
+            {connected ? "cut the network" : choice === "AP" && diverged ? "restore + reconcile" : "restore connection"}
+          </button>
+        </div>
+
+        <div className={`cap-dc ${connected ? "is-online" : "is-partitioned"} ${diverged ? "is-diverged" : ""}`}>
+          <div className="cap-dc-head">
+            <span className="cap-dc-name">Data Centre B · New York</span>
+            <span className={`cap-dc-badge ${connected ? "ok" : "warn"}`}>{status}</span>
+          </div>
+          <div className="cap-dc-balance">${ny}</div>
+          <div className="cap-dc-sub">{connected ? "synced" : choice === "CP" ? "locked" : diverged ? "stale" : "synced"}</div>
+        </div>
+      </div>
+
+      {/* CAP choice */}
+      <div className="cap-choice">
+        <span className="cap-choice-label">when partitioned, choose:</span>
+        <div className="cap-choice-btns">
+          <button
+            type="button"
+            className={`widget-btn ${choice === "CP" ? "is-active" : ""}`}
+            onClick={() => setChoice("CP")}
+          >
+            choose consistency (CP)
+          </button>
+          <button
+            type="button"
+            className={`widget-btn ${choice === "AP" ? "is-active" : ""}`}
+            onClick={() => setChoice("AP")}
+          >
+            choose availability (AP)
+          </button>
+        </div>
+      </div>
+
+      {/* transactions */}
+      <div className="cap-txn">
+        <label className="cap-txn-amount">
+          amount
+          <input
+            type="number"
+            min={0}
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+          />
+        </label>
+        <button type="button" className="widget-btn" onClick={() => withdraw("london")}>
+          withdraw from London
+        </button>
+        <button type="button" className="widget-btn" onClick={() => withdraw("ny")}>
+          withdraw from New York
+        </button>
+      </div>
+
+      {banner && <div className={`cap-banner ${banner.tone}`}>{banner.msg}</div>}
+
+      {/* event log */}
+      <div className="cap-log">
+        <div className="cap-log-title">event log</div>
+        {log.map((e, i) => (
+          <div key={i} className={`cap-log-row ${e.tone}`}>
+            <span className="cap-log-time">{e.t}</span>
+            <span className="cap-log-msg">{e.msg}</span>
+          </div>
+        ))}
+      </div>
+
+      <p className="widget-caption">
+        cut the network, pick CP or AP, then withdraw from each city. CP refuses during a partition (consistency wins). AP accepts on both sides and diverges (availability wins), then reconciles, or detects a double-spend, on restore.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -825,6 +1050,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <TextEncoderWidget />;
     case "gate-simulator":
       return <GateSimulatorWidget />;
+    case "cap-visualiser":
+      return <CapVisualiserWidget />;
     default:
       return null;
   }
