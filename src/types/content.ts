@@ -51,7 +51,8 @@ export type WidgetName =
   | "base-converter"
   | "bit-toggle"
   | "char-explorer"
-  | "text-encoder";
+  | "text-encoder"
+  | "gate-simulator";
 
 export type Block =
   | { kind: "prose"; html: string }

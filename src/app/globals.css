@@ -3640,3 +3640,130 @@ a.card,
   text-align: center;
 }
 
+/* ============================================
+   GATE SIMULATOR WIDGET (logic-gates page)
+   ============================================ */
+.gate-sim {
+  display: flex;
+  align-items: stretch;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.gate-sim-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.gate-input {
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--font-mono);
+}
+.gate-input:hover:not(.is-disabled) {
+  border-color: var(--neon-cyan);
+}
+.gate-input.is-on {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+}
+.gate-input.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.gate-input-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: var(--fg-mute);
+}
+
+.gate-input-bit {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fg-mute);
+}
+.gate-input.is-on .gate-input-bit {
+  color: var(--neon-cyan);
+}
+
+.gate-sim-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  color: var(--fg-mute);
+  padding: 0 0.4rem;
+}
+
+.gate-output {
+  flex: 1 1 200px;
+  min-width: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.gate-output.is-one {
+  border-color: var(--neon-emerald);
+  background: rgba(43, 255, 159, 0.08);
+  box-shadow: 0 0 16px rgba(43, 255, 159, 0.2);
+}
+.gate-output.is-zero {
+  border-color: var(--neon-rose);
+  background: rgba(255, 92, 138, 0.06);
+}
+
+.gate-output-bit {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1;
+}
+.gate-output.is-one .gate-output-bit { color: var(--neon-emerald); }
+.gate-output.is-zero .gate-output-bit { color: var(--neon-rose); }
+
+.gate-output-op {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--fg-dim);
+  letter-spacing: 0.04em;
+}
+
+.gate-sim-expr {
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin: 0 0 0.6rem;
+  overflow-x: auto;
+}
+.gate-sim-expr code {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  color: var(--neon-cyan);
+  white-space: pre;
+}
+

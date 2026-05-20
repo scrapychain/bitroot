@@ -53,6 +53,45 @@ int main(void) {
     return 0;
 }`;
 
+const rustSha = `// Three of the core functions inside SHA-256.
+// Every operation is a gate you met on this page.
+fn ch(e: u32, f: u32, g: u32) -> u32 {
+    (e & f) ^ (!e & g)
+    // AND gate, XOR gate, NOT gate
+    // three gates, one function
+    // 64 times per hash
+    // billions of times per second
+    // on every Bitcoin miner on Earth
+}
+
+fn maj(a: u32, b: u32, c: u32) -> u32 {
+    (a & b) ^ (a & c) ^ (b & c)
+    // majority vote across three bits
+    // three AND gates, two XOR gates
+}
+
+fn rotr(x: u32, n: u32) -> u32 {
+    x.rotate_right(n)
+    // bit rotation
+    // shifts bits around the 32-bit word
+    // no new gate type needed
+}`;
+
+const cSha = `#include <stdint.h>
+
+// The same three functions in C.
+uint32_t ch(uint32_t e, uint32_t f, uint32_t g) {
+    return (e & f) ^ (~e & g);
+}
+
+uint32_t maj(uint32_t a, uint32_t b, uint32_t c) {
+    return (a & b) ^ (a & c) ^ (b & c);
+}
+
+uint32_t rotr(uint32_t x, uint32_t n) {
+    return (x >> n) | (x << (32 - n));
+}`;
+
 export const logicGates: PageContent = {
   slug: "logic-gates",
   hexLabel: "0x04",
@@ -70,6 +109,12 @@ export const logicGates: PageContent = {
       blocks: [
         {
           kind: "prose",
+          html: `<p>In 1947, at Bell Labs in New Jersey, a physicist named William Shockley placed two gold foil contacts onto a sliver of germanium. He applied a small voltage. And for the first time in history, one electrical signal controlled another. He called it a <strong>transistor</strong>.</p>
+<p>He had no idea he had just built the foundation of every computer, every phone, every blockchain, and every line of code ever written.</p>
+<p>That single switch is still the only trick computing has ever used. Everything else is just how many of them you can wire together, and how fast you can make them switch.</p>`,
+        },
+        {
+          kind: "prose",
           html: `<p>A <strong>transistor</strong> is a tiny three-terminal device. Two of the terminals carry current; the third controls whether that current flows. Apply a voltage to the control terminal and the circuit closes; current flows. Remove it and the circuit opens.</p>
 <p>That's it. <em>That</em> is the foundation of computing. Every laptop, phone, satellite, and smart fridge is, at its core, a city of these switches connected to each other in just the right way. Map "current flowing" to <code>1</code> and "no current" to <code>0</code>, and you've bridged the physical world into the binary one you read about on the first page.</p>`,
         },
@@ -80,11 +125,17 @@ export const logicGates: PageContent = {
         },
         { kind: "heading", text: "The four core gates" },
         { kind: "gates", gates: ["AND", "OR", "NOT", "XOR"] },
+        { kind: "heading", text: "Try it: wire your own gate" },
+        { kind: "widget", name: "gate-simulator" },
         {
           kind: "callout",
           variant: "info",
           title: "// remember from page 1?",
           body: `You met <code>&amp;</code>, <code>|</code>, <code>~</code>, and <code>^</code> as bitwise operators in code. Those operators <strong>are these gates</strong>. When your program runs <code>x &amp; y</code>, the CPU is literally feeding the bits of <code>x</code> and <code>y</code> into AND gates etched in silicon.`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">When you write <code>x &amp; y</code> in Rust or C the compiler emits a single AND instruction. The CPU feeds the bits of <code>x</code> and <code>y</code> into AND gates etched into silicon. The same gates you just simulated above. <a href="/binary">← see: binary</a></p>`,
         },
       ],
     },
@@ -138,6 +189,10 @@ export const logicGates: PageContent = {
           variant: "info",
           title: "// what just happened",
           body: `The function above is a faithful software simulation of the actual circuit running on every processor when you write <code>x + y</code>. Real CPUs use faster variants (carry-lookahead, Kogge-Stone) for speed, but the logic is identical.`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The full adder above is a software simulation of the actual circuit in your CPU. When your CPU executes <code>ADD RAX, RBX</code> it is running this exact logic in hardware at four billion cycles per second. <a href="/cpu">← see: cpu</a></p>`,
         },
       ],
     },
@@ -219,6 +274,35 @@ export const logicGates: PageContent = {
   <li>And <em>that</em> is how a string like <code>"hello"</code> ends up flickering electrons in your CPU at 5 GHz.</li>
 </ol>`,
         },
+        { kind: "heading", text: "Gates in Bitcoin: SHA-256" },
+        {
+          kind: "prose",
+          html: `<p>Every hash function you have ever used is built from logic gates. <strong>SHA-256</strong>, the algorithm that secures Bitcoin, performs 64 rounds of operations on its input data. Every single operation is one of these:</p>
+<ul>
+  <li><strong>AND gate</strong>: <code>(e &amp; f)</code></li>
+  <li><strong>XOR gate</strong>: <code>(a ^ b)</code></li>
+  <li><strong>NOT gate</strong>: <code>(~e)</code></li>
+  <li><strong>Bit rotation</strong>: <code>x.rotate_right(n)</code></li>
+  <li><strong>Bit shift</strong>: <code>x &gt;&gt; n</code></li>
+</ul>
+<p>The same five operations. The same gates you learned on this page. Running on the same transistors Shockley invented in 1947. Here is the heart of one SHA-256 round, in both languages:</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustSha },
+            c: { language: "c", code: cSha },
+          },
+        },
+        {
+          kind: "prose",
+          html: `<p>Bitcoin miners run SHA-256 billions of times per second, looking for a hash that starts with enough zeros. Every attempt is these three functions. Every function is AND, XOR, NOT, and shifts. Every operation is logic gates. Every gate is transistors. Every transistor is a switch.</p>
+<p>From one switch in 1947 to a network securing hundreds of billions of dollars. One gate at a time.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">SHA-256 is 64 rounds of AND, XOR, NOT and bit rotations, the exact operations on this page, hashed into the 256-bit fingerprint that secures every Bitcoin block. <a href="/hashing">← see: hashing</a></p>`,
+        },
         { kind: "heading", text: "Where to go from here" },
         {
           kind: "prose",
@@ -228,8 +312,68 @@ export const logicGates: PageContent = {
   <li><strong>Computer organization</strong>: pipelines, caches, branch prediction, how chips get fast.</li>
   <li><strong>FPGAs &amp; HDLs</strong>, where you write hardware in code with Verilog, Chisel, or SpinalHDL.</li>
   <li><strong>Build a CPU yourself</strong>: the <em>nand2tetris</em> course takes you from NAND gates to running a full OS.</li>
+  <li><strong>Build SHA-256 from scratch</strong>: implement the full algorithm using only the AND, XOR, NOT, and shift operations from this page. Every line of code maps directly to a gate on a chip.</li>
 </ul>
 <p>The point isn't to know every layer in detail. The point is to know they're <em>there</em>, stacked on top of each other, all the way down to electrons.</p>`,
+        },
+        { kind: "heading", text: "Where logic gates appear in BitRoot" },
+        {
+          kind: "prose",
+          html: `<p>This is the page everything else rests on. Every later topic reaches back to a gate somewhere:</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 3,
+          cards: [
+            {
+              label: "0x02 / binary",
+              value: "Operators are gates",
+              desc: "Bitwise operators in code are logic gates in hardware. & is AND, | is OR, ^ is XOR, ~ is NOT. When your program runs them, silicon switches fire.",
+              href: "/binary",
+            },
+            {
+              label: "0x03 / ascii",
+              value: "Case toggle is one XOR",
+              desc: "Uppercase to lowercase is a single XOR operation. 'A' ^ 0x20 = 'a'. One gate. One switch. The whole alphabet.",
+              href: "/ascii",
+            },
+            {
+              label: "0x05 / cpu",
+              value: "Billions of gates, organised",
+              desc: "A CPU is billions of logic gates organised to compute. The fetch-decode-execute cycle is gates switching in sequence at four billion times per second.",
+              href: "/cpu",
+            },
+            {
+              label: "0x06 / memory",
+              value: "Gates that remember",
+              desc: "An SR latch is two NOR gates in a feedback loop: a memory cell. Flip-flops are clocked latches; registers are flip-flops in parallel. Memory is gates remembering.",
+              href: "/memory",
+            },
+            {
+              label: "0x01 / number systems",
+              value: "Gates only speak binary",
+              desc: "Hex is how humans read binary; binary is how gates think. Every hex digit is four gate states. The translation is effortless because gates only speak binary.",
+              href: "/number-systems",
+            },
+            {
+              label: "0x0D / hashing",
+              value: "SHA-256 is gates",
+              desc: "SHA-256 is AND, XOR, NOT, and bit rotations: all logic gates, all built from transistors. The entire security of Bitcoin runs on gates you learned here.",
+              href: "/hashing",
+            },
+            {
+              label: "0x09 / pointers",
+              value: "Addresses through gates",
+              desc: "A memory address is a binary number; binary is gate states. When the CPU follows a pointer it feeds an address through logic gates to locate data in RAM.",
+              href: "/pointers",
+            },
+            {
+              label: "0x11 / blockchain",
+              value: "Proof of work is gates",
+              desc: "Bitcoin miners run SHA-256 billions of times per second. Every hash attempt is logic gates firing on silicon. Proof of work is computation; computation is gates; gates are transistors; transistors are switches.",
+              href: "/blockchain",
+            },
+          ],
         },
       ],
     },

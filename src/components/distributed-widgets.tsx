@@ -684,6 +684,129 @@ function TextEncoderWidget() {
 }
 
 /* =====================================================================
+   7. Gate simulator: toggle inputs, pick a gate, watch the output
+   ===================================================================== */
+type GateKind = "AND" | "OR" | "XOR" | "NOT" | "NAND";
+
+const GATE_INFO: Record<
+  GateKind,
+  { mathSym: string; expr: (a: number, b: number) => string; eval: (a: number, b: number) => number; usesB: boolean }
+> = {
+  AND: {
+    mathSym: "·",
+    expr: () => "let out = a & b;",
+    eval: (a, b) => a & b,
+    usesB: true,
+  },
+  OR: {
+    mathSym: "+",
+    expr: () => "let out = a | b;",
+    eval: (a, b) => a | b,
+    usesB: true,
+  },
+  XOR: {
+    mathSym: "⊕",
+    expr: () => "let out = a ^ b;",
+    eval: (a, b) => a ^ b,
+    usesB: true,
+  },
+  NOT: {
+    mathSym: "¬",
+    expr: () => "let out = !a & 1;",
+    eval: (a) => (a ? 0 : 1),
+    usesB: false,
+  },
+  NAND: {
+    mathSym: "·",
+    expr: () => "let out = !(a & b) & 1;",
+    eval: (a, b) => ((a & b) ? 0 : 1),
+    usesB: true,
+  },
+};
+
+function GateSimulatorWidget() {
+  const [a, setA] = useState<0 | 1>(1);
+  const [b, setB] = useState<0 | 1>(1);
+  const [gate, setGate] = useState<GateKind>("AND");
+
+  const info = GATE_INFO[gate];
+  const out = info.eval(a, b);
+  const usesB = info.usesB;
+
+  const mathLine = usesB
+    ? gate === "NAND"
+      ? `${gate}: ¬(${a} · ${b}) = ${out}`
+      : `${gate}: ${a} ${info.mathSym} ${b} = ${out}`
+    : `${gate}: ¬${a} = ${out}`;
+
+  const exprComment = usesB
+    ? `// ${a} ${gate === "AND" || gate === "NAND" ? "&" : gate === "OR" ? "|" : "^"} ${b} = ${out}`
+    : `// !${a} = ${out}`;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// try it — wire your own gate"}</span>
+        <div className="widget-controls">
+          {(Object.keys(GATE_INFO) as GateKind[]).map((g) => (
+            <button
+              key={g}
+              type="button"
+              className={`widget-btn ${gate === g ? "is-active" : ""}`}
+              onClick={() => setGate(g)}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="gate-sim">
+        <div className="gate-sim-inputs">
+          <button
+            type="button"
+            className={`gate-input ${a ? "is-on" : ""}`}
+            onClick={() => setA((v) => (v ? 0 : 1))}
+          >
+            <span className="gate-input-label">INPUT A</span>
+            <span className="gate-input-bit">{a}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`gate-input ${b ? "is-on" : ""} ${usesB ? "" : "is-disabled"}`}
+            onClick={() => usesB && setB((v) => (v ? 0 : 1))}
+            disabled={!usesB}
+          >
+            <span className="gate-input-label">INPUT B</span>
+            <span className="gate-input-bit">{usesB ? b : "–"}</span>
+          </button>
+        </div>
+
+        <div className="gate-sim-arrow" aria-hidden="true">
+          →
+        </div>
+
+        <div className={`gate-output ${out ? "is-one" : "is-zero"}`}>
+          <span className="gate-output-bit">{out}</span>
+          <span className="gate-output-op">{mathLine}</span>
+        </div>
+      </div>
+
+      <pre className="gate-sim-expr">
+        <code>
+          {info.expr(a, b)} {exprComment}
+        </code>
+      </pre>
+
+      <p className="widget-caption">
+        toggle the inputs, pick a gate. the output and the Rust expression update live. NOT ignores input B; everything else uses both.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -700,6 +823,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <CharExplorerWidget />;
     case "text-encoder":
       return <TextEncoderWidget />;
+    case "gate-simulator":
+      return <GateSimulatorWidget />;
     default:
       return null;
   }
