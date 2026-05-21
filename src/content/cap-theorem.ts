@@ -491,9 +491,9 @@ export const capTheorem: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x12",
-    title: "The system that chose consistency above everything: how Bitcoin actually works.",
-    href: "/blockchain",
-    label: "blockchain",
+    title: "CAP told you what breaks. PACELC tells you what you choose every second.",
+    href: "/pacelc",
+    label: "pacelc",
     variant: "magenta",
   },
 };

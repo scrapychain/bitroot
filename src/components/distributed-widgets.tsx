@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { WidgetName } from "@/types/content";
 
 interface NodePos {
@@ -1032,6 +1032,412 @@ function CapVisualiserWidget() {
 }
 
 /* =====================================================================
+   9. Fetch-decode-execute: step a toy CPU through a 5-instruction program
+   ===================================================================== */
+type Stage = "idle" | "fetch" | "decode" | "execute" | "halted";
+
+const FDE_PROGRAM: Array<{ byte: number; asm: string }> = [
+  { byte: 0b00100101, asm: "LOAD r0, 5" },
+  { byte: 0b00101111, asm: "LOAD r1, 7" },
+  { byte: 0b01100001, asm: "ADD  r0, r1" },
+  { byte: 0b10100000, asm: "PRT  r0" },
+  { byte: 0b00000000, asm: "HALT" },
+];
+
+const FDE_OPS: Record<number, string> = {
+  0: "HALT",
+  1: "LOAD",
+  2: "MOV",
+  3: "ADD",
+  4: "SUB",
+  5: "PRT",
+};
+
+const b8 = (n: number) => (n & 0xff).toString(2).padStart(8, "0");
+const b3 = (n: number) => n.toString(2).padStart(3, "0");
+const b2 = (n: number) => n.toString(2).padStart(2, "0");
+const hx = (n: number) => "0x" + n.toString(16).toUpperCase().padStart(2, "0");
+
+function FetchDecodeExecuteWidget() {
+  const [pc, setPc] = useState(0);
+  const [stage, setStage] = useState<Stage>("idle");
+  const [regs, setRegs] = useState<number[]>([0, 0, 0, 0]);
+  const [changed, setChanged] = useState<number | null>(null);
+  const [log, setLog] = useState<Array<{ addr: number; msg: string }>>([]);
+
+  const pcRef = useRef(0);
+  const regsRef = useRef<number[]>([0, 0, 0, 0]);
+  const haltedRef = useRef(false);
+  const busyRef = useRef(false);
+  const runningRef = useRef(false);
+
+  const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+  const append = (addr: number, msg: string) =>
+    setLog((cur) => [...cur, { addr, msg }].slice(-30));
+
+  const stepOnce = async () => {
+    if (busyRef.current || haltedRef.current) return;
+    const idx = pcRef.current;
+    if (idx >= FDE_PROGRAM.length) return;
+    busyRef.current = true;
+
+    const { byte, asm } = FDE_PROGRAM[idx];
+    const op = (byte >> 5) & 0b111;
+    const dst = (byte >> 3) & 0b11;
+    const src = byte & 0b111;
+
+    setStage("fetch");
+    append(idx, `FETCH: ${b8(byte)}`);
+    await sleep(480);
+
+    setStage("decode");
+    append(idx, `DECODE: ${asm.replace(/\s+/g, " ")}`);
+    await sleep(480);
+
+    setStage("execute");
+    const next = [...regsRef.current];
+    let execMsg = "";
+    switch (op) {
+      case 1:
+        next[dst] = src;
+        execMsg = `r${dst} = ${src}`;
+        setChanged(dst);
+        break;
+      case 2:
+        next[dst] = next[src & 0b11];
+        execMsg = `r${dst} = ${next[dst]}`;
+        setChanged(dst);
+        break;
+      case 3:
+        next[dst] = (next[dst] + next[src & 0b11]) & 0xff;
+        execMsg = `r${dst} = ${next[dst]}`;
+        setChanged(dst);
+        break;
+      case 4:
+        next[dst] = (next[dst] - next[src & 0b11]) & 0xff;
+        execMsg = `r${dst} = ${next[dst]}`;
+        setChanged(dst);
+        break;
+      case 5:
+        execMsg = `print r${dst} = ${regsRef.current[dst]}`;
+        break;
+      default:
+        execMsg = "halt";
+    }
+    regsRef.current = next;
+    setRegs(next);
+    append(idx, `EXECUTE: ${execMsg}`);
+    await sleep(480);
+
+    if (op === 0) {
+      haltedRef.current = true;
+      setStage("halted");
+    } else {
+      pcRef.current = idx + 1;
+      setPc(idx + 1);
+      setStage("idle");
+    }
+    window.setTimeout(() => setChanged(null), 600);
+    busyRef.current = false;
+  };
+
+  const runAll = async () => {
+    if (runningRef.current) return;
+    runningRef.current = true;
+    while (!haltedRef.current && pcRef.current < FDE_PROGRAM.length && runningRef.current) {
+      await stepOnce();
+      await sleep(200);
+    }
+    runningRef.current = false;
+  };
+
+  const reset = () => {
+    runningRef.current = false;
+    busyRef.current = false;
+    haltedRef.current = false;
+    pcRef.current = 0;
+    regsRef.current = [0, 0, 0, 0];
+    setPc(0);
+    setRegs([0, 0, 0, 0]);
+    setStage("idle");
+    setChanged(null);
+    setLog([]);
+  };
+
+  // decode of the instruction currently under the head
+  const atEnd = pc >= FDE_PROGRAM.length || stage === "halted";
+  const cur = atEnd ? null : FDE_PROGRAM[pc];
+  const op = cur ? (cur.byte >> 5) & 0b111 : 0;
+  const dst = cur ? (cur.byte >> 3) & 0b11 : 0;
+  const src = cur ? cur.byte & 0b111 : 0;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// step through a program"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={stepOnce}>
+            step →
+          </button>
+          <button type="button" className="widget-btn" onClick={runAll}>
+            run all
+          </button>
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      <div className="fde-pc">program counter: <strong>{hx(pc < FDE_PROGRAM.length ? pc : FDE_PROGRAM.length - 1)}</strong></div>
+
+      <div className="fde">
+        {/* memory */}
+        <div className="fde-col">
+          <div className="fde-col-title">memory</div>
+          {FDE_PROGRAM.map((row, i) => {
+            const o = (row.byte >> 5) & 0b111;
+            const d = (row.byte >> 3) & 0b11;
+            const s = row.byte & 0b111;
+            const asm =
+              o === 0 ? "HALT" : o === 5 ? `PRT r${d}` : o === 3 || o === 4 || o === 2 ? `${FDE_OPS[o]} r${d}, r${s}` : `LOAD r${d}, ${s}`;
+            return (
+              <div key={i} className={`fde-mem ${i === pc && !atEnd ? "is-current" : ""}`}>
+                <span className="fde-mem-addr">{hx(i)}</span>
+                <span className="fde-mem-bin">{b8(row.byte)}</span>
+                <span className="fde-mem-asm">{asm}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* cpu stages */}
+        <div className="fde-col">
+          <div className="fde-col-title">cpu</div>
+          <div className={`fde-stage fetch ${stage === "fetch" ? "is-active" : ""}`}>
+            <span className="fde-stage-name">fetch</span>
+            <span className="fde-stage-body">PC = {hx(pc < FDE_PROGRAM.length ? pc : FDE_PROGRAM.length - 1)}</span>
+            <span className="fde-stage-sub">reading from memory…</span>
+          </div>
+          <div className={`fde-stage decode ${stage === "decode" ? "is-active" : ""}`}>
+            <span className="fde-stage-name">decode</span>
+            {cur ? (
+              <>
+                <span className="fde-stage-body">opcode: {b3(op)} = {FDE_OPS[op]}</span>
+                <span className="fde-stage-sub">dst: {b2(dst)} = r{dst}{op === 1 ? `   ·   imm: ${b3(src)} = ${src}` : `   ·   src: ${b3(src)} = r${src}`}</span>
+              </>
+            ) : (
+              <span className="fde-stage-sub">halted</span>
+            )}
+          </div>
+          <div className={`fde-stage execute ${stage === "execute" ? "is-active" : ""}`}>
+            <span className="fde-stage-name">execute</span>
+            {cur ? (
+              <>
+                <span className="fde-stage-body">
+                  {op === 1
+                    ? `r${dst} ← ${src}`
+                    : op === 3
+                      ? `r${dst} ← r${dst} + r${src}`
+                      : op === 4
+                        ? `r${dst} ← r${dst} - r${src}`
+                        : op === 5
+                          ? `print r${dst}`
+                          : op === 2
+                            ? `r${dst} ← r${src}`
+                            : "halt"}
+                </span>
+                <span className="fde-stage-sub">r{dst} = {b8(regs[dst])}</span>
+              </>
+            ) : (
+              <span className="fde-stage-sub">program complete</span>
+            )}
+          </div>
+        </div>
+
+        {/* registers */}
+        <div className="fde-col">
+          <div className="fde-col-title">registers</div>
+          {regs.map((v, i) => (
+            <div key={i} className={`fde-reg ${changed === i ? "is-changed" : ""}`}>
+              <span className="fde-reg-name">r{i}</span>
+              <span className="fde-reg-bin">{b8(v)}</span>
+              <span className="fde-reg-dec">({v})</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* log */}
+      <div className="fde-log">
+        <div className="fde-log-title">event log</div>
+        {log.length === 0 && <div className="fde-log-row dim">press step to begin.</div>}
+        {log.map((e, i) => (
+          <div key={i} className="fde-log-row">
+            <span className="fde-log-addr">[{hx(e.addr)}]</span> {e.msg}
+          </div>
+        ))}
+      </div>
+
+      <p className="widget-caption">
+        the exact program from the toy-CPU code below: LOAD r0 5, LOAD r1 7, ADD, print, halt. step through it one instruction at a time and watch fetch, decode, and execute light up in turn.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
+   10. PACELC simulator: feel the latency-vs-consistency tradeoff
+   ===================================================================== */
+type PacelcStrategy = "EL" | "EC";
+
+function PacelcSimulatorWidget() {
+  const [strategy, setStrategy] = useState<PacelcStrategy>("EL");
+  const [primary, setPrimary] = useState(1000);
+  const [replica, setReplica] = useState(1000);
+  const [lastMs, setLastMs] = useState<number | null>(null);
+  const [banner, setBanner] = useState<{ msg: string; tone: string } | null>(null);
+  const [log, setLog] = useState<Array<{ strat: string; val: number; ms: number; stale: boolean }>>([]);
+
+  const behind = replica !== primary;
+
+  const updatePrimary = () => {
+    const next = primary - 50;
+    setPrimary(next);
+    setBanner({
+      msg: `Primary updated to $${next}. The replica still shows $${replica}, now behind.`,
+      tone: "warn",
+    });
+  };
+
+  const sendRead = () => {
+    if (strategy === "EL") {
+      const stale = replica !== primary;
+      setLastMs(1);
+      setLog((cur) => [{ strat: "EL", val: replica, ms: 1, stale }, ...cur].slice(0, 5));
+      setBanner(
+        stale
+          ? { msg: `EL: returned local cache ($${replica}) in 1ms. Warning: primary has $${primary}.`, tone: "warn" }
+          : { msg: `EL: returned local cache ($${replica}) in 1ms.`, tone: "ok" },
+      );
+    } else {
+      setLastMs(52);
+      setLog((cur) => [{ strat: "EC", val: primary, ms: 52, stale: false }, ...cur].slice(0, 5));
+      setBanner({ msg: `EC: fetched from primary ($${primary}) in 52ms. Data is current and verified.`, tone: "ok" });
+    }
+  };
+
+  const reset = () => {
+    setPrimary(1000);
+    setReplica(1000);
+    setLastMs(null);
+    setBanner(null);
+    setLog([]);
+  };
+
+  const meterPct = lastMs === null ? 0 : Math.min(100, (lastMs / 60) * 100);
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// feel the tradeoff"}</span>
+        <div className="widget-controls">
+          <button
+            type="button"
+            className={`widget-btn ${strategy === "EL" ? "is-active" : ""}`}
+            onClick={() => setStrategy("EL")}
+          >
+            EL · low latency
+          </button>
+          <button
+            type="button"
+            className={`widget-btn ${strategy === "EC" ? "is-active" : ""}`}
+            onClick={() => setStrategy("EC")}
+          >
+            EC · consistent
+          </button>
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      {/* two servers */}
+      <div className="cap-dc-row">
+        <div className="cap-dc is-online">
+          <div className="cap-dc-head">
+            <span className="cap-dc-name">Primary · source of truth</span>
+            <span className="cap-dc-badge ok">ONLINE</span>
+          </div>
+          <div className="cap-dc-balance">${primary}</div>
+          <div className="cap-dc-sub">always current</div>
+        </div>
+
+        <div className="cap-link">
+          <div className={`cap-link-line ${behind ? "is-down" : "is-up"}`} />
+          <span className="pacelc-sync">{behind ? "50ms behind" : "synced, just now"}</span>
+          <button type="button" className="cap-link-btn" onClick={updatePrimary}>
+            update primary
+          </button>
+        </div>
+
+        <div className={`cap-dc ${behind ? "is-partitioned" : "is-online"}`}>
+          <div className="cap-dc-head">
+            <span className="cap-dc-name">Local replica · nearest server</span>
+            <span className={`cap-dc-badge ${behind ? "warn" : "ok"}`}>{behind ? "STALE" : "SYNCED"}</span>
+          </div>
+          <div className="cap-dc-balance">${replica}</div>
+          <div className="cap-dc-sub">{behind ? "behind the primary" : "matches primary"}</div>
+        </div>
+      </div>
+
+      {/* request */}
+      <div className="pacelc-send">
+        <button type="button" className="widget-btn pacelc-send-btn" onClick={sendRead}>
+          send read request →
+        </button>
+        <div className="pacelc-route">
+          routes to <strong>{strategy === "EL" ? "local replica" : "primary"}</strong>
+        </div>
+      </div>
+
+      {/* latency meter */}
+      {lastMs !== null && (
+        <div className="pacelc-meter">
+          <div className="pacelc-meter-label">response time</div>
+          <div className="pacelc-meter-track">
+            <div
+              className={`pacelc-meter-fill ${strategy === "EL" ? "fast" : "slow"}`}
+              style={{ width: `${Math.max(4, meterPct)}%` }}
+            />
+          </div>
+          <div className="pacelc-meter-val">{lastMs}ms</div>
+        </div>
+      )}
+
+      {banner && <div className={`cap-banner ${banner.tone}`}>{banner.msg}</div>}
+
+      {/* log */}
+      <div className="cap-log">
+        <div className="cap-log-title">request log</div>
+        {log.length === 0 && <div className="cap-log-row">send a request to begin.</div>}
+        {log.map((e, i) => (
+          <div key={i} className={`cap-log-row ${e.stale ? "warn" : "ok"}`}>
+            <span className="cap-log-time">{e.strat}</span>
+            <span className="cap-log-msg">
+              ${e.val} in {e.ms}ms{e.stale ? " · stale" : " · verified"}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <p className="widget-caption">
+        update the primary so the replica falls behind, then send reads under each strategy. EL answers from the nearest replica in 1ms (possibly stale); EC verifies with the primary in 52ms (always correct). networks rarely partition, but every request still chooses EL or EC.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -1052,6 +1458,10 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <GateSimulatorWidget />;
     case "cap-visualiser":
       return <CapVisualiserWidget />;
+    case "fetch-decode-execute":
+      return <FetchDecodeExecuteWidget />;
+    case "pacelc-simulator":
+      return <PacelcSimulatorWidget />;
     default:
       return null;
   }

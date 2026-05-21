@@ -53,7 +53,9 @@ export type WidgetName =
   | "char-explorer"
   | "text-encoder"
   | "gate-simulator"
-  | "cap-visualiser";
+  | "cap-visualiser"
+  | "fetch-decode-execute"
+  | "pacelc-simulator";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -98,6 +100,7 @@ export interface PageContent {
     | "compile-vs-runtime"
     | "distributed-systems"
     | "cap-theorem"
+    | "pacelc"
     | "blockchain";
   hexLabel: string;
   category: string;

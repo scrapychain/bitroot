@@ -155,9 +155,17 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/pacelc",
+    label: "PACELC",
+    num: "18",
+    accent: "var(--neon-grape)",
+    desc: "CAP told you what breaks. PACELC tells you what you choose every second. Latency vs consistency on every request, even when the network is perfectly healthy.",
+    levels: 3,
+  },
+  {
     href: "/blockchain",
     label: "Blockchain",
-    num: "18",
+    num: "19",
     accent: "var(--neon-bitcoin)",
     desc: "The capstone. From one transistor in 1947 to a financial network nobody owns. How every previous topic stacks into Bitcoin, end to end, with nothing missing.",
     levels: 3,

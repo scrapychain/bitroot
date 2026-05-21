@@ -157,6 +157,68 @@ int main(void) {
     return 0;
 }`;
 
+const rustShaRound = `// One SHA-256 round: pure CPU operations
+// on registers a through h.
+fn sha256_round(
+    a: u32, b: u32, c: u32, d: u32,
+    e: u32, f: u32, g: u32, h: u32,
+    k: u32, w: u32,
+) -> (u32, u32, u32, u32, u32, u32, u32, u32) {
+    // Every line below is an ALU operation.
+    let s1 = e.rotate_right(6)
+           ^ e.rotate_right(11)
+           ^ e.rotate_right(25);
+
+    let ch = (e & f) ^ (!e & g); // AND, XOR, NOT
+
+    let temp1 = h
+        .wrapping_add(s1)
+        .wrapping_add(ch)
+        .wrapping_add(k)
+        .wrapping_add(w);
+
+    let s0 = a.rotate_right(2)
+           ^ a.rotate_right(13)
+           ^ a.rotate_right(22);
+
+    let maj = (a & b) ^ (a & c) ^ (b & c);
+
+    let temp2 = s0.wrapping_add(maj);
+
+    (
+        temp1.wrapping_add(temp2), // new a
+        a, b, c,
+        d.wrapping_add(temp1),     // new e
+        e, f, g,
+    )
+}`;
+
+const cShaRound = `#include <stdint.h>
+
+static inline uint32_t rotr(uint32_t x, int n) {
+    return (x >> n) | (x << (32 - n));
+}
+
+void sha256_round(
+    uint32_t *a, uint32_t *b,
+    uint32_t *c, uint32_t *d,
+    uint32_t *e, uint32_t *f,
+    uint32_t *g, uint32_t *h,
+    uint32_t k,  uint32_t w
+) {
+    uint32_t s1  = rotr(*e,6) ^ rotr(*e,11) ^ rotr(*e,25);
+    uint32_t ch  = (*e & *f) ^ (~*e & *g);
+    uint32_t t1  = *h + s1 + ch + k + w;
+    uint32_t s0  = rotr(*a,2) ^ rotr(*a,13) ^ rotr(*a,22);
+    uint32_t maj = (*a & *b) ^ (*a & *c) ^ (*b & *c);
+    uint32_t t2  = s0 + maj;
+
+    *h = *g; *g = *f; *f = *e;
+    *e = *d + t1;
+    *d = *c; *c = *b; *b = *a;
+    *a = t1 + t2;
+}`;
+
 export const cpu: PageContent = {
   slug: "cpu",
   hexLabel: "0x05",
@@ -174,6 +236,13 @@ export const cpu: PageContent = {
       blocks: [
         {
           kind: "prose",
+          html: `<p>Your CPU has one job. One. It reads an instruction, it executes it, it moves to the next one. That is the entire CPU.</p>
+<p>But here is what nobody tells you about that one job. That instruction is not English. It is not Python. It is not even assembly. It is this: <code>10110000 01100001</code>. Raw binary. Two bytes. Sixteen switches, on and off.</p>
+<p>Your CPU reads those 16 bits, decodes them through logic gates, and in a single clock tick executes the operation they describe. Do you see what is happening? Everything connects. Transistors built the logic gates. Logic gates built the circuits. Circuits decode the binary. Binary carries the instruction. The instruction changes the state.</p>
+<p>All of that, in one clock cycle, at four billion cycles per second. And it has been doing this since the moment you powered on. Without stopping. Without resting. Without ever asking what it all means.</p>`,
+        },
+        {
+          kind: "prose",
           html: `<p>A CPU has exactly one job: it sits in a loop. Each tick of its clock, it does three things:</p>
 <ol>
   <li><strong>Fetch</strong> the next instruction (a bit pattern) from memory.</li>
@@ -187,6 +256,12 @@ export const cpu: PageContent = {
           kind: "prose",
           html: `<p>An instruction is just a <strong>byte</strong> (or a few bytes) where different bits mean different things. Same logic as the ASCII table on page 2, except instead of "this byte is the letter A," the convention is "this byte is the operation ADD, on registers 0 and 1."</p>
 <p>A real x86 instruction can be 1 to 15 bytes; RISC-V is a clean 4 bytes; ARM Thumb is 2. They all share the same shape: <em>opcode + operands</em>, packed into bits.</p>`,
+        },
+        { kind: "heading", text: "Step through a program" },
+        { kind: "widget", name: "fetch-decode-execute" },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Decoding an instruction is just bit shifts and masks, the same bitwise operators from the binary page. <code>(ins &gt;&gt; 5) &amp; 0b111</code> extracts the opcode; <code>(ins &gt;&gt; 3) &amp; 0b11</code> extracts the register. The CPU reads instructions exactly the way you learned to read bits. <a href="/binary">← see: binary</a></p>`,
         },
         {
           kind: "table",
@@ -258,6 +333,10 @@ export const cpu: PageContent = {
             },
           ],
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The ALU is the full adder you built on the logic gates page, repeated 64 times side by side for a 64-bit processor. Every ADD instruction your program executes is those XOR and AND gates firing in sequence. <a href="/logic-gates">← see: logic gates</a></p>`,
+        },
         { kind: "heading", text: "The clock: what makes it all step forward" },
         {
           kind: "prose",
@@ -276,6 +355,10 @@ export const cpu: PageContent = {
         {
           kind: "prose",
           html: `<p>Compared to a register access, RAM is <em>slow</em>. Hundreds of cycles. The whole subject of computer architecture is, mostly, about hiding that latency.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Every value the CPU reads from memory is binary bytes at an address. That address is a hex number, <code>0x7fff5fbff8a4</code>, a pointer: a number that means somewhere. The CPU follows millions of these every second. <a href="/pointers">← see: pointers</a></p>`,
         },
         {
           kind: "callout",
@@ -339,6 +422,33 @@ export const cpu: PageContent = {
           title: "// the famous side channel",
           body: `Branch prediction speculates ahead, and the speculative path leaves traces in the cache even when it's discarded. That's <strong>Spectre</strong>: a 2018 vulnerability that turned a performance optimization into a way to read protected memory. Every CPU shipped before mid-2018 was affected. Mitigations cost real performance.`,
         },
+        { kind: "heading", text: "The CPU inside Bitcoin miners" },
+        {
+          kind: "prose",
+          html: `<p>Every Bitcoin miner on Earth is a CPU running one function, over and over, as fast as possible, forever. That function is <strong>SHA-256</strong>. And SHA-256 is pure CPU work. Here is what a miner is actually computing, one round of the 64 that make up a single hash:</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustShaRound },
+            c: { language: "c", code: cShaRound },
+          },
+        },
+        {
+          kind: "prose",
+          html: `<p>Every operation in those functions is a single CPU instruction:</p>
+<ul>
+  <li><code>rotate_right</code> / <code>rotr</code>: a barrel shifter in the ALU.</li>
+  <li><code>&amp;</code>, <code>^</code>, <code>!</code>: AND, XOR, NOT gates firing.</li>
+  <li><code>wrapping_add</code>: the full adder circuit from the logic gates page.</li>
+</ul>
+<p>SHA-256 runs 64 of these rounds per hash attempt. Bitcoin miners attempt trillions of hashes. Each attempt is 64 rounds; each round is dozens of ALU operations; each ALU operation is logic gates; each gate is transistors. A modern Bitcoin ASIC runs tens of trillions of SHA-256 hashes per second.</p>
+<p>All of it is the fetch-decode-execute loop you learned on this page, running as fast as physics allows. This is what secures hundreds of billions of dollars. Not cryptographic magic. Not financial engineering. Just a CPU, doing one job, very very fast.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">SHA-256 is a CPU workload: 64 rounds of rotations, AND, XOR, NOT, and additions per hash, run trillions of times per second by mining hardware to find a hash with enough leading zeros. <a href="/hashing">← see: hashing</a></p>`,
+        },
         { kind: "heading", text: "The full stack, again" },
         {
           kind: "callout",
@@ -365,6 +475,77 @@ export const cpu: PageContent = {
   <li><strong>Agner Fog's microarchitecture manuals</strong>, the canonical reference on how real x86 cores actually work.</li>
   <li><strong>Compiler Explorer (godbolt.org)</strong>: see what bytes your high-level code actually becomes.</li>
 </ul>`,
+        },
+        { kind: "heading", text: "Where the CPU appears in BitRoot" },
+        {
+          kind: "prose",
+          html: `<p>The CPU is the engine the whole site runs on. Every other topic either feeds it instructions or runs on top of its loop:</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 3,
+          cards: [
+            {
+              label: "0x02 / binary",
+              value: "Instructions are binary",
+              desc: "Every CPU instruction is binary: opcode, registers, and operands packed into bits. A running program is a stream of binary flowing through the fetch-decode-execute loop.",
+              href: "/binary",
+            },
+            {
+              label: "0x01 / number systems",
+              value: "Hex for humans, binary for silicon",
+              desc: "Instruction addresses are hex, register values are binary, immediates are decimal in source. The CPU sees only binary; everything else is human convenience.",
+              href: "/number-systems",
+            },
+            {
+              label: "0x03 / ascii",
+              value: "Letters are just integers",
+              desc: "When you type a character the CPU processes its ASCII code as a binary integer. 72 for H, 65 for A. The CPU has no idea it is working with letters.",
+              href: "/ascii",
+            },
+            {
+              label: "0x04 / logic gates",
+              value: "The CPU is gates",
+              desc: "The ALU is logic gates, the control unit is logic gates, the registers are flip-flops (gates with memory). The entire CPU is gates organised to compute.",
+              href: "/logic-gates",
+            },
+            {
+              label: "0x06 / memory",
+              value: "The CPU waits on RAM",
+              desc: "Every instruction fetch and data access is a memory operation. The CPU spends most of its time waiting for memory; caches exist because RAM is too slow to wait on.",
+              href: "/memory",
+            },
+            {
+              label: "0x07 / operating system",
+              value: "The OS shares the CPU",
+              desc: "The OS schedules which program gets CPU time. Your process runs for a slice, gets paused, another runs, then yours again. The CPU just keeps looping.",
+              href: "/operating-system",
+            },
+            {
+              label: "0x09 / pointers",
+              value: "The PC is a pointer",
+              desc: "The program counter points at the next instruction. Every memory access the CPU makes follows a binary address (a pointer) to find its data.",
+              href: "/pointers",
+            },
+            {
+              label: "0x0D / hashing",
+              value: "SHA-256 is a CPU workload",
+              desc: "Every hash is dozens of ALU operations. Bitcoin miners run SHA-256 trillions of times per second. The CPU is the engine of every blockchain in existence.",
+              href: "/hashing",
+            },
+            {
+              label: "0x0F / networking",
+              value: "Your NIC has its own CPU",
+              desc: "Your network card runs its own fetch-decode-execute loop while the main CPU handles everything else. Parallel computation, two CPUs sharing one machine.",
+              href: "/networking",
+            },
+            {
+              label: "0x12 / blockchain",
+              value: "Mining is the loop at its limit",
+              desc: "Bitcoin mining is the fetch-decode-execute loop pushed to its physical limit. An ASIC runs SHA-256 trillions of times per second to find one hash with enough leading zeros. The CPU is why mining costs electricity.",
+              href: "/blockchain",
+            },
+          ],
         },
       ],
     },
