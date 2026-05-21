@@ -104,6 +104,132 @@ struct BitcoinMessage {
 // Strip the bits: voltages on copper, photons on glass.
 // All the way down to the transistor.`;
 
+const cBlockStruct = `#include <stdint.h>
+#include <string.h>
+#include <openssl/sha.h>
+
+/* A Bitcoin block header: exactly 80 bytes. */
+typedef struct __attribute__((packed)) {
+    uint32_t version;           /* 4 bytes */
+    uint8_t  prev_hash[32];     /* 32 bytes; points at previous block */
+    uint8_t  merkle_root[32];   /* 32 bytes; fingerprint of all txns */
+    uint32_t timestamp;         /* 4 bytes;  unix time */
+    uint32_t bits;              /* 4 bytes;  encodes difficulty target */
+    uint32_t nonce;             /* 4 bytes;  the miner's degree of freedom */
+} BlockHeader;                  /* = 80 bytes total */
+
+/* Bitcoin double-hashes: SHA256(SHA256(header)). */
+void block_hash(const BlockHeader *header, uint8_t out[32]) {
+    uint8_t first[32];
+    SHA256((const uint8_t *)header, sizeof(BlockHeader), first);
+    SHA256(first, 32, out);
+}
+
+/* Compare hash against target (both big-endian 256-bit). */
+int hash_meets_target(const uint8_t hash[32], const uint8_t target[32]) {
+    return memcmp(hash, target, 32) < 0;
+}`;
+
+const cMiningLoop = `#include <stdint.h>
+#include <string.h>
+
+/* The mining loop. Every Bitcoin block ever found was
+ * produced by some version of this loop. */
+BlockHeader mine(BlockHeader header, const uint8_t target[32]) {
+    uint8_t hash[32];
+
+    for (;;) {
+        block_hash(&header, hash);
+
+        /* Hash interpreted as a 256-bit big-endian number.
+         * If it is less than the target: valid block found. */
+        if (hash_meets_target(hash, target)) {
+            return header;
+        }
+
+        header.nonce++; /* try the next nonce */
+
+        /* nonce overflows every 2^32 attempts (~4 billion).
+         * Miners then tweak the coinbase tx to get a new
+         * merkle_root, giving them another 2^32 attempts.
+         * In practice they also vary the timestamp. */
+        if (header.nonce == 0) {
+            break; /* signal: need to refresh merkle_root */
+        }
+    }
+    return header; /* caller updates merkle_root and retries */
+}
+
+/* Every Bitcoin block on the planet was found by some
+ * computer running this exact loop. The expensive part is
+ * the hash_meets_target check. No clever algorithm. Only the loop. */`;
+
+const cTxLifecycle = `#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+
+/*
+ * A Bitcoin transaction in flight. The same byte stream that
+ * travels from your wallet through the gossip network to the
+ * miners. Each step uses a different page from this site.
+ */
+
+/* STEP 1: WALLET CREATES TX
+ *   - allocates memory on the heap        (memory page)
+ *   - fills with inputs, outputs, scripts */
+typedef struct {
+    uint8_t  *data;     /* heap-allocated byte array (arrays page) */
+    uint32_t  length;
+    uint32_t  capacity;
+} ByteVec;
+
+/* STEP 2: WALLET SIGNS TX
+ *   - hashes the tx body with SHA-256     (hashing page)
+ *   - signs the hash with ECDSA / Schnorr */
+void sign_transaction(ByteVec *tx, const uint8_t privkey[32],
+                      uint8_t sig_out[64]) {
+    uint8_t tx_hash[32];
+    SHA256(tx->data, tx->length, tx_hash); /* hashing page */
+    ecdsa_sign(privkey, tx_hash, sig_out); /* cryptography */
+}
+
+/* STEP 3: WALLET BROADCASTS TX
+ *   - opens a TCP socket to a node   (OS + networking pages)
+ *   - writes serialised tx as bytes  (binary page)
+ *   - kernel splits into IP packets  (networking page) */
+int broadcast_transaction(const ByteVec *tx, const char *node_ip,
+                          uint16_t port) {
+    int sock = tcp_connect(node_ip, port); /* OS + pointers */
+    if (sock < 0) return -1;
+
+    struct BitcoinMessage msg = {
+        .magic        = 0xD9B4BEF9,
+        .payload_size = tx->length,
+    };
+    memcpy(msg.command, "tx\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0", 12);
+    SHA256d(tx->data, tx->length, msg.checksum); /* hashing page */
+
+    write(sock, &msg, sizeof(msg));              /* networking page */
+    write(sock, tx->data, tx->length);
+    return sock;
+}
+
+/* STEP 4: NODES VALIDATE TX
+ *   - parse bytes back into a struct   (variables + arrays page)
+ *   - verify signature via hashing     (hashing page)
+ *   - check the UTXO set (a hash map)  (hashing page)
+ *   - gossip to peers if valid         (networking page)
+ *
+ * STEP 5: MINER INCLUDES IT IN A BLOCK
+ *   - mempool is a hash map txid->tx   (hashing page)
+ *   - mines the header until valid     (this page)
+ *
+ * STEP 6: BLOCK GOSSIPED AND CONFIRMED
+ *   - every node verifies independently
+ *   - your tx now has one confirmation
+ *
+ * Every layer in here was a previous page on this site. */`;
+
 export const blockchain: PageContent = {
   slug: "blockchain",
   hexLabel: "0x13",
@@ -119,6 +245,13 @@ export const blockchain: PageContent = {
       number: "01",
       title: "The **ladder**: from a transistor to Bitcoin",
       blocks: [
+        {
+          kind: "prose",
+          html: `<p>In 1947 a physicist at Bell Labs placed two gold foil contacts onto a sliver of germanium. He applied a small voltage. And made electricity change direction. He called it a transistor. He had no idea what he had started.</p>
+<p>Sixty one years later a person called Satoshi Nakamoto published nine pages. Those nine pages took the same switch, scaled by billions, running at four billion cycles per second, connected to every other machine on Earth, and answered a question that had been considered unsolvable for thirty years: how do thousands of strangers agree on the same truth without trusting each other?</p>
+<p>Not with a central server. Not with a trusted third party. Not with anyone in charge. With mathematics.</p>
+<p>This page is the bridge between those two moments. Every page on this site shows up here. In order. With nothing missing.</p>`,
+        },
         {
           kind: "prose",
           html: `<p>You have already met every layer below. This page stacks them, deliberately, on top of each other, and shows what falls out at the top. The stack is not metaphorical. Every box in the ladder below is a real, physical layer that the layer above it depends on.</p>`,
@@ -144,11 +277,21 @@ export const blockchain: PageContent = {
           title: "// the Byzantine Generals problem",
           body: `For decades, distributed systems researchers had a name for the hard part: the Byzantine Generals Problem. Multiple parties have to agree on an action, some of them may be lying, none of them can be assumed trustworthy. Theoretical results from the 1980s showed it was solvable in small groups with strong assumptions, but at planetary scale, in the open, with anonymous participants, nobody had a working solution. Satoshi's nine-page paper in 2008 solved it. Bitcoin is, before it's a currency, a Byzantine Generals solution running on the public internet.`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The CAP theorem, which you learned on the previous pages, is the formal proof of why this is hard. During a network partition you cannot have both consistency and availability. Bitcoin chose consistency above everything; the waiting is not inefficiency, it is the price of mathematical truth. <a href="/cap-theorem">← see: cap theorem</a></p>`,
+        },
         { kind: "heading", text: "The breakthrough, in one sentence" },
         {
           kind: "prose",
           html: `<p>Combine a cryptographic hash with an economic incentive, broadcast everything over an open gossip network, and let the longest valid chain win. The hash makes tampering detectable; the incentive makes honest behaviour profitable; the gossip network removes the need for a coordinator; the longest-chain rule makes disagreement resolvable. Each ingredient is a page on this site. The combination is Bitcoin.</p>`,
         },
+        { kind: "heading", text: "Build the chain yourself" },
+        {
+          kind: "prose",
+          html: `<p>Before the formal anatomy, get your hands on it. Mine a block and watch the nonce search run live. Then try to cheat: edit a historical block and watch every block after it turn red. The hash box at the bottom is real SHA-256, so you can feel the avalanche that makes all of this work.</p>`,
+        },
+        { kind: "widget", name: "blockchain-simulator" },
       ],
     },
     {
@@ -172,7 +315,7 @@ export const blockchain: PageContent = {
           kind: "codepair",
           pair: {
             rust: { language: "rust", code: rustBlockStruct },
-            c: { language: "rust", code: rustBlockStruct },
+            c: { language: "c", code: cBlockStruct },
           },
         },
         { kind: "heading", text: "The chain, made of these blocks" },
@@ -187,6 +330,10 @@ export const blockchain: PageContent = {
           kind: "prose",
           html: `<p>The hashing page covered Merkle trees; here is where they pay off in production. The block's body might contain three thousand transactions; the block header carries a single 32-byte hash that fingerprints all of them. Change any leaf transaction and every hash on its path to the root changes. The 80-byte header inherits all the integrity guarantees of the megabyte-sized body, at zero extra cost.</p>`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The Merkle root is a hash of hashes: a tree of SHA-256 operations. Change any transaction anywhere in the tree and the root changes completely. The 80-byte header inherits all the integrity of the megabyte-sized body. This is the hashing page's Merkle tree in production. <a href="/hashing">← see: hashing</a></p>`,
+        },
         { kind: "heading", text: "Mining: brute force, made expensive on purpose" },
         { kind: "diagram", name: "mining-nonce-search" },
         {
@@ -197,7 +344,7 @@ export const blockchain: PageContent = {
           kind: "codepair",
           pair: {
             rust: { language: "rust", code: rustMiningLoop },
-            c: { language: "rust", code: rustMiningLoop },
+            c: { language: "c", code: cMiningLoop },
           },
         },
         {
@@ -217,6 +364,10 @@ export const blockchain: PageContent = {
 </ul>
 <p>Strip out any of the three and the system collapses. Together, they make decentralised agreement possible.</p>`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The CAP theorem explains why Bitcoin is slow. During normal operation Bitcoin chose EC, strong consistency, in the PACELC framework. Every confirmation is a distributed system choosing correctness over speed. Ten minutes is not a bug; it is the PACELC price of PC/EC across ten thousand mutually distrusting nodes. <a href="/pacelc">← see: pacelc</a></p>`,
+        },
       ],
     },
     {
@@ -232,7 +383,7 @@ export const blockchain: PageContent = {
           kind: "codepair",
           pair: {
             rust: { language: "rust", code: rustTxLifecycle },
-            c: { language: "rust", code: rustTxLifecycle },
+            c: { language: "c", code: cTxLifecycle },
           },
         },
         { kind: "heading", text: "Gossip: how the transaction reaches the miners" },
@@ -323,6 +474,20 @@ export const blockchain: PageContent = {
           title: "// from one transistor to consensus",
           body: `A transistor at Bell Labs switches a voltage. Wired into gates, the switches do logic. Wired into a CPU, the logic computes. Compute, fed memory, runs an operating system. The OS hands sockets to programs. Programs send bytes over networks. Bytes can be hashed into fingerprints. Fingerprints, chained, become a tamper-evident history. That history, gossiped between mutually distrusting nodes and protected by proof-of-work, becomes a ledger no one owns. Bitcoin is the moment that ladder closes: every previous page on the site simultaneously doing its job, with nothing left out, in a system where the math itself, not any institution, is the source of trust.`,
         },
+        { kind: "heading", text: "The full PACELC picture" },
+        {
+          kind: "prose",
+          html: `<p>Bitcoin is the most extreme PC/EC system ever built at planetary scale. During a partition it halts rather than risk chain divergence (PC: consistency over availability). During normal operation, every confirmation waits for global consensus, ten minutes per block (EC: consistency over latency).</p>
+<p>Satoshi did not choose this arbitrarily. With money there is no such thing as reconciling later. The double-spend problem is the CAP theorem applied to a ledger: if two nodes accept the same coin simultaneously, the ledger is inconsistent and someone gets money they should not have. Proof of Work is the solution. Not a coordinator, not a trusted server, not a governance mechanism. Just mathematics that makes lying more expensive than honesty.</p>
+<p>Every blockchain that came after Bitcoin is a different answer to the same PACELC question:</p>
+<ul>
+  <li><strong>Bitcoin</strong>: PC/EC. Absolute truth. Ten minutes.</li>
+  <li><strong>Ethereum</strong>: PC/EC, strengthening. DeFi demands it.</li>
+  <li><strong>Solana</strong>: PA/EL. Speed above all. Accept the outages.</li>
+  <li><strong>Sui and Aptos</strong>: hybrid. Per-operation tradeoffs.</li>
+</ul>
+<p>Every chain is a public PACELC declaration. And now you understand every layer of every one of them. From the transistor to the tradeoff.</p>`,
+        },
         { kind: "heading", text: "Where to dig in next" },
         {
           kind: "prose",
@@ -337,12 +502,144 @@ export const blockchain: PageContent = {
   <li><strong>The Byzantine Generals paper (Lamport, Shostak, Pease, 1982)</strong>. The original problem statement, surprisingly readable.</li>
 </ul>`,
         },
+        { kind: "heading", text: "Every page. One system." },
+        {
+          kind: "prose",
+          html: `<p>This is not a connections section. This is a proof that every concept you learned was always pointing here.</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 3,
+          cards: [
+            {
+              label: "01 / number systems",
+              value: "The human interface",
+              desc: "A Bitcoin address is Base58. A private key is a 256-bit hex number. A block hash is 64 hex characters. Number systems are the human interface to Bitcoin's binary core.",
+              href: "/number-systems",
+            },
+            {
+              label: "02 / binary",
+              value: "All the way to the copper",
+              desc: "Every transaction is binary bytes on a wire. Every block header is 80 binary bytes. Every hash is 256 binary bits. Bitcoin is binary, all the way to the copper.",
+              href: "/binary",
+            },
+            {
+              label: "03 / ascii",
+              value: "Commands are ASCII",
+              desc: "Bitcoin network commands are ASCII strings: 'tx', 'block', 'version', 'inv'. Twelve bytes each, NUL-padded. The protocol that moves trillions is addressed in ASCII.",
+              href: "/ascii",
+            },
+            {
+              label: "04 / logic gates",
+              value: "Proof of work is gates",
+              desc: "SHA-256 is AND, XOR, NOT, bit rotations. Every hash that secures the chain is logic gates firing on silicon. The entire proof of work is logic gates at industrial scale.",
+              href: "/logic-gates",
+            },
+            {
+              label: "05 / cpu",
+              value: "One loop, forever",
+              desc: "Every miner is a CPU running one loop: hash the header, check the target, repeat. Bitcoin ASICs are custom CPUs built to run this loop and almost nothing else.",
+              href: "/cpu",
+            },
+            {
+              label: "06 / memory",
+              value: "Who owns what",
+              desc: "Every full node holds the UTXO set in RAM, a hash map of every unspent coin, hundreds of gigabytes. The heart of validation. Memory is where Bitcoin knows who owns what.",
+              href: "/memory",
+            },
+            {
+              label: "07 / operating system",
+              value: "Runs the node",
+              desc: "Bitcoin Core is an OS process. It manages TCP sockets, schedules peer connections, reads and writes to disk. The OS is what runs the node.",
+              href: "/operating-system",
+            },
+            {
+              label: "08 / variables",
+              value: "Typed and sized",
+              desc: "A transaction output is a struct, an address is a byte array, a nonce is a uint32. Every piece of Bitcoin's state is a variable with a type and a size.",
+              href: "/variables",
+            },
+            {
+              label: "09 / pointers",
+              value: "The tamper-evidence argument",
+              desc: "The prev_hash in every header is a pointer: not a memory address, a cryptographic content address. Change the content and the pointer breaks. That is the entire tamper-evidence argument.",
+              href: "/pointers",
+            },
+            {
+              label: "0A / compile vs runtime",
+              value: "Rules vs state",
+              desc: "Consensus rules are compile time: what counts as a valid block is baked in. Block content, mempool state, and peer connections are all runtime. Every soft-fork is a compile-time change to the validity rules.",
+              href: "/compile-vs-runtime",
+            },
+            {
+              label: "0B / arrays",
+              value: "Everywhere",
+              desc: "A block's transactions are an array, the mempool is an array of pending txns, the blockchain itself is an array of blocks, the Merkle tree is built from arrays of hashes. Arrays are everywhere in Bitcoin.",
+              href: "/arrays",
+            },
+            {
+              label: "0C / linked lists",
+              value: "Cryptographic links",
+              desc: "The blockchain is a linked list. Each node holds transactions and points to the previous via hash. The pointer is cryptographic, not positional. Change any node and the link breaks.",
+              href: "/linked-list",
+            },
+            {
+              label: "0D / hashing",
+              value: "The entire premise",
+              desc: "Take the hashing page away and there is no Bitcoin. SHA-256 makes the chain tamper-evident, the Merkle root tamper-evident, signatures verifiable, proof-of-work meaningful. Hashing is the entire premise.",
+              href: "/hashing",
+            },
+            {
+              label: "0E / nodes",
+              value: "The network is the nodes",
+              desc: "Every Bitcoin node is a participant. Full nodes validate everything, miners produce blocks, light nodes verify headers only. The network is the nodes.",
+              href: "/nodes",
+            },
+            {
+              label: "0F / networking",
+              value: "Or no chain at all",
+              desc: "Nodes find each other by IP, talk over TCP, gossip transactions and blocks. Without the network there is no chain, only isolated computers each holding their own history.",
+              href: "/networking",
+            },
+            {
+              label: "10 / distributed systems",
+              value: "Trustless, and it works",
+              desc: "Bitcoin is a distributed system with one extraordinary property: the nodes do not trust each other, and it works anyway. Every distributed-systems concept you learned shows up in Bitcoin.",
+              href: "/distributed-systems",
+            },
+            {
+              label: "11 / cap theorem",
+              value: "The waiting is the choice",
+              desc: "Bitcoin chose CP. During a partition: halt rather than diverge, consistency above availability. Every other blockchain is a different answer to the same CAP question. The waiting is the choice.",
+              href: "/cap-theorem",
+            },
+            {
+              label: "12 / pacelc",
+              value: "PC/EC, always",
+              desc: "Bitcoin chose PC/EC. Even during normal operation, pay the latency cost for consistency. Ten-minute blocks. The price of absolute truth in a trustless world.",
+              href: "/pacelc",
+            },
+          ],
+        },
+        { kind: "heading", text: "// end of root.system" },
+        {
+          kind: "prose",
+          html: `<p>You started with a transistor. A single switch. On or off. 1 or 0. You followed that switch through nineteen pages. And you arrived here. At a network that processes billions of dollars every day, that has never been successfully altered, that nobody owns, that nobody controls, that cannot be shut down.</p>
+<p>Not because of legal protection. Not because of institutional trust. Not because anyone decided it should exist. Because of mathematics. Running on transistors, wired into logic gates, organised into a CPU, running an operating system, allocating memory, following pointers, organising data structures, hashing everything, broadcasting over a network, letting nodes agree, choosing consistency over speed, making lying computationally impossible.</p>
+<p>From one switch in 1947. To a trustless global financial network in 2008. Powered by every concept on this site. All of them. Simultaneously. Right now.</p>`,
+        },
+        {
+          kind: "callout",
+          variant: "info",
+          title: "// the last line",
+          body: `You don't just understand blockchain. You understand computing. All of it. From the bottom up.`,
+        },
       ],
     },
   ],
   nextUp: {
     eyebrow: "end of root.system",
-    title: "You've reached the top of the stack. Start over from the bottom.",
+    title: "Start over from the transistor.",
     href: "/",
     label: "home",
     variant: "cyan",

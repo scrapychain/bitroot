@@ -55,7 +55,8 @@ export type WidgetName =
   | "gate-simulator"
   | "cap-visualiser"
   | "fetch-decode-execute"
-  | "pacelc-simulator";
+  | "pacelc-simulator"
+  | "blockchain-simulator";
 
 export type Block =
   | { kind: "prose"; html: string }

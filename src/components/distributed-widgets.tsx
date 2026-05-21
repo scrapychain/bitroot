@@ -1438,6 +1438,265 @@ function PacelcSimulatorWidget() {
 }
 
 /* =====================================================================
+   11. Blockchain simulator: mine blocks, tamper the chain, watch it break
+   ===================================================================== */
+const BCS_DIFFICULTY = "0000"; // hash must start with this many hex zeros
+
+// A small, fast, synchronous hash with a strong avalanche, used for the
+// mineable chain. The standalone hash display below uses real SHA-256.
+function bcsHash(input: string): string {
+  let h = 0x811c9dc5 >>> 0;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x2c1b3c6d) >>> 0;
+  h ^= h >>> 12;
+  h = Math.imul(h, 0x297a2d39) >>> 0;
+  h ^= h >>> 15;
+  const a = (h >>> 0).toString(16).padStart(8, "0");
+  // mix a second word so the string looks hash-like (16 hex chars)
+  let h2 = Math.imul(h ^ 0x9e3779b9, 0x85ebca6b) >>> 0;
+  h2 ^= h2 >>> 13;
+  const b = (h2 >>> 0).toString(16).padStart(8, "0");
+  return a + b;
+}
+
+interface BcsBlock {
+  index: number;
+  data: string;
+  prevHash: string;
+  hash: string;
+  nonce: number;
+}
+
+const BCS_GENESIS_PREV = "0000000000000000";
+
+function bcsMine(index: number, prevHash: string, data: string): { nonce: number; hash: string } {
+  let nonce = 0;
+  for (;;) {
+    const hash = bcsHash(`${index}|${prevHash}|${data}|${nonce}`);
+    if (hash.startsWith(BCS_DIFFICULTY)) return { nonce, hash };
+    nonce++;
+  }
+}
+
+function bcsInitialChain(): BcsBlock[] {
+  const g = bcsMine(0, BCS_GENESIS_PREV, "Genesis Block");
+  const b0: BcsBlock = { index: 0, data: "Genesis Block", prevHash: BCS_GENESIS_PREV, hash: g.hash, nonce: g.nonce };
+  const d1 = "Alice -> Bob : 1 BTC";
+  const m1 = bcsMine(1, b0.hash, d1);
+  const b1: BcsBlock = { index: 1, data: d1, prevHash: b0.hash, hash: m1.hash, nonce: m1.nonce };
+  return [b0, b1];
+}
+
+function BlockchainSimulatorWidget() {
+  const [blocks, setBlocks] = useState<BcsBlock[]>(bcsInitialChain);
+  const [mining, setMining] = useState(false);
+  const [attempt, setAttempt] = useState<{ nonce: number; hash: string } | null>(null);
+  const [from, setFrom] = useState("Carol");
+  const [to, setTo] = useState("Dave");
+  const [amount, setAmount] = useState("2");
+
+  const [hashText, setHashText] = useState("Bitcoin");
+  const [sha, setSha] = useState("");
+
+  // live SHA-256 of the text box, via SubtleCrypto when available
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (typeof crypto !== "undefined" && crypto.subtle) {
+        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hashText));
+        if (!cancelled) {
+          setSha(
+            Array.from(new Uint8Array(buf))
+              .map((x) => x.toString(16).padStart(2, "0"))
+              .join(""),
+          );
+        }
+      } else {
+        setSha(bcsHash(hashText) + bcsHash(hashText.split("").reverse().join("")));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hashText]);
+
+  const validity = blocks.map((b, i) => {
+    const hashOk = b.hash.startsWith(BCS_DIFFICULTY);
+    const linkOk = i === 0 ? b.prevHash === BCS_GENESIS_PREV : b.prevHash === blocks[i - 1].hash;
+    return hashOk && linkOk;
+  });
+
+  const mineBlock = () => {
+    if (mining) return;
+    setMining(true);
+    const index = blocks.length;
+    const prevHash = blocks[blocks.length - 1].hash;
+    const amt = amount.trim() || "0";
+    const data = `${from.trim() || "?"} -> ${to.trim() || "?"} : ${amt} BTC`;
+    let nonce = 0;
+    const tick = () => {
+      for (let i = 0; i < 1500; i++) {
+        const hash = bcsHash(`${index}|${prevHash}|${data}|${nonce}`);
+        if (hash.startsWith(BCS_DIFFICULTY)) {
+          setBlocks((cur) => [...cur, { index, data, prevHash, hash, nonce }]);
+          setAttempt({ nonce, hash });
+          setMining(false);
+          return;
+        }
+        nonce++;
+      }
+      setAttempt({ nonce, hash: bcsHash(`${index}|${prevHash}|${data}|${nonce}`) });
+      window.setTimeout(tick, 16);
+    };
+    tick();
+  };
+
+  const tamperBlock1 = (newData: string) => {
+    setBlocks((cur) =>
+      cur.map((b, i) =>
+        i === 1 ? { ...b, data: newData, hash: bcsHash(`1|${b.prevHash}|${newData}|${b.nonce}`) } : b,
+      ),
+    );
+  };
+
+  const remine = () => {
+    setBlocks((cur) => {
+      const next = [...cur];
+      for (let i = 1; i < next.length; i++) {
+        const prevHash = next[i - 1].hash;
+        const { nonce, hash } = bcsMine(i, prevHash, next[i].data);
+        next[i] = { ...next[i], prevHash, hash, nonce };
+      }
+      return next;
+    });
+  };
+
+  const reset = () => {
+    setBlocks(bcsInitialChain());
+    setAttempt(null);
+    setMining(false);
+  };
+
+  const short = (h: string) => `${h.slice(0, 8)}…`;
+  const chainBroken = validity.some((v) => !v);
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// build the chain yourself"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      <div className="bcs">
+        {/* chain */}
+        <div className="bcs-col">
+          <div className="bcs-col-title">chain</div>
+          {blocks.map((b, i) => (
+            <div key={i} className={`bcs-block ${validity[i] ? "is-valid" : "is-invalid"}`}>
+              <div className="bcs-block-head">
+                <span>block #{b.index}</span>
+                <span className={`bcs-badge ${validity[i] ? "ok" : "bad"}`}>
+                  {validity[i] ? "VALID" : "INVALID"}
+                </span>
+              </div>
+              <div className="bcs-block-row">data: {b.data}</div>
+              <div className="bcs-block-row dim">prev: {short(b.prevHash)}</div>
+              <div className="bcs-block-row hash">hash: {short(b.hash)}</div>
+              <div className="bcs-block-row dim">nonce: {b.nonce}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* mine */}
+        <div className="bcs-col">
+          <div className="bcs-col-title">mine a block</div>
+          <div className="bcs-form">
+            <label className="bcs-field">
+              from
+              <input value={from} onChange={(e) => setFrom(e.target.value)} />
+            </label>
+            <label className="bcs-field">
+              to
+              <input value={to} onChange={(e) => setTo(e.target.value)} />
+            </label>
+            <label className="bcs-field">
+              amount (BTC)
+              <input value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </label>
+            <button type="button" className="bcs-mine-btn" onClick={mineBlock} disabled={mining}>
+              {mining ? "⛏ mining…" : "⛏ mine block"}
+            </button>
+          </div>
+          {attempt && (
+            <div className="bcs-attempt">
+              <div>nonce: {attempt.nonce}</div>
+              <div className={attempt.hash.startsWith(BCS_DIFFICULTY) ? "ok" : ""}>
+                hash: {attempt.hash} {attempt.hash.startsWith(BCS_DIFFICULTY) ? "✓" : "✗"}
+              </div>
+              <div className="dim">target: {BCS_DIFFICULTY}… (hash must be smaller)</div>
+            </div>
+          )}
+        </div>
+
+        {/* tamper */}
+        <div className="bcs-col">
+          <div className="bcs-col-title">try to cheat</div>
+          <p className="bcs-tamper-note">edit block #1&apos;s data and watch the chain break.</p>
+          <textarea
+            className="bcs-tamper-input"
+            value={blocks[1]?.data ?? ""}
+            onChange={(e) => tamperBlock1(e.target.value)}
+            rows={2}
+          />
+          {chainBroken ? (
+            <div className="bcs-warn">
+              chain broken. a tampered block invalidates every block after it. its hash no longer starts with {BCS_DIFFICULTY}, and the next block&apos;s prev-hash no longer matches.
+            </div>
+          ) : (
+            <div className="bcs-ok-note">chain intact. every hash links to the one before it.</div>
+          )}
+          <button type="button" className="widget-btn" onClick={remine}>
+            re-mine from block #1
+          </button>
+          {chainBroken && (
+            <p className="bcs-tamper-note">
+              to fake this for real you would have to re-mine every later block faster than the honest network produces new ones. computationally impossible.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* live hash display */}
+      <div className="bcs-hash">
+        <div className="bcs-col-title">change one letter, see what happens</div>
+        <input
+          className="bcs-hash-input"
+          value={hashText}
+          onChange={(e) => setHashText(e.target.value)}
+          placeholder="type any text"
+        />
+        <div className="bcs-hash-out">
+          <span className="bcs-hash-label">SHA-256</span>
+          <code>{sha}</code>
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        mine a block (the nonce search runs live), then edit block #1 in the cheat panel and watch every block after it turn red. the hash box at the bottom is real SHA-256: change one character and the entire output changes. that avalanche is what makes the chain tamper-evident.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -1462,6 +1721,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <FetchDecodeExecuteWidget />;
     case "pacelc-simulator":
       return <PacelcSimulatorWidget />;
+    case "blockchain-simulator":
+      return <BlockchainSimulatorWidget />;
     default:
       return null;
   }
