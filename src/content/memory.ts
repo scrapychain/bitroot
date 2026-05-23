@@ -120,6 +120,56 @@ int main(void) {
     return 0;
 }`;
 
+const rustUtxo = `use std::collections::HashMap;
+
+// Every unspent coin on the Bitcoin network lives in a
+// structure like this. Bitcoin Core is C++, but the concept
+// is identical: a hash map, held in RAM, hit on every tx.
+struct UtxoSet {
+    // key:   (txid, output index)
+    // value: (amount in satoshis, locking script)
+    entries: HashMap<(TxId, u32), TxOut>,
+    // roughly 8GB in RAM on a full node,
+    // touched on every single transaction validation
+}
+
+impl UtxoSet {
+    // O(1) lookup. This is why a Bitcoin node wants RAM:
+    // disk would be ~1000x slower per check.
+    fn is_unspent(&self, txid: &TxId, vout: u32) -> bool {
+        self.entries.contains_key(&(*txid, vout))
+    }
+
+    // Spending a coin removes it from the set.
+    fn spend(&mut self, txid: &TxId, vout: u32) -> Option<TxOut> {
+        self.entries.remove(&(*txid, vout))
+    }
+}`;
+
+const cUtxo = `#include <stdint.h>
+#include <stddef.h>
+
+/* A simplified UTXO entry. */
+typedef struct {
+    uint8_t  txid[32];   /* 32-byte transaction id */
+    uint32_t vout;       /* output index */
+    int64_t  satoshis;   /* amount */
+    uint8_t  script[35]; /* locking script */
+} Utxo;
+
+/* A real node keeps these in a hash map (LevelDB on disk,
+ * cached in RAM). This struct is the concept: */
+typedef struct UtxoSet {
+    Utxo   *entries;     /* hash map entries */
+    size_t  count;       /* current size */
+    size_t  capacity;    /* allocated capacity */
+} UtxoSet;
+
+/* O(1) average: the hash map contract from the hashing page. */
+const Utxo *utxo_find(const UtxoSet *set,
+                      const uint8_t txid[32],
+                      uint32_t vout);`;
+
 export const memory: PageContent = {
   slug: "memory",
   hexLabel: "0x06",
@@ -137,6 +187,12 @@ export const memory: PageContent = {
       blocks: [
         {
           kind: "prose",
+          html: `<p>Your CPU is fast. Blindingly, impossibly fast. Four billion operations per second. But every one of those operations needs somewhere to put the result, somewhere to read the next instruction, somewhere to hold the number it just computed. Without memory the CPU is just heat.</p>
+<p>Memory is the part of the computer that gives computation a place to exist. Not conceptually. Physically. Every variable you have ever declared, every function call you have ever made, every string you have ever typed: all of it lives as charged capacitors, flipping between two voltage states, organised into an addressed array, read and written billions of times per second.</p>
+<p>You already know what those two states are. 0 and 1. Memory is just binary, with an address on each byte, and a wire connecting it to the CPU.</p>`,
+        },
+        {
+          kind: "prose",
           html: `<p>You already saw, on the logic-gates page, that two NOR gates wired in a loop form an <strong>SR latch</strong>: a circuit with two stable states. That's a 1-bit memory cell. Tile millions of those side by side, give each one a unique number, and you've built memory. Each number is an <strong>address</strong>. Each cell holds a <strong>bit</strong>. Bits are grouped into <strong>bytes</strong> of 8.</p>
 <p>The CPU talks to memory through two buses (literally, bundles of wires):</p>
 <ul>
@@ -144,6 +200,10 @@ export const memory: PageContent = {
   <li>The <strong>data bus</strong>: "here it is, <code>0x48</code>" (which, by the ASCII page, is the letter <code>H</code>).</li>
 </ul>
 <p>That's the whole interface. Read or write, one byte (or word) at a time, addressed by a number.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The SR latch that forms each memory cell is two NOR gates in a feedback loop. NOR gates are transistors, the same transistors from page 4. Memory is logic gates configured to remember instead of compute. <a href="/logic-gates">← see: logic gates</a></p>`,
         },
         { kind: "heading", text: "RAM vs ROM: volatile and non-volatile" },
         {
@@ -196,6 +256,12 @@ export const memory: PageContent = {
             c: { language: "c", code: cReadWrite },
           },
         },
+        { kind: "heading", text: "Explore memory like the CPU does" },
+        {
+          kind: "prose",
+          html: `<p>Type a value, choose its type, and watch the exact bytes land in an addressed grid starting at <code>0x1000</code>. Click any cell to decode it as hex, decimal, binary, and ASCII, then flip the byte order to see endianness happen in front of you.</p>`,
+        },
+        { kind: "widget", name: "memory-explorer" },
         {
           kind: "callout",
           variant: "info",
@@ -223,6 +289,10 @@ export const memory: PageContent = {
           html: `<p>Every time a function is called, the CPU bumps a register called the <strong>stack pointer</strong> down by however many bytes that function's locals need. When the function returns, the pointer goes back up. That's it. There's no allocator running, no bookkeeping, just one register move. <em>That's</em> why stack allocation is essentially free.</p>
 <p>The price: stack memory has a <strong>fixed lifetime</strong> tied to the function call. You can't return a pointer to a stack local and expect it to still be valid. The moment the function returns, that memory is up for grabs by the next call.</p>`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The stack pointer is a CPU register. Every function call decrements it, every return increments it. When a recursive function calls itself without a base case, this register decrements until the stack crosses into OS-protected memory: segmentation fault, process terminated. The recursion page explains exactly how. <a href="/recursion">← see: recursion</a></p>`,
+        },
         { kind: "heading", text: "The heap: explicit, flexible, slow" },
         {
           kind: "prose",
@@ -240,6 +310,10 @@ export const memory: PageContent = {
         {
           kind: "prose",
           html: `<p>A pointer is an address. An address is a number. On a 64-bit system, that number is 8 bytes wide, which is why <code>sizeof(void*)</code> is 8 there. The CPU has no special "pointer" type; load and store instructions take addresses, full stop. The <em>type</em> attached to a pointer is a fiction the compiler enforces to make sure you don't read 8 bytes from a place where only 4 live.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">A memory address is a hex number, like <code>0x7fff5fbff8a4</code>. You know hex from the number systems page, and you know why addresses are written in hex: because hex is binary in human-readable form. Every address is just binary pointing somewhere in this wall of switches. <a href="/number-systems">← see: number systems</a></p>`,
         },
         {
           kind: "grid",
@@ -340,6 +414,25 @@ export const memory: PageContent = {
             },
           ],
         },
+        { kind: "heading", text: "Memory in Bitcoin" },
+        {
+          kind: "prose",
+          html: `<p>A Bitcoin full node keeps two critical data structures in RAM. Both are hash maps. Both are enormous.</p>
+<p><strong>The UTXO set</strong> is every unspent transaction output on the entire network: every coin that exists, every satoshi not yet spent. Currently about 85 million entries at roughly 100 bytes each, so 8 to 10 gigabytes in RAM. When your wallet sends Bitcoin, the node searches this hash map: is this coin unspent, does this address own it? One lookup, O(1), because it is a hash map, and the hashing page explained why hash maps are fast. All of it in RAM, because disk is about 1000 times slower.</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustUtxo },
+            c: { language: "c", code: cUtxo },
+          },
+        },
+        {
+          kind: "prose",
+          html: `<p><strong>The mempool</strong> is where your transaction waits after you broadcast it, until a miner includes it in a block. It is also a hash map, also in RAM, on every node. Currently 5,000 to 100,000 transactions at 250 to 1,000 bytes each, so roughly 50 to 100 megabytes.</p>
+<p>When the mempool fills up, low-fee transactions get evicted. Yours might not confirm for hours, or ever. This is not a bug in Bitcoin; it is the memory hierarchy in production. The OS gives each node a finite amount of RAM, the mempool respects that limit, and transactions above the limit do not queue. They are dropped.</p>
+<p>From a transistor in a flip-flop to a global ledger of 85 million coins: all of it is memory. Addressed, read, written, at nanosecond speed, on machines made of the same gates you learned on page 4.</p>`,
+        },
         {
           kind: "codepair",
           pair: {
@@ -368,6 +461,10 @@ export const memory: PageContent = {
   <li>Your <strong>program</strong> is, ultimately, a sequence of reads and writes to specific addresses.</li>
 </ol>`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The UTXO set and mempool are hash maps in RAM on every Bitcoin node. The hashing page explained how hash maps work; the networking page explained how nodes share this data; the blockchain page showed the full picture. Memory is where Bitcoin lives while it runs. <a href="/hashing">← see: hashing</a> <a href="/blockchain">and blockchain</a></p>`,
+        },
         { kind: "heading", text: "Where to dig in next" },
         {
           kind: "prose",
@@ -379,6 +476,101 @@ export const memory: PageContent = {
   <li><strong>The Garbage Collection Handbook</strong> by Jones, Hosking &amp; Moss, the reference text on GC algorithms.</li>
 </ul>
 <p>And with that, the loop closes. You started at the bit. You've now seen everything between the bit and the program: the encodings on top of it, the gates beneath it, the CPU that orchestrates it, and the memory that holds all of it together.</p>`,
+        },
+        { kind: "heading", text: "Where memory appears in BitRoot" },
+        {
+          kind: "prose",
+          html: `<p>Memory is where every other topic comes to rest. The shortest path from each, back into this wall of switches:</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 3,
+          cards: [
+            {
+              label: "0x02 / binary",
+              value: "Every cell is a bit",
+              desc: "Every bit in every memory cell is a binary value: 0 or 1, charged or uncharged. Memory is just binary given an address and a wire to the CPU.",
+              href: "/binary",
+            },
+            {
+              label: "0x01 / number systems",
+              value: "Addresses are hex",
+              desc: "Every memory address is a number written in hex, like 0x7fff5fbff8a4, because binary addresses are unreadable to humans. The number systems page explains why 16 is the perfect shorthand.",
+              href: "/number-systems",
+            },
+            {
+              label: "0x04 / logic gates",
+              value: "Cells are gates",
+              desc: "A DRAM cell is one transistor and one capacitor; an SRAM cell is six transistors in a flip-flop. The logic gates page built both. Memory is gates configured to remember.",
+              href: "/logic-gates",
+            },
+            {
+              label: "0x05 / cpu",
+              value: "Inseparable",
+              desc: "The CPU reads instructions from memory on every clock cycle. The fetch in fetch-decode-execute is a memory read. Every register write, every stack push, is memory.",
+              href: "/cpu",
+            },
+            {
+              label: "0x07 / operating system",
+              value: "Owns the address space",
+              desc: "The OS creates the virtual address space (stack, heap, data, text), enforces isolation between processes, and handles page faults when virtual pages are not yet in RAM.",
+              href: "/operating-system",
+            },
+            {
+              label: "0x08 / variables",
+              value: "A name for an address",
+              desc: "A variable is a name the compiler gives to a memory address. int x = 42 means: at address 0x7fff..., store 0x0000002A. The name vanishes at compile time; only the address remains.",
+              href: "/variables",
+            },
+            {
+              label: "0x09 / pointers",
+              value: "An address as a value",
+              desc: "A pointer is a variable that holds a memory address as its value. Dereferencing follows the address: the CPU follows the number and reads what lives there. Pointers make memory navigable.",
+              href: "/pointers",
+            },
+            {
+              label: "0x14 / recursion",
+              value: "The stack has a limit",
+              desc: "Every recursive call pushes a stack frame. The stack lives in memory, ~8MB on Linux. Without a base case it grows until it hits the OS limit: segmentation fault. Memory kills the process.",
+              href: "/recursion",
+            },
+            {
+              label: "0x0B / arrays",
+              value: "Contiguous blocks",
+              desc: "An array is a contiguous block of identically-typed values. arr[2] is base_address + 2 × element_size: the CPU adds, follows the address, reads the value. Cache-friendly because contiguous.",
+              href: "/arrays",
+            },
+            {
+              label: "0x0C / linked lists",
+              value: "Scattered, pointer-linked",
+              desc: "A linked list is scattered memory connected by pointers. Each node lives at a different address; traversal follows addresses across the heap. Cache-unfriendly, flexible, dynamic.",
+              href: "/linked-list",
+            },
+            {
+              label: "0x0D / hashing",
+              value: "The UTXO set in RAM",
+              desc: "Bitcoin's UTXO set is a hash map in RAM, roughly 8 to 10 gigabytes on a full node. Every transaction validation is a RAM lookup, O(1), because of hashing.",
+              href: "/hashing",
+            },
+            {
+              label: "0x0F / networking",
+              value: "Packets buffered in RAM",
+              desc: "Packets are buffered in RAM while the OS processes them; the network stack lives in kernel memory. When packets arrive faster than processing they queue. Network performance is often a memory-bandwidth problem.",
+              href: "/networking",
+            },
+            {
+              label: "0x10 / distributed systems",
+              value: "No shared memory",
+              desc: "Every distributed system stores its state in memory. CAP is partly a memory problem: two machines, each with their own RAM, can hold different values. There is no shared memory across machines, only messages.",
+              href: "/distributed-systems",
+            },
+            {
+              label: "0x13 / blockchain",
+              value: "Where Bitcoin lives at runtime",
+              desc: "A full node holds the UTXO set (~8GB), the mempool (~50-100MB), and the block index in RAM. Memory is where Bitcoin's state lives while it validates. The blockchain page shows every memory concept in production.",
+              href: "/blockchain",
+            },
+          ],
         },
       ],
     },

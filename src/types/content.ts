@@ -57,7 +57,8 @@ export type WidgetName =
   | "fetch-decode-execute"
   | "pacelc-simulator"
   | "blockchain-simulator"
-  | "call-stack-visualiser";
+  | "call-stack-visualiser"
+  | "memory-explorer";
 
 export type Block =
   | { kind: "prose"; html: string }

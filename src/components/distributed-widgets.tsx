@@ -1956,6 +1956,194 @@ function CallStackVisualiserWidget() {
 }
 
 /* =====================================================================
+   13. Memory explorer: write a value, see the bytes land at an address
+   ===================================================================== */
+type MemType = "u8" | "u16" | "u32" | "char" | "string";
+const MEM_BASE = 0x1000;
+
+function memValueToBytes(type: MemType, raw: string, endian: "little" | "big"): number[] {
+  if (type === "char") {
+    return raw.length ? [raw.charCodeAt(0) & 0xff] : [];
+  }
+  if (type === "string") {
+    return Array.from(raw).map((c) => c.charCodeAt(0) & 0xff);
+  }
+  const width = type === "u8" ? 1 : type === "u16" ? 2 : 4;
+  const num = (Number(raw) || 0) >>> 0;
+  const be: number[] = [];
+  for (let i = width - 1; i >= 0; i--) be.push((num >>> (i * 8)) & 0xff);
+  return endian === "big" ? be : be.reverse();
+}
+
+function MemoryExplorerWidget() {
+  const [type, setType] = useState<MemType>("char");
+  const [raw, setRaw] = useState("H");
+  const [endian, setEndian] = useState<"little" | "big">("little");
+  const [mem, setMem] = useState<number[]>(() => new Array(256).fill(0));
+  const [selected, setSelected] = useState<number | null>(0);
+  const [written, setWritten] = useState<[number, number] | null>([0, 0]);
+
+  const write = (t: MemType, r: string, e: "little" | "big") => {
+    const bytes = memValueToBytes(t, r, e);
+    const next = new Array(256).fill(0);
+    bytes.slice(0, 256).forEach((b, i) => (next[i] = b));
+    setMem(next);
+    setWritten(bytes.length ? [0, bytes.length - 1] : null);
+    setSelected(0);
+  };
+
+  const onWrite = () => write(type, raw, endian);
+
+  const quick = (t: MemType, r: string) => {
+    setType(t);
+    setRaw(r);
+    write(t, r, endian);
+  };
+
+  const hex2 = (n: number) => n.toString(16).toUpperCase().padStart(2, "0");
+  const addr = (i: number) => "0x" + (MEM_BASE + i).toString(16).toUpperCase();
+  const isWritten = (i: number) => written !== null && i >= written[0] && i <= written[1];
+  const printable = (n: number) => (n >= 32 && n <= 126 ? String.fromCharCode(n) : null);
+
+  const showEndianNote = type === "u16" || type === "u32";
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// explore memory like the CPU does"}</span>
+        <div className="widget-controls">
+          {(["char", "u8", "u16", "u32", "string"] as MemType[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`widget-btn ${type === t ? "is-active" : ""}`}
+              onClick={() => setType(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mem">
+        {/* write panel */}
+        <div className="mem-write">
+          <label className="cs-field">
+            value to store ({type})
+            <input value={raw} onChange={(e) => setRaw(e.target.value)} />
+          </label>
+          <button type="button" className="widget-btn" onClick={onWrite}>
+            write to {addr(0)}
+          </button>
+
+          <div className="mem-endian">
+            <span className="mem-endian-label">byte order</span>
+            <div className="mem-endian-btns">
+              <button
+                type="button"
+                className={`widget-btn ${endian === "little" ? "is-active" : ""}`}
+                onClick={() => {
+                  setEndian("little");
+                  write(type, raw, "little");
+                }}
+              >
+                little-endian (x86)
+              </button>
+              <button
+                type="button"
+                className={`widget-btn ${endian === "big" ? "is-active" : ""}`}
+                onClick={() => {
+                  setEndian("big");
+                  write(type, raw, "big");
+                }}
+              >
+                big-endian (network)
+              </button>
+            </div>
+            {showEndianNote && (
+              <p className="cs-note">
+                {endian === "little"
+                  ? "least significant byte first. 0xDEADBEEF stores as EF BE AD DE."
+                  : "most significant byte first. 0xDEADBEEF stores as DE AD BE EF."}
+              </p>
+            )}
+          </div>
+
+          <div className="mem-quick">
+            <span className="mem-endian-label">quick store</span>
+            <div className="mem-quick-btns">
+              <button type="button" className="widget-btn" onClick={() => quick("char", "H")}>
+                &apos;H&apos;
+              </button>
+              <button type="button" className="widget-btn" onClick={() => quick("u8", "42")}>
+                42
+              </button>
+              <button type="button" className="widget-btn" onClick={() => quick("u32", "0xDEADBEEF")}>
+                0xDEADBEEF
+              </button>
+              <button type="button" className="widget-btn" onClick={() => quick("string", "Hello")}>
+                &apos;Hello&apos;
+              </button>
+              <button type="button" className="widget-btn" onClick={() => quick("u8", "255")}>
+                255
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* memory grid */}
+        <div className="mem-view">
+          <div className="cs-col-title">memory @ {addr(0)}</div>
+          <div className="mem-grid">
+            {mem.map((b, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`mem-cell ${isWritten(i) ? "written" : ""} ${selected === i ? "selected" : ""}`}
+                title={`${addr(i)}: 0x${hex2(b)} = ${b}${printable(b) ? ` = '${printable(b)}'` : ""} = ${b.toString(2).padStart(8, "0")}`}
+                onClick={() => setSelected(i)}
+              >
+                {hex2(b)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* selected detail */}
+      {selected !== null && (
+        <div className="mem-detail">
+          <div>
+            <span className="mem-detail-label">address</span>
+            <span className="mem-detail-val">{addr(selected)}</span>
+          </div>
+          <div>
+            <span className="mem-detail-label">value</span>
+            <span className="mem-detail-val">0x{hex2(mem[selected])}</span>
+          </div>
+          <div>
+            <span className="mem-detail-label">decimal</span>
+            <span className="mem-detail-val">{mem[selected]}</span>
+          </div>
+          <div>
+            <span className="mem-detail-label">binary</span>
+            <span className="mem-detail-val">{mem[selected].toString(2).padStart(8, "0")}</span>
+          </div>
+          <div>
+            <span className="mem-detail-label">ascii</span>
+            <span className="mem-detail-val">{printable(mem[selected]) ? `'${printable(mem[selected])}'` : "(non-printable)"}</span>
+          </div>
+        </div>
+      )}
+
+      <p className="widget-caption">
+        pick a type, type a value, and write it to address {addr(0)}. the bytes light up cyan in the grid; click any cell to decode it as hex, decimal, binary, and ASCII. flip the byte order to see why 0xDEADBEEF lands as EF BE AD DE on your laptop.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -1984,6 +2172,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <BlockchainSimulatorWidget />;
     case "call-stack-visualiser":
       return <CallStackVisualiserWidget />;
+    case "memory-explorer":
+      return <MemoryExplorerWidget />;
     default:
       return null;
   }
