@@ -56,7 +56,8 @@ export type WidgetName =
   | "cap-visualiser"
   | "fetch-decode-execute"
   | "pacelc-simulator"
-  | "blockchain-simulator";
+  | "blockchain-simulator"
+  | "call-stack-visualiser";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -102,7 +103,8 @@ export interface PageContent {
     | "distributed-systems"
     | "cap-theorem"
     | "pacelc"
-    | "blockchain";
+    | "blockchain"
+    | "recursion";
   hexLabel: string;
   category: string;
   hero: {

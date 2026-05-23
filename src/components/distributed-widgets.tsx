@@ -1697,6 +1697,265 @@ function BlockchainSimulatorWidget() {
 }
 
 /* =====================================================================
+   12. Call-stack visualiser: watch recursion push and pop frames
+   ===================================================================== */
+type CsFn = "factorial" | "fibonacci" | "sum";
+type FrameStatus = "calling" | "executing" | "base" | "returning";
+interface CsFrame {
+  label: string;
+  status: FrameStatus;
+  value: number | null;
+  depth: number;
+}
+interface CsLog {
+  msg: string;
+  kind: "call" | "base" | "return" | "warn" | "overflow";
+}
+type CsEvent =
+  | { t: "call"; label: string }
+  | { t: "base"; label: string; value: number }
+  | { t: "ret"; label: string; value: number; expr: string }
+  | { t: "warn"; depth: number }
+  | { t: "overflow" };
+
+function csBuild(fn: CsFn, n: number): CsEvent[] {
+  const ev: CsEvent[] = [];
+  if (fn === "factorial") {
+    const f = (k: number): number => {
+      ev.push({ t: "call", label: `factorial(${k})` });
+      if (k === 0) {
+        ev.push({ t: "base", label: "factorial(0)", value: 1 });
+        ev.push({ t: "ret", label: "factorial(0)", value: 1, expr: "returns 1" });
+        return 1;
+      }
+      const sub = f(k - 1);
+      const val = k * sub;
+      ev.push({ t: "ret", label: `factorial(${k})`, value: val, expr: `returns ${k} × ${sub} = ${val}` });
+      return val;
+    };
+    f(n);
+  } else if (fn === "sum") {
+    const f = (k: number): number => {
+      ev.push({ t: "call", label: `sum(${k})` });
+      if (k === 0) {
+        ev.push({ t: "base", label: "sum(0)", value: 0 });
+        ev.push({ t: "ret", label: "sum(0)", value: 0, expr: "returns 0" });
+        return 0;
+      }
+      const sub = f(k - 1);
+      const val = k + sub;
+      ev.push({ t: "ret", label: `sum(${k})`, value: val, expr: `returns ${k} + ${sub} = ${val}` });
+      return val;
+    };
+    f(n);
+  } else {
+    const f = (k: number): number => {
+      ev.push({ t: "call", label: `fib(${k})` });
+      if (k <= 1) {
+        ev.push({ t: "base", label: `fib(${k})`, value: k });
+        ev.push({ t: "ret", label: `fib(${k})`, value: k, expr: `returns ${k}` });
+        return k;
+      }
+      const a = f(k - 1);
+      const b = f(k - 2);
+      const val = a + b;
+      ev.push({ t: "ret", label: `fib(${k})`, value: val, expr: `returns ${a} + ${b} = ${val}` });
+      return val;
+    };
+    f(n);
+  }
+  return ev;
+}
+
+function csBuildDanger(): CsEvent[] {
+  const ev: CsEvent[] = [];
+  for (let k = 1; k <= 50; k++) {
+    ev.push({ t: "call", label: `recurse(${k})` });
+    if (k === 20) ev.push({ t: "warn", depth: 20 });
+  }
+  ev.push({ t: "overflow" });
+  return ev;
+}
+
+function csSnapshots(events: CsEvent[]): { snaps: CsFrame[][]; logs: CsLog[]; overflow: boolean } {
+  const snaps: CsFrame[][] = [];
+  const logs: CsLog[] = [];
+  const stack: CsFrame[] = [];
+  let overflow = false;
+  const clone = () => stack.map((f) => ({ ...f }));
+
+  for (const e of events) {
+    if (e.t === "call") {
+      stack.push({ label: e.label, status: "calling", value: null, depth: stack.length });
+      snaps.push(clone());
+      logs.push({ msg: `${e.label} called`, kind: "call" });
+      stack[stack.length - 1].status = "executing";
+    } else if (e.t === "base") {
+      const top = stack[stack.length - 1];
+      top.status = "base";
+      top.value = e.value;
+      snaps.push(clone());
+      logs.push({ msg: `${e.label} BASE CASE, returns ${e.value}`, kind: "base" });
+    } else if (e.t === "ret") {
+      const top = stack[stack.length - 1];
+      top.status = "returning";
+      top.value = e.value;
+      snaps.push(clone());
+      logs.push({ msg: `${e.label} ${e.expr}`, kind: "return" });
+      stack.pop();
+    } else if (e.t === "warn") {
+      snaps.push(clone());
+      logs.push({ msg: `WARNING: stack growing without bound (depth ${e.depth})`, kind: "warn" });
+    } else if (e.t === "overflow") {
+      overflow = true;
+      snaps.push(clone());
+      logs.push({ msg: "STACK OVERFLOW. process terminated.", kind: "overflow" });
+    }
+  }
+  return { snaps, logs, overflow };
+}
+
+function CallStackVisualiserWidget() {
+  const [fn, setFn] = useState<CsFn>("factorial");
+  const [n, setN] = useState(5);
+  const [danger, setDanger] = useState(false);
+  const [step, setStep] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(600);
+
+  const { snaps, logs, overflow } = useMemo(
+    () => csSnapshots(danger ? csBuildDanger() : csBuild(fn, n)),
+    [fn, n, danger],
+  );
+
+  useEffect(() => {
+    setStep(0);
+    setPlaying(false);
+  }, [fn, n, danger]);
+
+  useEffect(() => {
+    if (!playing) return;
+    if (step >= snaps.length - 1) {
+      setPlaying(false);
+      return;
+    }
+    const id = window.setTimeout(() => setStep((s) => Math.min(s + 1, snaps.length - 1)), speed);
+    return () => window.clearTimeout(id);
+  }, [playing, step, speed, snaps.length]);
+
+  const frames = snaps[step] ?? [];
+  const display = [...frames].reverse(); // newest on top
+  const atEnd = step >= snaps.length - 1;
+  const showOverflow = danger && overflow && atEnd;
+  const showWarn = danger && frames.length >= 20 && !showOverflow;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// watch the stack grow and shrink"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={() => setStep((s) => Math.min(s + 1, snaps.length - 1))}>
+            step →
+          </button>
+          <button type="button" className={`widget-btn ${playing ? "is-active" : ""}`} onClick={() => setPlaying((p) => !p)}>
+            {playing ? "pause" : "run"}
+          </button>
+          <button
+            type="button"
+            className="widget-btn"
+            onClick={() => {
+              setStep(0);
+              setPlaying(false);
+            }}
+          >
+            reset
+          </button>
+        </div>
+      </div>
+
+      <div className="cs">
+        {/* controls */}
+        <div className="cs-controls">
+          <label className="cs-field">
+            function
+            <select value={fn} disabled={danger} onChange={(e) => setFn(e.target.value as CsFn)}>
+              <option value="factorial">factorial(n)</option>
+              <option value="fibonacci">fibonacci(n)</option>
+              <option value="sum">sum(n)</option>
+            </select>
+          </label>
+          <label className="cs-field">
+            n = {n}
+            <input
+              type="range"
+              min={1}
+              max={10}
+              value={n}
+              disabled={danger}
+              onChange={(e) => setN(Number(e.target.value))}
+            />
+          </label>
+          <label className="cs-field">
+            speed
+            <input type="range" min={120} max={1000} step={40} value={1120 - speed} onChange={(e) => setSpeed(1120 - Number(e.target.value))} />
+          </label>
+          <button
+            type="button"
+            className={`widget-btn ${danger ? "is-danger" : ""}`}
+            onClick={() => setDanger((d) => !d)}
+          >
+            {danger ? "danger mode: ON" : "danger mode: off"}
+          </button>
+          <p className="cs-note">
+            {danger
+              ? "no base case. the stack just grows."
+              : "step through the calls, or hit run."}
+          </p>
+        </div>
+
+        {/* stack tower */}
+        <div className="cs-stack-wrap">
+          <div className="cs-col-title">call stack {showOverflow ? "" : `· depth ${frames.length}`}</div>
+          {showOverflow && <div className="cs-overflow">💥 STACK OVERFLOW</div>}
+          {showWarn && !showOverflow && <div className="cs-warnbar">⚠ stack growing without bound</div>}
+          <div className="cs-stack">
+            {display.length === 0 && <div className="cs-empty">stack empty. press step or run.</div>}
+            {display.map((f, i) => (
+              <div key={`${f.label}-${f.depth}-${i}`} className={`cs-frame ${f.status} ${danger ? "danger" : ""}`}>
+                <span className="cs-frame-label">{f.label}</span>
+                <span className="cs-frame-meta">
+                  {f.status === "base"
+                    ? "BASE CASE"
+                    : f.status === "returning"
+                      ? `→ ${f.value}`
+                      : f.status === "calling"
+                        ? "CALLING"
+                        : `depth ${f.depth}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* log */}
+      <div className="cs-log">
+        <div className="cs-col-title">execution log</div>
+        {logs.slice(0, step + 1).slice(-8).map((l, i) => (
+          <div key={i} className={`cs-log-row ${l.kind}`}>
+            {l.msg}
+          </div>
+        ))}
+      </div>
+
+      <p className="widget-caption">
+        pick a function and an n, then step through it. each call pushes a frame; the green base case is where it finally stops; returns pop the frames back off. flip danger mode to remove the base case and watch the stack climb to overflow.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -1723,6 +1982,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <PacelcSimulatorWidget />;
     case "blockchain-simulator":
       return <BlockchainSimulatorWidget />;
+    case "call-stack-visualiser":
+      return <CallStackVisualiserWidget />;
     default:
       return null;
   }

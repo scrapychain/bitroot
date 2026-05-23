@@ -170,6 +170,14 @@ export const topics: Topic[] = [
     desc: "The capstone. From one transistor in 1947 to a financial network nobody owns. How every previous topic stacks into Bitcoin, end to end, with nothing missing.",
     levels: 3,
   },
+  {
+    href: "/recursion",
+    label: "Recursion",
+    num: "20",
+    accent: "var(--neon-violet)",
+    desc: "A function that calls itself, until it doesn't. The most elegant idea in programming and the fastest way to crash a server. The base case is survival.",
+    levels: 3,
+  },
 ];
 
 export const topicLinks = topics.map(({ href, label }) => ({ href, label }));
