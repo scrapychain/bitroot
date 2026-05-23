@@ -2144,6 +2144,158 @@ function MemoryExplorerWidget() {
 }
 
 /* =====================================================================
+   14. Big O race: watch complexity classes diverge as n grows
+   ===================================================================== */
+type BigOTone = "lime" | "cyan" | "violet" | "amber" | "rose" | "crimson";
+
+interface BigOClass {
+  key: string;
+  label: string;
+  ops: (n: number) => number;
+  tone: BigOTone;
+  real: string;
+  limited?: boolean; // only meaningful for small n
+}
+
+const BIGO_CLASSES: BigOClass[] = [
+  { key: "O(1)", label: "O(1) · array access", ops: () => 1, tone: "lime", real: "Hash map lookup in Bitcoin's UTXO set" },
+  { key: "O(log n)", label: "O(log n) · binary search", ops: (n) => Math.max(1, Math.ceil(Math.log2(n))), tone: "cyan", real: "Binary search in a sorted array" },
+  { key: "O(n)", label: "O(n) · linear search", ops: (n) => n, tone: "violet", real: "Reading every element once" },
+  { key: "O(n log n)", label: "O(n log n) · merge sort", ops: (n) => Math.round(n * Math.max(1, Math.log2(n))), tone: "amber", real: "Sorting with merge sort" },
+  { key: "O(n²)", label: "O(n²) · bubble sort", ops: (n) => n * n, tone: "rose", real: "Bubble sort on this input" },
+  { key: "O(2ⁿ)", label: "O(2ⁿ) · brute force", ops: (n) => Math.pow(2, n), tone: "crimson", real: "Naive recursive Fibonacci", limited: true },
+];
+
+function fmtNum(x: number): string {
+  if (!isFinite(x)) return "∞";
+  if (x < 1e15) return Math.round(x).toLocaleString("en-US");
+  return x.toExponential(2);
+}
+
+function fmtTime(ops: number): string {
+  // assume 1e9 operations per second, so time in nanoseconds == ops
+  if (!isFinite(ops) || ops > 1e30) return "longer than the universe has existed";
+  const ns = ops;
+  if (ns < 1000) return `${Math.round(ns)} ns`;
+  if (ns < 1e6) return `${(ns / 1e3).toFixed(1)} µs`;
+  if (ns < 1e9) return `${(ns / 1e6).toFixed(1)} ms`;
+  const s = ns / 1e9;
+  if (s < 60) return `${s.toFixed(1)} s`;
+  if (s < 3600) return `${(s / 60).toFixed(1)} min`;
+  if (s < 86400) return `${(s / 3600).toFixed(1)} hours`;
+  if (s < 31536000) return `${(s / 86400).toFixed(1)} days`;
+  return `${(s / 31536000).toExponential(1)} years`;
+}
+
+function BigORaceWidget() {
+  const [n, setN] = useState(1000);
+  const [enabled, setEnabled] = useState<Record<string, boolean>>({
+    "O(1)": true,
+    "O(log n)": true,
+    "O(n)": true,
+    "O(n log n)": true,
+    "O(n²)": true,
+    "O(2ⁿ)": false,
+  });
+  const [bitcoin, setBitcoin] = useState(false);
+
+  const expoBlocked = n > 30;
+
+  type Row = { key: string; label: string; tone: BigOTone; ops: number; real: string };
+  const rows: Row[] = [];
+  for (const c of BIGO_CLASSES) {
+    if (!enabled[c.key]) continue;
+    if (c.limited && expoBlocked) continue;
+    rows.push({ key: c.key, label: c.label, tone: c.tone, ops: c.ops(n), real: c.real });
+  }
+  if (bitcoin) {
+    rows.push({ key: "sha", label: "SHA-256 compute", tone: "lime", ops: 1, real: "Hash any block in nanoseconds" });
+    rows.push({ key: "reverse", label: "Reverse SHA-256 · O(2²⁵⁶)", tone: "amber", ops: Math.pow(2, 256), real: "More operations than atoms in the universe" });
+  }
+
+  const maxLog = Math.max(...rows.map((r) => Math.log10(r.ops + 1)), 1);
+
+  const toggle = (key: string) =>
+    setEnabled((cur) => ({ ...cur, [key]: !cur[key] }));
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// race the algorithms"}</span>
+        <div className="widget-controls">
+          <button
+            type="button"
+            className={`widget-btn ${bitcoin ? "is-active" : ""}`}
+            onClick={() => setBitcoin((b) => !b)}
+          >
+            🔐 bitcoin mode
+          </button>
+        </div>
+      </div>
+
+      <div className="bigo-controls">
+        <label className="cs-field">
+          n = {n.toLocaleString("en-US")}
+          <input
+            type="range"
+            min={10}
+            max={100000}
+            step={10}
+            value={n}
+            onChange={(e) => setN(Number(e.target.value))}
+          />
+        </label>
+        <div className="bigo-checks">
+          {BIGO_CLASSES.map((c) => {
+            const blocked = c.limited && expoBlocked;
+            return (
+              <button
+                key={c.key}
+                type="button"
+                className={`bigo-check ${enabled[c.key] && !blocked ? "on" : ""} ${blocked ? "blocked" : ""}`}
+                onClick={() => !blocked && toggle(c.key)}
+                disabled={blocked}
+                title={blocked ? "O(2ⁿ) is disabled above n = 30: the numbers stop fitting in the universe" : undefined}
+              >
+                {c.key}
+              </button>
+            );
+          })}
+        </div>
+        {expoBlocked && (
+          <p className="cs-note">O(2ⁿ) is hidden above n = 30. At n = 64 it already exceeds the number of atoms in the universe.</p>
+        )}
+      </div>
+
+      <div className="bigo-bars">
+        {rows.map((r) => (
+          <div key={r.key} className="bigo-row">
+            <div className="bigo-row-head">
+              <span className="bigo-row-label">{r.label}</span>
+              <span className="bigo-row-ops">{fmtNum(r.ops)} ops</span>
+            </div>
+            <div className="bigo-track">
+              <div
+                className={`bigo-fill tone-${r.tone}`}
+                style={{ width: `${Math.max(2, (Math.log10(r.ops + 1) / maxLog) * 100)}%` }}
+              />
+            </div>
+            <div className="bigo-row-foot">
+              <span className="bigo-real">{r.real}</span>
+              <span className="bigo-time">{fmtTime(r.ops)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="widget-caption">
+        drag n and watch the bars diverge (widths are log-scaled so every class stays visible). times assume a billion operations per second. flip bitcoin mode to add SHA-256: O(1) to compute, O(2²⁵⁶) to reverse. that gap is the entire security model.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -2174,6 +2326,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <CallStackVisualiserWidget />;
     case "memory-explorer":
       return <MemoryExplorerWidget />;
+    case "big-o-race":
+      return <BigORaceWidget />;
     default:
       return null;
   }

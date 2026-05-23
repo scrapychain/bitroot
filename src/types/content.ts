@@ -58,7 +58,8 @@ export type WidgetName =
   | "pacelc-simulator"
   | "blockchain-simulator"
   | "call-stack-visualiser"
-  | "memory-explorer";
+  | "memory-explorer"
+  | "big-o-race";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -105,7 +106,8 @@ export interface PageContent {
     | "cap-theorem"
     | "pacelc"
     | "blockchain"
-    | "recursion";
+    | "recursion"
+    | "big-o";
   hexLabel: string;
   category: string;
   hero: {

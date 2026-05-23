@@ -605,9 +605,9 @@ export const recursion: PageContent = {
   ],
   nextUp: {
     eyebrow: "next up / 0x15",
-    title: "When recursion meets data: sorting algorithms.",
-    href: "/sorting",
-    label: "sorting",
+    title: "Same answer, 317 years apart. How to measure the shape of an algorithm.",
+    href: "/big-o",
+    label: "big o notation",
     variant: "magenta",
   },
 };

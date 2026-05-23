@@ -178,6 +178,14 @@ export const topics: Topic[] = [
     desc: "A function that calls itself, until it doesn't. The most elegant idea in programming and the fastest way to crash a server. The base case is survival.",
     levels: 3,
   },
+  {
+    href: "/big-o",
+    label: "Big O Notation",
+    num: "21",
+    accent: "var(--neon-emerald)",
+    desc: "Same answer, 317 years apart. Big O is not about speed, it is about how code scales. The lens that makes the whole curriculum coherent, from arrays to Bitcoin's security.",
+    levels: 3,
+  },
 ];
 
 export const topicLinks = topics.map(({ href, label }) => ({ href, label }));

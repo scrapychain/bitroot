@@ -4724,3 +4724,101 @@ a.card,
   color: var(--neon-cyan);
 }
 
+/* ============================================
+   BIG O RACE WIDGET (big-o page)
+   ============================================ */
+.bigo-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+.bigo-controls .cs-field input[type="range"] {
+  width: 100%;
+}
+.bigo-checks {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.bigo-check {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  color: var(--fg-mute);
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.bigo-check.on {
+  background: var(--bg-3);
+  color: var(--fg);
+  border-color: var(--neon-emerald);
+}
+.bigo-check.blocked {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.bigo-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 0.6rem;
+}
+.bigo-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.bigo-row-head,
+.bigo-row-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+.bigo-row-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg);
+}
+.bigo-row-ops {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+.bigo-track {
+  height: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.bigo-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+.bigo-fill.tone-lime    { background: var(--neon-lime); }
+.bigo-fill.tone-cyan    { background: var(--neon-cyan); }
+.bigo-fill.tone-violet  { background: var(--neon-violet); }
+.bigo-fill.tone-amber   { background: var(--neon-amber); }
+.bigo-fill.tone-rose    { background: var(--neon-rose); }
+.bigo-fill.tone-crimson { background: var(--neon-crimson); }
+
+.bigo-real {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--fg-mute);
+}
+.bigo-time {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+
