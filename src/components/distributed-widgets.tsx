@@ -2296,6 +2296,679 @@ function BigORaceWidget() {
 }
 
 /* =====================================================================
+   15. Process Scheduler Visualiser
+   ===================================================================== */
+type ProcPriority = "HIGH" | "NORMAL" | "LOW";
+type ProcState = "RUNNING" | "READY" | "WAITING" | "SLEEPING";
+type SchedMode = "rr" | "priority" | "cfs";
+
+interface OSProc {
+  id: number;
+  pid: number;
+  name: string;
+  priority: ProcPriority;
+  state: ProcState;
+  cpuTime: number;
+  vrt: number;
+  waitLeft: number;
+}
+
+interface OSCore {
+  id: number;
+  proc: OSProc | null;
+  sliceUsed: number;
+}
+
+interface SchedLog {
+  t: number;
+  text: string;
+}
+
+const SCHED_TICK_MS = 350;
+const SCHED_SLICE = 10;
+const SCHED_LOG_MAX = 35;
+
+function makeOSCore(id: number): OSCore {
+  return { id, proc: null, sliceUsed: 0 };
+}
+
+function vrDelta(p: ProcPriority): number {
+  return p === "HIGH" ? SCHED_SLICE / 2 : p === "NORMAL" ? SCHED_SLICE : SCHED_SLICE * 2;
+}
+
+function priNum(p: ProcPriority): number {
+  return p === "HIGH" ? 3 : p === "NORMAL" ? 2 : 1;
+}
+
+function pickNextOSProc(
+  procs: OSProc[],
+  cores: OSCore[],
+  mode: SchedMode,
+  forCoreId: number,
+  rrPtr: { v: number },
+): OSProc | null {
+  const busy = new Set(cores.filter((c) => c.id !== forCoreId && c.proc).map((c) => c.proc!.id));
+  const ready = procs.filter((p) => p.state === "READY" && !busy.has(p.id));
+  if (!ready.length) return null;
+  if (mode === "rr") {
+    const byId = [...ready].sort((a, b) => a.id - b.id);
+    const after = byId.filter((p) => p.id > rrPtr.v);
+    const chosen = after[0] ?? byId[0];
+    rrPtr.v = chosen.id;
+    return chosen;
+  }
+  if (mode === "priority") {
+    return [...ready].sort((a, b) => priNum(b.priority) - priNum(a.priority))[0];
+  }
+  return [...ready].sort((a, b) => a.vrt - b.vrt)[0];
+}
+
+function ProcessSchedulerWidget() {
+  const [isRunning, setIsRunning] = useState(false);
+  const [scheduler, setScheduler] = useState<SchedMode>("rr");
+  const [newName, setNewName] = useState("");
+  const [newPri, setNewPri] = useState<ProcPriority>("NORMAL");
+
+  type SimSnap = {
+    t: number;
+    procs: OSProc[];
+    cores: OSCore[];
+    log: SchedLog[];
+    nextPid: number;
+  };
+
+  const simRef = useRef<{
+    t: number;
+    procs: OSProc[];
+    cores: OSCore[];
+    log: SchedLog[];
+    nextPid: number;
+    rrPtr: { v: number };
+  }>({ t: 0, procs: [], cores: [makeOSCore(0), makeOSCore(1)], log: [], nextPid: 1001, rrPtr: { v: 0 } });
+
+  const [snap, setSnap] = useState<SimSnap>({
+    t: 0,
+    procs: [],
+    cores: [makeOSCore(0), makeOSCore(1)],
+    log: [],
+    nextPid: 1001,
+  });
+
+  const schedRef = useRef<SchedMode>("rr");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const logBoxRef = useRef<HTMLDivElement>(null);
+
+  const syncSnap = useCallback(() => {
+    const s = simRef.current;
+    setSnap({
+      t: s.t,
+      procs: s.procs.map((p) => ({ ...p })),
+      cores: s.cores.map((c) => ({ ...c, proc: c.proc ? { ...c.proc } : null })),
+      log: [...s.log],
+      nextPid: s.nextPid,
+    });
+  }, []);
+
+  const doTick = useCallback(() => {
+    const s = simRef.current;
+    const mode = schedRef.current;
+    if (s.procs.length === 0) return;
+
+    s.t += SCHED_SLICE;
+
+    const pushLog = (text: string) => {
+      s.log.push({ t: s.t, text });
+      if (s.log.length > SCHED_LOG_MAX) s.log.shift();
+    };
+
+    const procs: OSProc[] = s.procs.map((p) => ({ ...p }));
+    const cores: OSCore[] = s.cores.map((c) => ({ ...c, proc: c.proc ? { ...c.proc } : null }));
+
+    for (const p of procs) {
+      if ((p.state === "WAITING" || p.state === "SLEEPING") && p.waitLeft > 0) {
+        p.waitLeft--;
+        if (p.waitLeft === 0) p.state = "READY";
+      }
+    }
+
+    for (const p of procs) {
+      if (p.state === "READY" && s.t > 10 && Math.random() < 0.06) {
+        p.state = Math.random() < 0.6 ? "WAITING" : "SLEEPING";
+        p.waitLeft = 2 + Math.floor(Math.random() * 4);
+        pushLog(`[${s.t}ms] ${p.name}: ${p.state} (I/O blocked)`);
+      }
+    }
+
+    for (const core of cores) {
+      if (core.proc !== null) {
+        const cur = procs.find((p) => p.id === core.proc!.id);
+
+        if (!cur || cur.state === "WAITING" || cur.state === "SLEEPING") {
+          const oldName = core.proc.name;
+          core.proc = null;
+          core.sliceUsed = 0;
+          const next = pickNextOSProc(procs, cores, mode, core.id, s.rrPtr);
+          if (next) {
+            next.state = "RUNNING";
+            core.proc = next;
+            pushLog(`[${s.t}ms] Context switch: ${oldName} → ${next.name} (Core ${core.id})`);
+          }
+        } else {
+          cur.cpuTime += SCHED_SLICE;
+          cur.vrt += vrDelta(cur.priority);
+          core.sliceUsed += SCHED_SLICE;
+          core.proc = cur;
+
+          let preempt = core.sliceUsed >= SCHED_SLICE;
+
+          if (mode === "priority") {
+            const curP = priNum(cur.priority);
+            const higherReady = procs.some(
+              (p) =>
+                p.state === "READY" &&
+                priNum(p.priority) > curP &&
+                !cores.some((c) => c.proc?.id === p.id),
+            );
+            if (higherReady) preempt = true;
+          }
+
+          if (preempt) {
+            const oldName = cur.name;
+            cur.state = "READY";
+            core.proc = null;
+            core.sliceUsed = 0;
+            const next = pickNextOSProc(procs, cores, mode, core.id, s.rrPtr);
+            if (next) {
+              next.state = "RUNNING";
+              core.proc = next;
+              pushLog(`[${s.t}ms] Context switch: ${oldName} → ${next.name} (Core ${core.id})`);
+            } else {
+              cur.state = "RUNNING";
+              core.proc = cur;
+            }
+          }
+        }
+      } else {
+        const next = pickNextOSProc(procs, cores, mode, core.id, s.rrPtr);
+        if (next) {
+          next.state = "RUNNING";
+          core.proc = next;
+          core.sliceUsed = 0;
+          pushLog(`[${s.t}ms] ${next.name} → Core ${core.id} (scheduled)`);
+        }
+      }
+    }
+
+    s.procs = procs;
+    s.cores = cores;
+    syncSnap();
+  }, [syncSnap]);
+
+  const startSched = useCallback(() => {
+    if (timerRef.current || simRef.current.procs.length === 0) return;
+    setIsRunning(true);
+    timerRef.current = setInterval(doTick, SCHED_TICK_MS);
+  }, [doTick]);
+
+  const pauseSched = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsRunning(false);
+  }, []);
+
+  const resetSched = useCallback(() => {
+    pauseSched();
+    simRef.current = {
+      t: 0,
+      procs: [],
+      cores: [makeOSCore(0), makeOSCore(1)],
+      log: [],
+      nextPid: 1001,
+      rrPtr: { v: 0 },
+    };
+    syncSnap();
+  }, [pauseSched, syncSnap]);
+
+  const changeScheduler = useCallback((mode: SchedMode) => {
+    schedRef.current = mode;
+    setScheduler(mode);
+  }, []);
+
+  const addOSProcess = useCallback(
+    (name: string, priority: ProcPriority) => {
+      if (!name.trim()) return;
+      const s = simRef.current;
+      s.procs.push({
+        id: s.nextPid,
+        pid: s.nextPid,
+        name: name.trim(),
+        priority,
+        state: "READY",
+        cpuTime: 0,
+        vrt: 0,
+        waitLeft: 0,
+      });
+      s.nextPid++;
+      syncSnap();
+    },
+    [syncSnap],
+  );
+
+  const loadBitcoinPreset = useCallback(() => {
+    pauseSched();
+    simRef.current = {
+      t: 0,
+      procs: [],
+      cores: [makeOSCore(0), makeOSCore(1)],
+      log: [],
+      nextPid: 1001,
+      rrPtr: { v: 0 },
+    };
+    const s = simRef.current;
+    const presets: Array<[string, ProcPriority]> = [
+      ["bitcoin-core", "HIGH"],
+      ["mempool-checker", "NORMAL"],
+      ["peer-connector", "NORMAL"],
+      ["block-validator", "HIGH"],
+      ["rpc-server", "LOW"],
+    ];
+    for (const [name, priority] of presets) {
+      s.procs.push({
+        id: s.nextPid,
+        pid: s.nextPid,
+        name,
+        priority,
+        state: "READY",
+        cpuTime: 0,
+        vrt: 0,
+        waitLeft: 0,
+      });
+      s.nextPid++;
+    }
+    syncSnap();
+  }, [pauseSched, syncSnap]);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (logBoxRef.current) {
+      logBoxRef.current.scrollTop = logBoxRef.current.scrollHeight;
+    }
+  }, [snap.log.length]);
+
+  const PCOL: Record<ProcPriority, string> = {
+    HIGH: "#00d4ff",
+    NORMAL: "#818cf8",
+    LOW: "#f59e0b",
+  };
+  const SCOL: Record<ProcState, string> = {
+    RUNNING: "#10b981",
+    READY: "#f59e0b",
+    WAITING: "#6b7280",
+    SLEEPING: "#4b5563",
+  };
+
+  const maxCpu = Math.max(1, ...snap.procs.map((p) => p.cpuTime));
+
+  return (
+    <div className="widget-wrap" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div className="widget-head">
+        <span className="widget-title">{"// watch the scheduler share the CPU"}</span>
+        <div className="widget-controls">
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--fg-mute)" }}>
+            sim: {snap.t}ms
+          </span>
+        </div>
+      </div>
+
+      {/* CPU Cores */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+        {snap.cores.map((core) => {
+          const proc = core.proc;
+          const pct = Math.min(100, (core.sliceUsed / SCHED_SLICE) * 100);
+          const color = proc ? PCOL[proc.priority] : "var(--fg-mute)";
+          return (
+            <div
+              key={core.id}
+              style={{
+                padding: "0.875rem",
+                background: "var(--bg-2)",
+                borderRadius: "0.5rem",
+                border: `1px solid ${proc ? color + "44" : "var(--line)"}`,
+                minHeight: "88px",
+                transition: "border-color 0.3s",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.62rem",
+                  color: "var(--fg-mute)",
+                  marginBottom: "0.4rem",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                CORE {core.id}
+              </div>
+              {proc ? (
+                <>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      color,
+                      marginBottom: "0.15rem",
+                    }}
+                  >
+                    {proc.name}
+                  </div>
+                  <div style={{ fontSize: "0.68rem", color: "#10b981", marginBottom: "0.4rem" }}>
+                    RUNNING · PID {proc.pid}
+                  </div>
+                  <div
+                    style={{
+                      height: "4px",
+                      background: "var(--bg-0)",
+                      borderRadius: "2px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${pct}%`,
+                        background: color,
+                        transition: `width ${SCHED_TICK_MS * 0.85}ms linear`,
+                        borderRadius: "2px",
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{ fontSize: "0.62rem", color: "var(--fg-mute)", marginTop: "0.25rem" }}
+                  >
+                    {core.sliceUsed}ms / {SCHED_SLICE}ms slice
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--fg-mute)" }}
+                >
+                  idle
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Scheduler selector */}
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+        <span
+          style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--fg-mute)" }}
+        >
+          algorithm:
+        </span>
+        {(
+          [
+            ["rr", "Round Robin"],
+            ["priority", "Priority"],
+            ["cfs", "CFS"],
+          ] as [SchedMode, string][]
+        ).map(([mode, label]) => (
+          <button
+            key={mode}
+            type="button"
+            className={`widget-btn ${scheduler === mode ? "is-active" : ""}`}
+            onClick={() => changeScheduler(mode)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Add Process */}
+      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          type="text"
+          value={newName}
+          placeholder="process name"
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && newName.trim()) {
+              addOSProcess(newName, newPri);
+              setNewName("");
+            }
+          }}
+          style={{
+            flex: "1 1 120px",
+            padding: "0.375rem 0.625rem",
+            background: "var(--bg-2)",
+            border: "1px solid var(--line-strong)",
+            borderRadius: "0.25rem",
+            color: "var(--fg)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.8rem",
+            outline: "none",
+          }}
+        />
+        {(["LOW", "NORMAL", "HIGH"] as ProcPriority[]).map((p) => (
+          <button
+            key={p}
+            type="button"
+            className={`widget-btn ${newPri === p ? "is-active" : ""}`}
+            style={newPri === p ? { borderColor: PCOL[p], color: PCOL[p] } : {}}
+            onClick={() => setNewPri(p)}
+          >
+            {p}
+          </button>
+        ))}
+        <button
+          type="button"
+          className="widget-btn"
+          onClick={() => {
+            if (newName.trim()) {
+              addOSProcess(newName, newPri);
+              setNewName("");
+            }
+          }}
+        >
+          + Add Process
+        </button>
+        <button
+          type="button"
+          className="widget-btn"
+          onClick={loadBitcoinPreset}
+          title="Load Bitcoin Node simulation"
+        >
+          ₿ Bitcoin preset
+        </button>
+      </div>
+
+      {/* Process list */}
+      {snap.procs.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+          {snap.procs.map((proc) => (
+            <div
+              key={proc.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto auto",
+                gap: "0.5rem",
+                alignItems: "center",
+                padding: "0.5rem 0.75rem",
+                background: "var(--bg-2)",
+                borderRadius: "0.375rem",
+                borderLeft: `3px solid ${PCOL[proc.priority]}`,
+                opacity: proc.state === "WAITING" || proc.state === "SLEEPING" ? 0.5 : 1,
+                transition: "opacity 0.3s ease, border-color 0.3s ease",
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      color: "var(--fg)",
+                    }}
+                  >
+                    {proc.name}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.65rem",
+                      color: "var(--fg-mute)",
+                    }}
+                  >
+                    PID {proc.pid}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    marginTop: "0.25rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "80px",
+                      height: "3px",
+                      background: "var(--bg-0)",
+                      borderRadius: "2px",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${(proc.cpuTime / maxCpu) * 100}%`,
+                        background: PCOL[proc.priority],
+                        transition: "width 0.35s ease",
+                        borderRadius: "2px",
+                      }}
+                    />
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.62rem",
+                      color: "var(--fg-mute)",
+                    }}
+                  >
+                    {proc.cpuTime}ms CPU
+                  </span>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.62rem",
+                  padding: "0.15rem 0.4rem",
+                  borderRadius: "0.2rem",
+                  background: `${PCOL[proc.priority]}20`,
+                  color: PCOL[proc.priority],
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {proc.priority}
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.62rem",
+                  padding: "0.15rem 0.4rem",
+                  borderRadius: "0.2rem",
+                  background: `${SCOL[proc.state]}20`,
+                  color: SCOL[proc.state],
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {proc.state}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Controls */}
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        <button
+          type="button"
+          className="widget-btn"
+          onClick={isRunning ? pauseSched : startSched}
+          disabled={snap.procs.length === 0}
+        >
+          {isRunning ? "⏸ Pause" : "▶ Start"}
+        </button>
+        <button type="button" className="widget-btn" onClick={resetSched}>
+          ⟳ Reset
+        </button>
+      </div>
+
+      {/* Context switch log */}
+      {snap.log.length > 0 && (
+        <div
+          ref={logBoxRef}
+          style={{
+            background: "var(--bg-2)",
+            borderRadius: "0.375rem",
+            padding: "0.75rem",
+            maxHeight: "180px",
+            overflowY: "auto",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.62rem",
+              color: "var(--fg-mute)",
+              marginBottom: "0.4rem",
+              letterSpacing: "0.06em",
+            }}
+          >
+            context switch log
+          </div>
+          {snap.log.map((entry, i) => (
+            <div
+              key={i}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.7rem",
+                color: i === snap.log.length - 1 ? "var(--neon-cyan)" : "var(--fg-mute)",
+                lineHeight: "1.6",
+              }}
+            >
+              {entry.text}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p className="widget-caption">
+        add processes or load the bitcoin preset, choose a scheduler, then press start. round robin
+        gives equal time slices. priority starves low-priority processes when high-priority ones
+        exist. cfs tracks virtual runtime and naturally balances cpu time weighted by priority.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -2328,6 +3001,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <MemoryExplorerWidget />;
     case "big-o-race":
       return <BigORaceWidget />;
+    case "process-scheduler":
+      return <ProcessSchedulerWidget />;
     default:
       return null;
   }

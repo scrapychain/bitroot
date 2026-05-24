@@ -12,7 +12,11 @@ export async function TopicPage({ content }: { content: PageContent }) {
         eyebrow={content.hero.eyebrow}
         titleHtml={content.hero.title}
         ledeHtml={content.hero.lede}
-      />
+      >
+        {content.hero.narrativeHtml && (
+          <div className="page-narrative" dangerouslySetInnerHTML={{ __html: content.hero.narrativeHtml }} />
+        )}
+      </Hero>
       {content.levels.map((level) => (
         <LevelSection key={level.number} content={level} />
       ))}

@@ -4,6 +4,7 @@ export interface CodeSample {
   language: "rust" | "c";
   code: string;
   filename?: string;
+  label?: string;
 }
 
 export interface CodePair {
@@ -59,7 +60,8 @@ export type WidgetName =
   | "blockchain-simulator"
   | "call-stack-visualiser"
   | "memory-explorer"
-  | "big-o-race";
+  | "big-o-race"
+  | "process-scheduler";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -114,6 +116,7 @@ export interface PageContent {
     eyebrow: string;
     title: string;
     lede: string;
+    narrativeHtml?: string;
   };
   levels: [LevelContent, LevelContent, LevelContent];
   nextUp?: {

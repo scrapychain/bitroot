@@ -164,6 +164,72 @@ int main(void) {
     return 0;
 }`;
 
+const cppBitcoin = `#include <thread>
+#include <mutex>
+
+std::mutex mempool_mutex;
+
+class BitcoinNode {
+    std::thread net_thread;
+    std::thread validation_thread;
+    std::thread rpc_thread;
+    bool running = true;
+
+    void net_main() {
+        /* OS schedules this thread */
+        /* manages TCP connections  */
+        /* each connection: one socket fd */
+        /* multiplexed with epoll/kqueue */
+        while (running) {
+            poll_peers();      /* non-blocking I/O */
+            gossip_txns();     /* write() syscall  */
+        }
+    }
+
+    void validation_main() {
+        while (running) {
+            std::lock_guard<std::mutex> lock(mempool_mutex);
+            /* only one thread validates at a time */
+            validate_next_block();
+        }       /* mutex released here (RAII) */
+    }
+};
+/* C++ trusts you to use mutexes correctly.
+ * Forget the lock: silent data race at runtime. */`;
+
+const rustBitcoin = `use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread;
+
+struct Mempool { /* pending transactions */ }
+impl Mempool { fn validate_pending(&mut self) {} }
+
+struct BitcoinNode {
+    mempool: Arc<Mutex<Mempool>>,
+    running: Arc<AtomicBool>,
+}
+
+impl BitcoinNode {
+    fn start(&self) {
+        let mempool = Arc::clone(&self.mempool);
+        let running = Arc::clone(&self.running);
+
+        /* OS creates and schedules this thread */
+        thread::spawn(move || {
+            while running.load(Ordering::Relaxed) {
+                /* Rust enforces: only one writer at a time.
+                 * Forget the lock: compile error, not a race. */
+                let mut pool = mempool.lock().unwrap();
+                pool.validate_pending();
+                /* MutexGuard drops here — lock released */
+            }
+        });
+    }
+}
+/* Same OS primitives. Different safety guarantees.
+ * Bitcoin Core (C++) prevents races at code review.
+ * Rust prevents them at compile time. */`;
+
 export const operatingSystem: PageContent = {
   slug: "operating-system",
   hexLabel: "0x07",
@@ -172,6 +238,18 @@ export const operatingSystem: PageContent = {
     eyebrow: "root.system / 0x07 / system",
     title: `One CPU.<br><span class="highlight">Many programs.</span>`,
     lede: `The CPU page showed a machine that runs <em>one</em> instruction stream. The memory page showed an address space that belongs to <em>one</em> process. Right now your laptop is running hundreds of programs across a handful of cores, and they don't trample each other. The thing in the middle making that work is the <strong>operating system</strong>.`,
+    narrativeHtml: `<p>Your code has never spoken to your CPU.</p>
+<p>Not once.</p>
+<p>Every instruction you have ever written.<br>Every function you have ever called.<br>Every file you have ever opened.</p>
+<p>None of it reaches the hardware directly.</p>
+<p>It all goes through a middleman.</p>
+<p>The operating system.</p>
+<p>Your program lives in a box the OS drew.<br>It can only see the memory the OS gave it.<br>It can only use the CPU time the OS allows.<br>It can only touch the hardware by asking the OS for permission.</p>
+<p>This is not a limitation.<br>It is what makes computing reliable.</p>
+<p>Without the OS your program and every other program running on the same machine would share one address space. One set of registers. One CPU.</p>
+<p>And the first bug in any one of them would corrupt everything else.</p>
+<p>The OS is the thing that decided that could not be allowed.</p>
+<p>And built the walls to enforce it.</p>`,
   },
   levels: [
     {
@@ -211,6 +289,10 @@ export const operatingSystem: PageContent = {
           html: `<p>The CPU has, baked into the silicon, two modes: <strong>kernel mode</strong> (full access to every instruction, every memory address, every device) and <strong>user mode</strong> (restricted: most instructions allowed, but anything that touches hardware traps). The OS kernel runs in kernel mode. Your program runs in user mode. There is no in-between.</p>
 <p>So how does your program ever <em>do</em> anything: open a file, send a packet, allocate memory? It asks the kernel. That request is called a <strong>system call</strong>.</p>`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The CPU's two modes are enforced in silicon. Kernel mode and user mode are bits in a CPU control register. The same CPU you learned about on page 5. The same fetch-decode-execute loop. The privilege level is just another bit pattern the CPU checks before executing certain instructions. <a href="/cpu">← see: CPU</a></p>`,
+        },
         { kind: "heading", text: "Every program is, ultimately, a sequence of syscalls" },
         {
           kind: "prose",
@@ -235,6 +317,7 @@ export const operatingSystem: PageContent = {
           html: `<p>Power on. The CPU jumps to a hardcoded address in firmware (<strong>BIOS</strong> on old PCs, <strong>UEFI</strong> on modern ones). Firmware finds a <strong>bootloader</strong> on disk and runs it. The bootloader loads the OS <strong>kernel</strong> into memory, then jumps to it. The kernel sets up page tables, starts the scheduler, mounts file systems, and finally launches the first user-mode process: <strong>init</strong> on Unix, <strong>System</strong> on Windows. From there, init starts every other process you'll ever run.</p>
 <p>That entire chain is just CPUs jumping to addresses. There's no magic. Every step is a continuation of the fetch-decode-execute loop you already know.</p>`,
         },
+        { kind: "widget", name: "process-scheduler" },
       ],
     },
     {
@@ -253,6 +336,10 @@ export const operatingSystem: PageContent = {
   <li>A <strong>process ID</strong>, a parent process ID, credentials, signal handlers, working directory.</li>
 </ul>
 <p>That's the entire identity of a "running program". On Linux you can read it: <code>cat /proc/&lt;pid&gt;/status</code>. The whole struct, formatted for humans.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">A process struct in the kernel is just a data structure in memory. The page table pointer, register state, file descriptor table — all of it binary data at a memory address. The OS manages processes the same way your programs manage linked lists and arrays. With pointers. With structs. With the same memory operations you learned on pages 6 and 9. <a href="/memory">← see: Memory</a> · <a href="/pointers">← see: Pointers</a></p>`,
         },
         { kind: "heading", text: "Creating processes: fork &amp; exec" },
         {
@@ -276,6 +363,10 @@ export const operatingSystem: PageContent = {
           kind: "prose",
           html: `<p>A <strong>thread</strong> is an independent stream of execution that <em>shares</em> its process's address space and file descriptors with other threads. Cheaper to create than a process, faster to switch between, and able to communicate just by reading the same memory.</p>
 <p>That last property is also threads' biggest pitfall. If two threads write to the same variable without coordination, you get a <strong>data race</strong>: undefined behaviour in C, a compile error in safe Rust. The languages diverge here. C trusts you to use mutexes correctly; Rust's type system tracks which references can cross thread boundaries and refuses to compile the unsafe combinations.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Rust prevents data races at compile time. A data race is two threads writing to the same memory without coordination. The ownership system tracks which references can cross thread boundaries. If two threads could write the same value the code does not compile. C trusts you with mutexes. Rust enforces the contract. <a href="/compile-vs-runtime">← see: Compile vs Runtime</a></p>`,
         },
         { kind: "heading", text: "Scheduling: how the OS shares one CPU" },
         {
@@ -393,6 +484,68 @@ export const operatingSystem: PageContent = {
           kind: "prose",
           html: `<p>One line, the syscall, is the only way through. Everything in user space funnels through it; the kernel is the only thing that talks to hardware. Lock that boundary down and you get isolation, security, and a stable interface that <em>any</em> user program can target without knowing what hardware it's running on.</p>`,
         },
+
+        /* ── Bitcoin Core section ── */
+        { kind: "heading", text: "Bitcoin Core as an operating system client" },
+        {
+          kind: "prose",
+          html: `<p>Every Bitcoin full node on Earth is a program running inside an OS.</p>
+<p>Not a special program. Not a privileged program. A regular user-space process.</p>
+<p>Bitcoin Core — the reference implementation written in C++ — uses every OS primitive this page has described.</p>`,
+        },
+        { kind: "heading", text: "Processes and threads" },
+        {
+          kind: "prose",
+          html: `<p>Bitcoin Core spawns multiple threads on startup:</p>
+<ul>
+  <li>The <strong>main thread</strong>: handles the event loop.</li>
+  <li>The <strong>net thread</strong>: manages peer connections.</li>
+  <li>The <strong>mempool thread</strong>: validates transactions.</li>
+  <li>The <strong>validation thread</strong>: validates new blocks.</li>
+  <li>The <strong>RPC thread</strong>: handles API requests.</li>
+</ul>
+<p>Each thread is scheduled by the OS. Each shares the same process address space. Each must coordinate using mutexes to avoid data races.</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustBitcoin },
+            c: { language: "c", code: cppBitcoin, label: "C++" },
+          },
+        },
+        { kind: "heading", text: "Syscalls" },
+        {
+          kind: "prose",
+          html: `<p>Every Bitcoin Core operation is built on syscalls:</p>
+<ul>
+  <li><code>socket()</code> — create a network socket</li>
+  <li><code>connect()</code> — connect to a peer</li>
+  <li><code>send()</code> — broadcast a transaction</li>
+  <li><code>recv()</code> — receive a new block</li>
+  <li><code>open()</code> — open the block database</li>
+  <li><code>mmap()</code> — map the UTXO set into memory</li>
+  <li><code>epoll()</code> — wait for any peer to send data</li>
+  <li><code>futex()</code> — fast mutex for thread coordination</li>
+</ul>
+<p>The entire peer-to-peer Bitcoin network is <code>socket()</code> + <code>send()</code> + <code>recv()</code>. That is it. The OS provides the sockets. Bitcoin Core provides the protocol. TCP/IP carries the binary packets. The blockchain page showed the full picture. This page shows the OS layer it runs on top of.</p>`,
+        },
+        { kind: "heading", text: "Memory mapping the UTXO set" },
+        {
+          kind: "prose",
+          html: `<p>The UTXO set (~85 million entries, ~8 GB) is memory-mapped using <code>mmap()</code>.</p>
+<p>The OS does not load all 8 GB into RAM at once. It maps the file into the address space. As Bitcoin Core accesses UTXO entries the OS pages them in on demand. Hot UTXOs (recently used) stay in RAM. Cold UTXOs (rarely accessed) get swapped. The OS manages this automatically. Bitcoin Core just follows pointers.</p>
+<p>This is the same <code>mmap()</code> from the advanced section above. Used on the largest financial dataset in the history of Bitcoin.</p>`,
+        },
+        { kind: "heading", text: "epoll and the peer network" },
+        {
+          kind: "prose",
+          html: `<p>Bitcoin Core connects to ~125 peers by default. 125 TCP connections. 125 sockets.</p>
+<p>Reading from 125 sockets with 125 threads would use 125 MB of stack memory just for idle threads. Instead Bitcoin Core uses <code>epoll()</code> on Linux or <code>kqueue()</code> on macOS/BSD: one syscall that blocks until any of the 125 sockets has data. One thread. 125 connections. Zero wasted memory.</p>
+<p>This is the "readiness multiplex" I/O model from the section above. In production. On the Bitcoin network.</p>
+<p>The OS is not just below Bitcoin. It is what Bitcoin runs <em>inside</em>. Every transaction. Every block. Every peer connection. Mediated by the kernel. One syscall at a time.</p>`,
+        },
+        /* ── end Bitcoin Core section ── */
+
         { kind: "heading", text: "What different OSes actually share" },
         {
           kind: "prose",
@@ -424,6 +577,91 @@ export const operatingSystem: PageContent = {
   <li><strong>xv6</strong>, MIT's teaching OS: ~10k lines of C. Read it cover to cover in a week.</li>
   <li><strong>Writing an OS in Rust</strong> (Philipp Oppermann): build a small kernel from scratch on bare metal.</li>
 </ul>`,
+        },
+
+        /* ── Connections grid ── */
+        { kind: "heading", text: "Where the OS appears in BitRoot" },
+        {
+          kind: "prose",
+          html: `<p>The operating system is not an isolated topic. It sits on top of everything below it and beneath everything above it.</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 4,
+          cards: [
+            {
+              label: "01 / binary",
+              value: "The kernel is binary",
+              desc: "The OS kernel is binary machine code. The kernel mode bit is a binary flag in a CPU control register. Every syscall is a binary trap instruction.",
+              href: "/binary",
+            },
+            {
+              label: "04 / logic gates",
+              value: "Privilege in silicon",
+              desc: "The CPU's privilege levels are implemented in logic gates. Gates check the mode bit before executing privileged instructions. The protection is hardware-enforced.",
+              href: "/logic-gates",
+            },
+            {
+              label: "05 / cpu",
+              value: "The OS owns the CPU",
+              desc: "The scheduler controls which process runs on which core. Context switches save and restore the entire CPU register state. The fetch-decode-execute loop serves the OS's will.",
+              href: "/cpu",
+            },
+            {
+              label: "06 / memory",
+              value: "Every page table",
+              desc: "The OS manages every page table, every virtual address space, every allocation. The stack and heap exist because the OS created them. Virtual memory is an OS abstraction over physical RAM.",
+              href: "/memory",
+            },
+            {
+              label: "09 / pointers",
+              value: "File descriptors",
+              desc: "File descriptors are OS-level pointers to kernel objects. Socket fd 5 points to a TCP connection. File fd 3 points to an open file. The kernel is a linked list of these objects internally.",
+              href: "/pointers",
+            },
+            {
+              label: "0A / compile vs runtime",
+              value: "The runtime boundary",
+              desc: "Syscalls are the runtime boundary. Your compiled binary contains the syscall instruction statically. The OS decides at runtime whether to grant the request.",
+              href: "/compile-vs-runtime",
+            },
+            {
+              label: "0F / networking",
+              value: "The OS owns TCP",
+              desc: "TCP/IP is implemented in the kernel. Your program calls send() and recv(). The kernel does packet assembly, routing, and checksums. Every network packet travels through the kernel.",
+              href: "/networking",
+            },
+            {
+              label: "0D / hashing",
+              value: "Hash tables inside",
+              desc: "The OS uses hashing internally. The page table is a hash map of virtual to physical addresses. File system inodes are found via hash. The OS is one of the largest users of hashing.",
+              href: "/hashing",
+            },
+            {
+              label: "14 / recursion",
+              value: "Stack overflow = SIGSEGV",
+              desc: "A stack overflow is a page fault at the stack guard page. The OS detects it and sends SIGSEGV. The kernel enforces the boundary in the page table.",
+              href: "/recursion",
+            },
+            {
+              label: "10 / distributed systems",
+              value: "Processes on a network",
+              desc: "Every node in a distributed system is a process managed by an OS. The OS provides the sockets. The scheduler determines when each node's logic runs.",
+              href: "/distributed-systems",
+            },
+            {
+              label: "13 / blockchain",
+              value: "Bitcoin runs inside the OS",
+              desc: "Bitcoin Core is a user-space process. Its 125 peer connections are sockets managed by the kernel. The UTXO set is memory-mapped via mmap(). The mempool is protected by OS mutexes.",
+              href: "/blockchain",
+            },
+            {
+              label: "15 / big o",
+              value: "Context switch is O(1)",
+              desc: "Saving and restoring registers is a fixed number of operations — O(1). But the real cost is cache invalidation and TLB flushes. Big O explains the algorithm. Cache explains the reality.",
+              href: "/big-o",
+            },
+          ],
         },
       ],
     },

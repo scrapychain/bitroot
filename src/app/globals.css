@@ -604,6 +604,27 @@ h1.title .highlight {
 }
 
 /* ============================================
+   PAGE NARRATIVE (hero voice block)
+   ============================================ */
+.page-narrative {
+  margin-top: 2.5rem;
+  max-width: 52ch;
+  border-left: 3px solid var(--neon-cyan);
+  padding-left: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--fg-dim);
+}
+
+.page-narrative p {
+  margin: 0 0 0.8rem;
+}
+
+.page-narrative p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================
    LEVEL SECTIONS
    ============================================ */
 .level {

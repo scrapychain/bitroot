@@ -3,11 +3,12 @@ import { highlight } from "@/lib/highlight";
 interface CodeBlockProps {
   code: string;
   lang: "rust" | "c";
+  label?: string;
 }
 
-export async function CodeBlock({ code, lang }: CodeBlockProps) {
+export async function CodeBlock({ code, lang, label: labelProp }: CodeBlockProps) {
   const html = await highlight(code, lang);
-  const label = lang === "rust" ? "Rust" : "C";
+  const label = labelProp ?? (lang === "rust" ? "Rust" : "C");
 
   return (
     <div className="codeblock" data-lang={lang}>
