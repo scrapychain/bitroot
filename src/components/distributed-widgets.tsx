@@ -2969,6 +2969,489 @@ function ProcessSchedulerWidget() {
 }
 
 /* =====================================================================
+   16. Sorting Race Widget
+   ===================================================================== */
+
+type SortStep =
+  | { type: "compare"; i: number; j: number }
+  | { type: "swap"; i: number; j: number }
+  | { type: "set"; i: number; val: number }
+  | { type: "done" };
+
+function genBubbleSteps(input: number[]): { steps: SortStep[]; comparisons: number; swaps: number } {
+  const a = [...input];
+  const steps: SortStep[] = [];
+  let comparisons = 0;
+  let swaps = 0;
+  const n = a.length;
+  for (let i = 0; i < n; i++) {
+    let swapped = false;
+    for (let j = 0; j < n - i - 1; j++) {
+      steps.push({ type: "compare", i: j, j: j + 1 });
+      comparisons++;
+      if (a[j] > a[j + 1]) {
+        [a[j], a[j + 1]] = [a[j + 1], a[j]];
+        steps.push({ type: "swap", i: j, j: j + 1 });
+        swaps++;
+        swapped = true;
+      }
+    }
+    if (!swapped) break;
+  }
+  steps.push({ type: "done" });
+  return { steps, comparisons, swaps };
+}
+
+function genInsertionSteps(input: number[]): { steps: SortStep[]; comparisons: number; swaps: number } {
+  const a = [...input];
+  const steps: SortStep[] = [];
+  let comparisons = 0;
+  let swaps = 0;
+  for (let i = 1; i < a.length; i++) {
+    let j = i;
+    while (j > 0) {
+      steps.push({ type: "compare", i: j - 1, j });
+      comparisons++;
+      if (a[j - 1] > a[j]) {
+        [a[j - 1], a[j]] = [a[j], a[j - 1]];
+        steps.push({ type: "swap", i: j - 1, j });
+        swaps++;
+        j--;
+      } else {
+        break;
+      }
+    }
+  }
+  steps.push({ type: "done" });
+  return { steps, comparisons, swaps };
+}
+
+function genMergeSteps(input: number[]): { steps: SortStep[]; comparisons: number; swaps: number } {
+  const a = [...input];
+  const steps: SortStep[] = [];
+  let comparisons = 0;
+  let swaps = 0;
+
+  function ms(lo: number, hi: number) {
+    if (hi - lo <= 1) return;
+    const mid = (lo + hi) >> 1;
+    ms(lo, mid);
+    ms(mid, hi);
+    const L = a.slice(lo, mid);
+    const R = a.slice(mid, hi);
+    let i = 0, j = 0, k = lo;
+    while (i < L.length && j < R.length) {
+      steps.push({ type: "compare", i: lo + i, j: mid + j });
+      comparisons++;
+      if (L[i] <= R[j]) {
+        a[k] = L[i]; steps.push({ type: "set", i: k, val: L[i] }); swaps++; i++;
+      } else {
+        a[k] = R[j]; steps.push({ type: "set", i: k, val: R[j] }); swaps++; j++;
+      }
+      k++;
+    }
+    while (i < L.length) { a[k] = L[i]; steps.push({ type: "set", i: k, val: L[i] }); swaps++; i++; k++; }
+    while (j < R.length) { a[k] = R[j]; steps.push({ type: "set", i: k, val: R[j] }); swaps++; j++; k++; }
+  }
+
+  ms(0, a.length);
+  steps.push({ type: "done" });
+  return { steps, comparisons, swaps };
+}
+
+function genQuickSteps(input: number[]): { steps: SortStep[]; comparisons: number; swaps: number } {
+  const a = [...input];
+  const steps: SortStep[] = [];
+  let comparisons = 0;
+  let swaps = 0;
+
+  function partition(lo: number, hi: number): number {
+    const pivot = a[hi];
+    let i = lo;
+    for (let j = lo; j < hi; j++) {
+      steps.push({ type: "compare", i: j, j: hi });
+      comparisons++;
+      if (a[j] <= pivot) {
+        if (i !== j) { [a[i], a[j]] = [a[j], a[i]]; steps.push({ type: "swap", i, j }); swaps++; }
+        i++;
+      }
+    }
+    if (i !== hi) { [a[i], a[hi]] = [a[hi], a[i]]; steps.push({ type: "swap", i, j: hi }); swaps++; }
+    return i;
+  }
+
+  function qs(lo: number, hi: number) {
+    if (lo >= hi) return;
+    const p = partition(lo, hi);
+    qs(lo, p - 1);
+    qs(p + 1, hi);
+  }
+
+  qs(0, a.length - 1);
+  steps.push({ type: "done" });
+  return { steps, comparisons, swaps };
+}
+
+type ArrayInputType = "random" | "nearly" | "reversed" | "few-unique";
+
+function makeArray(n: number, type: ArrayInputType): number[] {
+  switch (type) {
+    case "random": return Array.from({ length: n }, () => 1 + Math.floor(Math.random() * n));
+    case "nearly": {
+      const a = Array.from({ length: n }, (_, i) => i + 1);
+      for (let k = 0; k < Math.max(1, Math.floor(n * 0.05)); k++) {
+        const i = Math.floor(Math.random() * n);
+        const j = Math.floor(Math.random() * n);
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    case "reversed": return Array.from({ length: n }, (_, i) => n - i);
+    case "few-unique": return Array.from({ length: n }, () => 1 + Math.floor(Math.random() * 5));
+  }
+}
+
+type AlgoId = "bubble" | "insertion" | "merge" | "quick";
+
+interface AlgoConfig {
+  id: AlgoId;
+  label: string;
+  color: string;
+}
+
+const ALGO_CONFIGS: AlgoConfig[] = [
+  { id: "bubble", label: "Bubble Sort", color: "#ff3b5c" },
+  { id: "insertion", label: "Insertion Sort", color: "#818cf8" },
+  { id: "merge", label: "Merge Sort", color: "#00d4ff" },
+  { id: "quick", label: "Quick Sort", color: "#10b981" },
+];
+
+interface AlgoRow {
+  id: AlgoId;
+  arr: number[];
+  steps: SortStep[];
+  stepIdx: number;
+  comparisons: number;
+  totalComparisons: number;
+  swaps: number;
+  totalSwaps: number;
+  done: boolean;
+  highlight: [number, number] | null;
+  swapping: [number, number] | null;
+  startMs: number;
+  endMs: number;
+}
+
+const STEPS_PER_FRAME_MAP = [1, 2, 4, 8, 16, 32];
+
+function SortingRaceWidget() {
+  const [n, setN] = useState(40);
+  const [inputType, setInputType] = useState<ArrayInputType>("random");
+  const [enabled, setEnabled] = useState<Record<AlgoId, boolean>>({
+    bubble: true, insertion: false, merge: true, quick: true,
+  });
+  const [speedIdx, setSpeedIdx] = useState(2);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isDone, setIsDone] = useState(false);
+
+  const rowsRef = useRef<AlgoRow[]>([]);
+  const [displayRows, setDisplayRows] = useState<AlgoRow[]>([]);
+  const rafRef = useRef<number | null>(null);
+  const baseArrRef = useRef<number[]>(makeArray(40, "random"));
+
+  const buildRows = useCallback((arr: number[]) => {
+    const rows: AlgoRow[] = [];
+    for (const cfg of ALGO_CONFIGS) {
+      if (!enabled[cfg.id]) continue;
+      const gen =
+        cfg.id === "bubble" ? genBubbleSteps :
+        cfg.id === "insertion" ? genInsertionSteps :
+        cfg.id === "merge" ? genMergeSteps :
+        genQuickSteps;
+      const { steps, comparisons, swaps } = gen(arr);
+      rows.push({
+        id: cfg.id, arr: [...arr], steps, stepIdx: 0,
+        comparisons: 0, totalComparisons: comparisons,
+        swaps: 0, totalSwaps: swaps,
+        done: false, highlight: null, swapping: null,
+        startMs: 0, endMs: 0,
+      });
+    }
+    return rows;
+  }, [enabled]);
+
+  const syncDisplay = useCallback(() => {
+    setDisplayRows(rowsRef.current.map(r => ({ ...r, arr: [...r.arr] })));
+  }, []);
+
+  const generate = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setIsRunning(false);
+    setIsDone(false);
+    const arr = makeArray(n, inputType);
+    baseArrRef.current = arr;
+    rowsRef.current = buildRows(arr);
+    syncDisplay();
+  }, [n, inputType, buildRows, syncDisplay]);
+
+  useEffect(() => { generate(); }, []);
+
+  const applyStep = (row: AlgoRow, step: SortStep): void => {
+    row.highlight = null;
+    row.swapping = null;
+    if (step.type === "compare") {
+      row.highlight = [step.i, step.j];
+      row.comparisons++;
+    } else if (step.type === "swap") {
+      [row.arr[step.i], row.arr[step.j]] = [row.arr[step.j], row.arr[step.i]];
+      row.swapping = [step.i, step.j];
+      row.swaps++;
+    } else if (step.type === "set") {
+      row.arr[step.i] = step.val;
+    } else if (step.type === "done") {
+      row.done = true;
+      row.highlight = null;
+      row.endMs = performance.now();
+    }
+  };
+
+  const tick = useCallback(() => {
+    const rows = rowsRef.current;
+    const stepsPerFrame = STEPS_PER_FRAME_MAP[speedIdx] ?? 4;
+    let anyRunning = false;
+
+    for (const row of rows) {
+      if (row.done) continue;
+      anyRunning = true;
+      for (let s = 0; s < stepsPerFrame && row.stepIdx < row.steps.length; s++) {
+        applyStep(row, row.steps[row.stepIdx]);
+        row.stepIdx++;
+        if (row.done) break;
+      }
+    }
+
+    syncDisplay();
+
+    if (!anyRunning) {
+      setIsRunning(false);
+      setIsDone(true);
+      rafRef.current = null;
+      return;
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+  }, [speedIdx, syncDisplay]);
+
+  const start = useCallback(() => {
+    if (isRunning) return;
+    const now = performance.now();
+    for (const row of rowsRef.current) {
+      if (!row.done) row.startMs = now;
+    }
+    setIsRunning(true);
+    setIsDone(false);
+    rafRef.current = requestAnimationFrame(tick);
+  }, [isRunning, tick]);
+
+  const pause = useCallback(() => {
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    setIsRunning(false);
+  }, []);
+
+  const reset = useCallback(() => {
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    rowsRef.current = buildRows(baseArrRef.current);
+    setIsRunning(false);
+    setIsDone(false);
+    syncDisplay();
+  }, [buildRows, syncDisplay]);
+
+  const loadPreset = useCallback((type: ArrayInputType) => {
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    setInputType(type);
+    setIsRunning(false);
+    setIsDone(false);
+    const arr = makeArray(n, type);
+    baseArrRef.current = arr;
+    rowsRef.current = buildRows(arr);
+    syncDisplay();
+  }, [n, buildRows, syncDisplay]);
+
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+
+  const maxVal = n;
+
+  return (
+    <div className="widget-wrap" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div className="widget-head">
+        <span className="widget-title">{"// race the algorithms"}</span>
+      </div>
+
+      {/* Controls row */}
+      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+        <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--fg-mute)" }}>
+            n = {n}
+          </span>
+          <input
+            type="range" min={10} max={120} step={5} value={n}
+            onChange={e => { setN(Number(e.target.value)); }}
+            style={{ width: "120px" }}
+          />
+        </label>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--fg-mute)" }}>input</span>
+          <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
+            {(["random", "nearly", "reversed", "few-unique"] as ArrayInputType[]).map(t => {
+              const labels: Record<ArrayInputType, string> = { random: "Random", nearly: "Nearly Sorted", reversed: "Reversed", "few-unique": "Few Unique" };
+              return (
+                <button key={t} type="button" className={`widget-btn ${inputType === t ? "is-active" : ""}`} onClick={() => setInputType(t)} style={{ fontSize: "0.7rem" }}>
+                  {labels[t]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--fg-mute)" }}>algorithms</span>
+          <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
+            {ALGO_CONFIGS.map(cfg => (
+              <button
+                key={cfg.id}
+                type="button"
+                className={`widget-btn ${enabled[cfg.id] ? "is-active" : ""}`}
+                style={enabled[cfg.id] ? { borderColor: cfg.color, color: cfg.color } : { fontSize: "0.7rem" }}
+                onClick={() => setEnabled(e => ({ ...e, [cfg.id]: !e[cfg.id] }))}
+              >
+                {cfg.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--fg-mute)" }}>speed</span>
+          <input type="range" min={0} max={5} step={1} value={speedIdx} onChange={e => setSpeedIdx(Number(e.target.value))} style={{ width: "80px" }} />
+        </label>
+      </div>
+
+      {/* Action buttons */}
+      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        <button type="button" className="widget-btn" onClick={generate}>Generate</button>
+        <button type="button" className="widget-btn" onClick={isRunning ? pause : start} disabled={displayRows.length === 0}>
+          {isRunning ? "Pause" : "Sort All"}
+        </button>
+        <button type="button" className="widget-btn" onClick={reset}>Reset</button>
+        <button type="button" className="widget-btn" style={{ fontSize: "0.7rem" }} onClick={() => loadPreset("nearly")}>
+          Nearly Sorted (bubble wins)
+        </button>
+        <button type="button" className="widget-btn" style={{ fontSize: "0.7rem" }} onClick={() => loadPreset("reversed")}>
+          Reversed (bubble worst case)
+        </button>
+      </div>
+
+      {/* Algorithm rows */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        {displayRows.map(row => {
+          const cfg = ALGO_CONFIGS.find(c => c.id === row.id)!;
+          const elapsedMs = row.done
+            ? ((row.endMs - row.startMs) / 1000).toFixed(3)
+            : null;
+          return (
+            <div key={row.id} style={{ background: "var(--bg-2)", borderRadius: "0.5rem", padding: "0.75rem", borderLeft: `3px solid ${cfg.color}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap", gap: "0.25rem" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 700, color: cfg.color }}>
+                  {cfg.label}
+                </span>
+                <div style={{ display: "flex", gap: "1rem", fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--fg-mute)" }}>
+                  <span>cmp: {row.comparisons}</span>
+                  <span>swaps: {row.swaps}</span>
+                  {elapsedMs && <span style={{ color: "#10b981" }}>{elapsedMs}s</span>}
+                  {row.done && <span style={{ color: "#10b981" }}>DONE</span>}
+                  {!row.done && isRunning && <span style={{ color: cfg.color }}>SORTING...</span>}
+                </div>
+              </div>
+
+              {/* Bar chart */}
+              <div style={{ display: "flex", alignItems: "flex-end", height: "60px", gap: "1px", overflow: "hidden" }}>
+                {row.arr.map((val, idx) => {
+                  const isHighlight = row.highlight && (idx === row.highlight[0] || idx === row.highlight[1]);
+                  const isSwapping = row.swapping && (idx === row.swapping[0] || idx === row.swapping[1]);
+                  let color = `${cfg.color}80`;
+                  if (isSwapping) color = "#f59e0b";
+                  else if (isHighlight) color = cfg.color;
+                  else if (row.done) color = `${cfg.color}50`;
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        flex: 1,
+                        height: `${Math.max(2, (val / maxVal) * 58)}px`,
+                        background: color,
+                        borderRadius: "1px 1px 0 0",
+                        transition: isSwapping ? "none" : "height 0.05s, background 0.1s",
+                        minWidth: "1px",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        {displayRows.length === 0 && (
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--fg-mute)", padding: "1rem", textAlign: "center" }}>
+            select at least one algorithm above
+          </div>
+        )}
+      </div>
+
+      {/* Results table */}
+      {isDone && displayRows.length > 0 && (
+        <div style={{ background: "var(--bg-2)", borderRadius: "0.5rem", overflow: "hidden" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--fg-mute)", padding: "0.5rem 0.75rem", borderBottom: "1px solid var(--line)" }}>
+            results
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--line)" }}>
+                  {["Algorithm", "Comparisons", "Swaps/Writes", "Time"].map(h => (
+                    <th key={h} style={{ padding: "0.4rem 0.75rem", textAlign: "left", color: "var(--fg-mute)", fontWeight: 600 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[...displayRows].sort((a, b) => a.comparisons - b.comparisons).map(row => {
+                  const cfg = ALGO_CONFIGS.find(c => c.id === row.id)!;
+                  return (
+                    <tr key={row.id} style={{ borderBottom: "1px solid var(--line)" }}>
+                      <td style={{ padding: "0.4rem 0.75rem", color: cfg.color, fontWeight: 700 }}>{cfg.label}</td>
+                      <td style={{ padding: "0.4rem 0.75rem", color: "var(--fg)" }}>{row.comparisons.toLocaleString()}</td>
+                      <td style={{ padding: "0.4rem 0.75rem", color: "var(--fg)" }}>{row.swaps.toLocaleString()}</td>
+                      <td style={{ padding: "0.4rem 0.75rem", color: "#10b981" }}>
+                        {((row.endMs - row.startMs) / 1000).toFixed(3)}s
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <p className="widget-caption">
+        generate an array, select algorithms, then sort. on nearly-sorted input bubble sort exits early and beats merge sort — a reminder that O(n log n) is not always faster than O(n squared) in practice.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
    Public dispatcher
    ===================================================================== */
 export function DistributedWidget({ name }: { name: WidgetName }) {
@@ -3003,6 +3486,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <BigORaceWidget />;
     case "process-scheduler":
       return <ProcessSchedulerWidget />;
+    case "sorting-race":
+      return <SortingRaceWidget />;
     default:
       return null;
   }

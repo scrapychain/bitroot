@@ -186,6 +186,14 @@ export const topics: Topic[] = [
     desc: "Same answer, 317 years apart. Big O is not about speed, it is about how code scales. The lens that makes the whole curriculum coherent, from arrays to Bitcoin's security.",
     levels: 3,
   },
+  {
+    href: "/sorting",
+    label: "Sorting Algorithms",
+    num: "22",
+    accent: "var(--neon-cyan)",
+    desc: "Before you can find anything you have to sort everything. Bubble sort, merge sort, quicksort, and what your language actually uses in production.",
+    levels: 3,
+  },
 ];
 
 export const topicLinks = topics.map(({ href, label }) => ({ href, label }));

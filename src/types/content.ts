@@ -61,7 +61,8 @@ export type WidgetName =
   | "call-stack-visualiser"
   | "memory-explorer"
   | "big-o-race"
-  | "process-scheduler";
+  | "process-scheduler"
+  | "sorting-race";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -109,7 +110,8 @@ export interface PageContent {
     | "pacelc"
     | "blockchain"
     | "recursion"
-    | "big-o";
+    | "big-o"
+    | "sorting";
   hexLabel: string;
   category: string;
   hero: {
