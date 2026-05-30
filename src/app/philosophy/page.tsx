@@ -1,80 +1,95 @@
 export const metadata = {
   title: "Philosophy | ScrapyBytes",
   description:
-    "Why Scrapy? The name, the feeling, and the reason ScrapyBytes exists - for builders who got tired of building on sand.",
+    "Why Scrapy? The name, the theory, and the reason ScrapyBytes exists - for builders who got tired of building on sand.",
 };
 
 export default function PhilosophyPage() {
   return (
-    <main id="philosophy">
-      <h1>Why Scrapy?</h1>
+    <main id="philosophy" className="max-w-2xl mx-auto px-6 py-16">
+      <h1 className="font-display text-4xl font-medium text-fg mb-6 leading-tight">
+        Why Scrapy?
+      </h1>
 
-      <p>I didn&apos;t name it after a framework.</p>
-
-      <p>There&apos;s already one of those. This is something different.</p>
-
-      <p>
-        Scrapy came from a feeling I kept coming back to - that specific
-        kind of building you do when you have no roadmap, no mentor, no
-        perfect environment. Just a problem in front of you and the stubborn
-        refusal to walk away from it.
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        I didn&apos;t name it after a framework.
       </p>
 
-      <p>
-        That&apos;s what scrappy means to me. Not messy. Not amateur.
-        Resourceful. Making something real out of whatever&apos;s in front
-        of you.
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        &quot;Scrape&quot; - a broken part from machinery. Something discarded.
+        Incomplete on its own.
       </p>
 
-      <h2>The Name</h2>
-
-      <p>Most names in tech sound like they were approved by a committee.</p>
-
-      <p>
-        Scrapy wasn&apos;t. It came from the way I actually learned - not
-        through polished courses or clean tutorials, but by breaking things
-        and figuring out why. By starting over. By hitting the same wall
-        three times and finally understanding what the wall was made of.
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        But the right scraps, assembled in the right order, build something
+        functional. A scrap engine. A scrap alternator. A scrap battery. Put them
+        together and you don&apos;t have a perfect car - but you have a car that runs.
       </p>
 
-      <p>That process has a texture to it. It&apos;s not smooth. It&apos;s scrapy.</p>
-
-      <h2>What It&apos;s Really About</h2>
-
-      <p>
-        I spent years learning how to use things without understanding
-        what they were.
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        That&apos;s the theory. That&apos;s always been the theory.
       </p>
 
-      <p>
-        I could call APIs I didn&apos;t understand. I could copy-paste solutions
-        I couldn&apos;t explain. And for a while, that felt like progress. Until
-        something broke in a way I&apos;d never seen before, and I had no idea
-        where to even start looking.
+      <h2 className="font-display text-xl font-medium text-neon-amber mt-12 mb-4">
+        Each CS concept is a scrap.
+      </h2>
+
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        A bit, alone, means nothing. A logic gate, alone, does nothing. Binary,
+        ASCII, transistors, protocols, blockchains - each one is a fragment.
       </p>
 
-      <p>Because I&apos;d skipped the foundation.</p>
-
-      <p>
-        ScrapyBytes is built around that realization. Not as a lecture -
-        as a confession. I&apos;m not teaching from a high place. I&apos;m rebuilding
-        from the bottom because I know what it costs to skip it.
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        ScrapyBytes is the act of stitching them together in the right order until
+        the system makes sense - not just intellectually, but instinctively.
       </p>
 
-      <h2>Byte by Byte</h2>
+      <h2 className="font-display text-xl font-medium text-neon-amber mt-12 mb-4">
+        One Y. Not two.
+      </h2>
 
-      <p>The pace here is deliberate.</p>
-
-      <p>
-        Binary before anything else. Then ASCII. Then logic gates. Then
-        the systems built on top of them. Each layer only after the one
-        beneath it makes sense - not just intellectually, but instinctively.
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        You&apos;ll notice it&apos;s spelled Scrapy - not Scrappy.
       </p>
 
-      <p>That&apos;s what byte by byte means. Not slow. Just honest.</p>
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        One Y. Because it&apos;s built from my own scrappy thoughts. A deliberate
+        imperfection baked into the name itself. The word isn&apos;t clean. The
+        word isn&apos;t finished. Neither is the builder who made it.
+      </p>
 
-      <footer>
-        <p>Every bit was a choice.</p>
+      <p className="text-base text-fg-dim leading-relaxed mb-4">That&apos;s the point.</p>
+
+      <h2 className="font-display text-xl font-medium text-neon-amber mt-12 mb-4">
+        Byte by byte.
+      </h2>
+
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        Most tutorials teach you to use things. ScrapyBytes tries to teach you what
+        things are.
+      </p>
+
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        There&apos;s a difference between knowing how to call an API and
+        understanding that at the bottom of everything - your browser, your phone,
+        this very webpage - there are transistors switching between two states. On
+        and off. One and zero.
+      </p>
+
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        The pace here is deliberate. Binary before anything else. Then ASCII. Then
+        logic gates. Then the systems built on top of them. Each layer only after
+        the one beneath it makes sense.
+      </p>
+
+      <p className="text-base text-fg-dim leading-relaxed mb-4">
+        That&apos;s what byte by byte means. Not slow. Just honest.
+      </p>
+
+      <footer className="mt-16 pt-8 border-t border-line">
+        <p className="text-sm text-fg-dim font-mono tracking-wide">
+          Every bit was a choice.
+        </p>
       </footer>
     </main>
   );
