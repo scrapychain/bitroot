@@ -74,7 +74,7 @@ export function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>{"// © Ashutosh Rana 2026 · scrapybytes.dev · root.system v0.1"}</span>
+        <span>{"// © Ashutosh Rana 2026 · scrapybytes.vercel.app · root.system v0.1"}</span>
         <span>
           made with <span style={{ color: "var(--neon-magenta)" }}>█</span> bits
         </span>

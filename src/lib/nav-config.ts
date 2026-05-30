@@ -194,6 +194,14 @@ export const topics: Topic[] = [
     desc: "Before you can find anything you have to sort everything. Bubble sort, merge sort, quicksort, and what your language actually uses in production.",
     levels: 3,
   },
+  {
+    href: "/philosophy",
+    label: "Philosophy",
+    num: "23",
+    accent: "var(--neon-amber)",
+    desc: "Why Scrapy. The mindset behind learning computing from the root up.",
+    levels: 3,
+  },
 ];
 
 export const topicLinks = topics.map(({ href, label }) => ({ href, label }));

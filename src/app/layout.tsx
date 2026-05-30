@@ -24,7 +24,7 @@ const mono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://scrapybytes.dev"),
+  metadataBase: new URL("https://scrapybytes.vercel.app"),
   title: {
     default: "ScrapyBytes",
     template: "%s | ScrapyBytes",

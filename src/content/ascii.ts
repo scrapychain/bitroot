@@ -240,7 +240,7 @@ export const ascii: PageContent = {
         },
         {
           kind: "raw",
-          html: `<p class="connection-line">HTTP, the protocol your browser uses, sends its headers as plain ASCII text. <code>GET /index.html HTTP/1.1</code> and <code>Host: scrapybytes.dev</code> are ASCII bytes wrapped in a TCP packet and sent as binary across the internet. <a href="/networking">← see: networking</a></p>`,
+          html: `<p class="connection-line">HTTP, the protocol your browser uses, sends its headers as plain ASCII text. <code>GET /index.html HTTP/1.1</code> and <code>Host: scrapybytes.vercel.app</code> are ASCII bytes wrapped in a TCP packet and sent as binary across the internet. <a href="/networking">← see: networking</a></p>`,
         },
       ],
     },
