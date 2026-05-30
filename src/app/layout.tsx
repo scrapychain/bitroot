@@ -24,17 +24,19 @@ const mono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bitroot.dev"),
+  metadataBase: new URL("https://scrapybytes.dev"),
   title: {
-    default: "BitRoot · From Electrons to Code",
-    template: "%s · BitRoot",
+    default: "ScrapyBytes",
+    template: "%s | ScrapyBytes",
   },
-  description: "A layered field guide to the foundations of computing.",
+  description:
+    "Learn computing from bits to blockchain. Binary, ASCII, logic gates - taught from first principles.",
   openGraph: {
     type: "website",
-    siteName: "BitRoot",
-    title: "BitRoot · From Electrons to Code",
-    description: "A layered field guide to the foundations of computing.",
+    siteName: "ScrapyBytes",
+    title: "ScrapyBytes",
+    description:
+      "Learn computing from bits to blockchain. Binary, ASCII, logic gates - taught from first principles.",
   },
   twitter: { card: "summary_large_image" },
 };

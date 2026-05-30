@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustAdder = `// Sum  = A ⊕ B ⊕ Cin
 // Cout = (A·B) + (Cin·(A⊕B))
@@ -316,7 +316,7 @@ export const logicGates: PageContent = {
 </ul>
 <p>The point isn't to know every layer in detail. The point is to know they're <em>there</em>, stacked on top of each other, all the way down to electrons.</p>`,
         },
-        { kind: "heading", text: "Where logic gates appear in BitRoot" },
+        { kind: "heading", text: "Where logic gates appear in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>This is the page everything else rests on. Every later topic reaches back to a gate somewhere:</p>`,

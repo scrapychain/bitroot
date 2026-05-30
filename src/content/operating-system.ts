@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustSyscall = `// printf?  read?  open?  In the end, every one of those goes
 // through the OS via a *system call*. Here's the same write
@@ -580,7 +580,7 @@ export const operatingSystem: PageContent = {
         },
 
         /* ── Connections grid ── */
-        { kind: "heading", text: "Where the OS appears in BitRoot" },
+        { kind: "heading", text: "Where the OS appears in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>The operating system is not an isolated topic. It sits on top of everything below it and beneath everything above it.</p>`,

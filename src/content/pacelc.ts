@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustPacelcTypes = `// PACELC expressed as a type system.
 // Every read operation implicitly makes this choice.
@@ -538,7 +538,7 @@ export const pacelc: PageContent = {
           kind: "raw",
           html: `<p class="formula-block">// PACELC as a design tool<br>// Ask this about every system you build:<br>//<br>// IF partition:<br>//&nbsp;&nbsp;&nbsp;choose A (stay online, risk divergence)<br>//&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C (go offline, guarantee truth)<br>//<br>// ELSE normal operation:<br>//&nbsp;&nbsp;&nbsp;choose L (answer fast, risk staleness)<br>//&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C (answer correct, pay latency)<br>//<br>// Your answer defines your architecture.<br>// Everything else follows from it.</p>`,
         },
-        { kind: "heading", text: "Where PACELC appears in BitRoot" },
+        { kind: "heading", text: "Where PACELC appears in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>The latency-versus-consistency tradeoff is not unique to databases. It shows up at every layer of the stack:</p>`,

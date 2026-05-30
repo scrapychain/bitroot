@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustBeginner = `// Each function below has a different Big O.
 // Same types, same inputs, radically different scales.
@@ -551,7 +551,7 @@ export const bigO: PageContent = {
           html: `<p>Big O also defines what is <em>possible</em>. Any algorithm that sorts by comparing elements cannot do better than O(n log n). This is proven, not a limitation of current cleverness: there are <code>n!</code> possible orderings of n elements, each comparison eliminates at most half of them, so the minimum number of comparisons is <code>log₂(n!) ≈ n log n</code>.</p>
 <p>O(n log n) is the sorting ceiling. Merge sort hits it; quicksort hits it on average; bubble sort and insertion sort do not. The next page proves all of this in code.</p>`,
         },
-        { kind: "heading", text: "Big O across BitRoot" },
+        { kind: "heading", text: "Big O across ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>This page is the backbone the whole curriculum hangs from. Every prior topic has a Big O story:</p>`,

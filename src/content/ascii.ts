@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustHi = `fn main() {
     let msg = "Hi";
@@ -240,7 +240,7 @@ export const ascii: PageContent = {
         },
         {
           kind: "raw",
-          html: `<p class="connection-line">HTTP, the protocol your browser uses, sends its headers as plain ASCII text. <code>GET /index.html HTTP/1.1</code> and <code>Host: bitroot.dev</code> are ASCII bytes wrapped in a TCP packet and sent as binary across the internet. <a href="/networking">← see: networking</a></p>`,
+          html: `<p class="connection-line">HTTP, the protocol your browser uses, sends its headers as plain ASCII text. <code>GET /index.html HTTP/1.1</code> and <code>Host: scrapybytes.dev</code> are ASCII bytes wrapped in a TCP packet and sent as binary across the internet. <a href="/networking">← see: networking</a></p>`,
         },
       ],
     },
@@ -308,7 +308,7 @@ export const ascii: PageContent = {
           html: `<p>And the checksum in that header? SHA-256, applied twice. The same hash function built from AND gates and XOR gates that you will see on the hashing page.</p>
 <p>ASCII named the commands. Binary carries the bytes. SHA-256 verifies the integrity. TCP/IP delivers the packet. All four concepts. One message header.</p>`,
         },
-        { kind: "heading", text: "Where ASCII appears in BitRoot" },
+        { kind: "heading", text: "Where ASCII appears in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>ASCII is the most quoted page on the site. Every later topic uses it for something.</p>`,

@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustCapTypes = `// The CAP tradeoff expressed as types.
 // In a real system you choose your guarantees
@@ -427,7 +427,7 @@ export const capTheorem: PageContent = {
           kind: "prose",
           html: `<p>This is why you wait for confirmations. This is why Bitcoin is slow. This is why it has never been successfully double-spent in over fifteen years. Every second of waiting is the price of consistency in a trustless world.</p>`,
         },
-        { kind: "heading", text: "Where the CAP theorem appears in BitRoot" },
+        { kind: "heading", text: "Where the CAP theorem appears in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>CAP is not an isolated result; it touches almost every layer of the stack below it. The shortest path from each:</p>`,

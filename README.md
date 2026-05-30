@@ -1,4 +1,4 @@
-# BitRoot
+# ScrapyBytes
 
 A layered field guide to the foundations of computing - binary, ASCII, transistors and logic gates - with code examples in Rust and C side-by-side.
 

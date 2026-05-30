@@ -21,7 +21,7 @@ export function Footer() {
       <div className="footer-inner">
         <div>
           <div className="footer-brand">
-            bit<b>root</b>
+            scrapy<b>bytes</b>
           </div>
           <p className="footer-tag">
             A layered field guide to the foundations of computing, built for the curious, the
@@ -74,7 +74,7 @@ export function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>{"// © Ashutosh Rana 2026 · bitroot.dev · root.system v0.1"}</span>
+        <span>{"// © Ashutosh Rana 2026 · scrapybytes.dev · root.system v0.1"}</span>
         <span>
           made with <span style={{ color: "var(--neon-magenta)" }}>█</span> bits
         </span>

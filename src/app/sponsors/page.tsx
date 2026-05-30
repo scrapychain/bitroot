@@ -4,7 +4,7 @@ import { sponsorContactUrl } from "@/lib/sponsor";
 export const metadata: Metadata = {
   title: "Sponsors",
   description:
-    "Three ways to back BitRoot. Bit, Byte, and Block tiers, named after the units this site is built on. Reach systems-curious developers in the hero slot every visitor sees first.",
+    "Three ways to back ScrapyBytes. Bit, Byte, and Block tiers, named after the units this site is built on. Reach systems-curious developers in the hero slot every visitor sees first.",
 };
 
 type Tier = {

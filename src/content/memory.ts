@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustReadWrite = `// Memory is just a giant array of bytes, addressed by number.
 // In Rust, you usually access it through references, but
@@ -477,7 +477,7 @@ export const memory: PageContent = {
 </ul>
 <p>And with that, the loop closes. You started at the bit. You've now seen everything between the bit and the program: the encodings on top of it, the gates beneath it, the CPU that orchestrates it, and the memory that holds all of it together.</p>`,
         },
-        { kind: "heading", text: "Where memory appears in BitRoot" },
+        { kind: "heading", text: "Where memory appears in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>Memory is where every other topic comes to rest. The shortest path from each, back into this wall of switches:</p>`,

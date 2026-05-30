@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustParseFormat = `// Same number, four bases. The compiler accepts each form.
 fn main() {
@@ -454,7 +454,7 @@ All hiding the same binary underneath.</em></p>
           title: "// from numbers to bits",
           body: `Decimal lives in your head. Hex lives in your debugger. Binary lives in the wires. The next page goes all the way down to that last layer: what binary actually <em>is</em>, and what you can do with it once you're there.`,
         },
-        { kind: "heading", text: "Where number systems appear in BitRoot" },
+        { kind: "heading", text: "Where number systems appear in ScrapyBytes" },
         {
           kind: "grid",
           columns: 3,

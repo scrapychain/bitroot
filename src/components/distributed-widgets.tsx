@@ -613,7 +613,7 @@ function CharExplorerWidget() {
 /* =====================================================================
    6. Text encoder: type a word, see each character as bytes/bits
    ===================================================================== */
-const TEXT_PRESETS = ["Hello", "BitRoot", "ASCII", "Hi"];
+const TEXT_PRESETS = ["Hello", "ScrapyBytes", "ASCII", "Hi"];
 
 function TextEncoderWidget() {
   const [text, setText] = useState<string>("Hello");

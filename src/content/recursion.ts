@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustBeginner = `// THE WRONG WAY: no base case. This will crash, every time.
 // The stack has a limit (usually 8MB on Linux). Each frame is
@@ -529,7 +529,7 @@ export const recursion: PageContent = {
           title: "// the wisdom recursion teaches",
           body: `The concept can be recursive. The code must be safe. The blockchain page showed the chain as a linked list of hash-linked blocks; this is why that list is always walked with a loop, never a recursive descent. A trustless network cannot let an attacker choose how deep your stack goes.`,
         },
-        { kind: "heading", text: "Where recursion touches BitRoot" },
+        { kind: "heading", text: "Where recursion touches ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>Recursion is a technique, not a layer, so it reaches into nearly every page below it:</p>`,

@@ -37,7 +37,7 @@ export function XCard() {
       </a>
 
       <p className="x-card-tagline">
-        Building BitRoot in public. New topics drop here first, plus the
+        Building ScrapyBytes in public. New topics drop here first, plus the
         research, the weird CS rabbit holes, and the threads that distill each
         page into 60 seconds.
       </p>

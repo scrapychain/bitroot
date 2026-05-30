@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustFetchDecode = `// A toy CPU with 4 registers and 6 ops.
 // Each instruction is a single byte:
@@ -476,7 +476,7 @@ export const cpu: PageContent = {
   <li><strong>Compiler Explorer (godbolt.org)</strong>: see what bytes your high-level code actually becomes.</li>
 </ul>`,
         },
-        { kind: "heading", text: "Where the CPU appears in BitRoot" },
+        { kind: "heading", text: "Where the CPU appears in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>The CPU is the engine the whole site runs on. Every other topic either feeds it instructions or runs on top of its loop:</p>`,

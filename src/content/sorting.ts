@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustBubble = `fn bubble_sort(arr: &mut [i32]) {
     let n = arr.len();
@@ -665,7 +665,7 @@ export const sorting: PageContent = {
           kind: "raw",
           html: `<p class="connection-line">Bitcoin Core's mempool sort is the same qsort/sort_unstable pattern as any other array sort. The hashing page showed how transactions get unique IDs. The networking page showed how they propagate across the network. The OS page showed how the sort runs as a user-space process. All of those pages converge at this one array sort. <a href="/blockchain">← see: Blockchain</a> &nbsp; <a href="/hashing">← see: Hashing</a></p>`,
         },
-        { kind: "heading", text: "Where sorting touches BitRoot" },
+        { kind: "heading", text: "Where sorting touches ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>Sorting does not exist in isolation. It runs on top of everything below it and feeds everything above it.</p>`,

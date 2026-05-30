@@ -1,4 +1,4 @@
-import type { PageContent } from "@/types/content";
+﻿import type { PageContent } from "@/types/content";
 
 const rustBinaryPrint = `fn main() {
     let n: u8 = 13;
@@ -325,7 +325,7 @@ export const binary: PageContent = {
             c: { language: "c", code: cSatoshis },
           },
         },
-        { kind: "heading", text: "Where binary appears in BitRoot" },
+        { kind: "heading", text: "Where binary appears in ScrapyBytes" },
         {
           kind: "prose",
           html: `<p>This page is the substrate; every other topic on the site rests on it somewhere. The shortest path from any of them back to here:</p>`,

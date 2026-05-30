@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { sponsorContactUrl } from "@/lib/sponsor";
 
 export const metadata: Metadata = {
-  title: "Sponsor BitRoot",
+  title: "Sponsor ScrapyBytes",
   description:
     "Reach the people who want to understand how computers actually work. Sponsorship slots, pricing, and what we will and won't run.",
 };
@@ -118,7 +118,7 @@ export default function PricingPage() {
           computers <span className="accent-lime">actually work</span>.
         </h1>
         <p className="pricing-lede">
-          BitRoot is a long-form field guide to the foundations of computing. One
+          ScrapyBytes is a long-form field guide to the foundations of computing. One
           rotating sponsor at a time, in the hero slot every visitor sees first.
           No banners, no popups, no retargeting. One quiet card, on brand.
         </p>

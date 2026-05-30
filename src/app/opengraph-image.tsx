@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "BitRoot · From Electrons to Code";
+export const alt = "ScrapyBytes - CS fundamentals from bits to blockchain";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -43,7 +43,7 @@ export default function OpenGraphImage() {
               boxShadow: "0 0 18px #00f0ff",
             }}
           />
-          bitroot
+          scrapybytes
         </div>
         <div
           style={{
