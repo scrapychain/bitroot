@@ -11,9 +11,9 @@ export default function HomePage() {
         <div className="home-hero-text">
           <p className="home-eyebrow">Computing from the ground up</p>
           <h1 className="home-title">
-            <span className="accent-lime">Bit</span>
+            <span className="accent-lime">Scrapy</span>
             <br />
-            <span className="accent-cyan">Root</span>
+            <span className="accent-cyan">Bytes</span>
           </h1>
           <p className="home-tagline">
             A growing field guide. Real <strong>Rust</strong> and{" "}
