@@ -309,7 +309,7 @@ All hiding the same binary underneath.</em></p>
           kind: "callout",
           variant: "info",
           title: "// connection: hashing",
-          body: `Every SHA-256 hash is 64 hex characters. 64 hex × 4 bits = <strong>256 bits</strong>. That's the entire security model of Bitcoin — one 256-bit number that's practically impossible to reverse. <a href="/hashing" class="inline-link">← See: Hashing</a>`,
+          body: `Every SHA-256 hash is 64 hex characters. 64 hex × 4 bits = <strong>256 bits</strong>. That's the entire security model of Bitcoin - one 256-bit number that's practically impossible to reverse. <a href="/hashing" class="inline-link">← See: Hashing</a>`,
         },
         { kind: "heading", text: "Octal: the survivor" },
         {
@@ -413,7 +413,7 @@ All hiding the same binary underneath.</em></p>
           kind: "callout",
           variant: "info",
           title: "// base58: a safety decision disguised as a number system",
-          body: `Bitcoin addresses use Base 58. Base 58 removes <code>0</code>, <code>O</code>, <code>I</code>, <code>l</code> — the characters that look the same in most fonts. Because a single misread character means your Bitcoin is gone forever. The encoding choice is a user-safety decision disguised as a number system. <a href="/blockchain" class="inline-link">← See: Blockchain</a>`,
+          body: `Bitcoin addresses use Base 58. Base 58 removes <code>0</code>, <code>O</code>, <code>I</code>, <code>l</code> - the characters that look the same in most fonts. Because a single misread character means your Bitcoin is gone forever. The encoding choice is a user-safety decision disguised as a number system. <a href="/blockchain" class="inline-link">← See: Blockchain</a>`,
         },
         { kind: "heading", text: "Larger and stranger bases" },
         {
@@ -462,7 +462,7 @@ All hiding the same binary underneath.</em></p>
             {
               label: "binary",
               value: "base 2",
-              desc: "Binary is base 2. This page explains why — the next page shows what you do with it.",
+              desc: "Binary is base 2. This page explains why - the next page shows what you do with it.",
               href: "/binary",
             },
             {

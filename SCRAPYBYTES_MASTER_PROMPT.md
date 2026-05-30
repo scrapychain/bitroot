@@ -1,4 +1,4 @@
-# ScrapyBytes — Claude Code Master Prompt
+﻿# ScrapyBytes - Claude Code Master Prompt
 > Token-efficient micro prompts. One task per session. No skipping ahead.
 
 ---
@@ -13,7 +13,7 @@ Each block below is a single Claude Code prompt. Copy it exactly. Paste it. Wait
 
 ---
 
-## PHASE 0 — DISCOVERY
+## PHASE 0 - DISCOVERY
 
 Paste this once. Read the output. Do not proceed until you have reviewed it.
 
@@ -37,9 +37,9 @@ Show both outputs. Stop.
 
 ---
 
-## PHASE 1 — REBRAND: FILE BY FILE
+## PHASE 1 - REBRAND: FILE BY FILE
 
-### 1A — package.json
+### 1A - package.json
 
 ```
 In package.json only, make these two changes:
@@ -51,7 +51,7 @@ No other files. No formatting changes. Stop.
 
 ---
 
-### 1B — src/app/layout.tsx
+### 1B - src/app/layout.tsx
 
 ```
 In src/app/layout.tsx only, make these exact replacements:
@@ -70,7 +70,7 @@ No other files. Stop.
 
 ---
 
-### 1C — src/app/opengraph-image.tsx
+### 1C - src/app/opengraph-image.tsx
 
 ```
 In src/app/opengraph-image.tsx only:
@@ -83,7 +83,7 @@ No other files. Stop.
 
 ---
 
-### 1D — src/components/footer.tsx
+### 1D - src/components/footer.tsx
 
 ```
 In src/components/footer.tsx only:
@@ -98,7 +98,7 @@ No other files. Stop.
 
 ---
 
-### 1E — src/app/pricing/page.tsx
+### 1E - src/app/pricing/page.tsx
 
 ```
 In src/app/pricing/page.tsx only:
@@ -110,7 +110,7 @@ No other files. Stop.
 
 ---
 
-### 1F — src/app/sponsors/page.tsx
+### 1F - src/app/sponsors/page.tsx
 
 ```
 In src/app/sponsors/page.tsx only:
@@ -122,7 +122,7 @@ No other files. Stop.
 
 ---
 
-### 1G — src/components/x-card.tsx
+### 1G - src/components/x-card.tsx
 
 ```
 In src/components/x-card.tsx only:
@@ -134,7 +134,7 @@ No other files. Stop.
 
 ---
 
-### 1H — src/components/distributed-widgets.tsx
+### 1H - src/components/distributed-widgets.tsx
 
 ```
 In src/components/distributed-widgets.tsx only:
@@ -146,13 +146,13 @@ No other files. Stop.
 
 ---
 
-### 1I — src/content/ heading strings (all at once)
+### 1I - src/content/ heading strings (all at once)
 
 These files all contain section headings like "Where X appears in BitRoot".
 Replace only those heading strings, nothing else.
 
 ```
-In these files only — make the exact string replacement described:
+In these files only - make the exact string replacement described:
   src/content/ascii.ts
   src/content/big-o.ts
   src/content/binary.ts
@@ -177,7 +177,7 @@ Touch no other content. No reformatting. Stop.
 
 ---
 
-### 1J — README.md
+### 1J - README.md
 
 ```
 In README.md only:
@@ -190,7 +190,7 @@ No reformatting. Text replacements only. Stop.
 
 ---
 
-### 1K — Rename and update spec
+### 1K - Rename and update spec
 
 ```
 1. Rename spec.md to SCRAPYBYTES_SPEC.md
@@ -203,7 +203,7 @@ No other content changes. Stop.
 
 ---
 
-### 1L — Verify clean
+### 1L - Verify clean
 
 ```
 Run this and show full output. Make zero edits.
@@ -220,16 +220,16 @@ If results appear, list them. Do not auto-fix. Stop.
 ```
 
 Expected noise (ignore these):
-- `package-lock.json` — regenerates on npm install
-- `SCRAPYBYTES_CLAUDE_CODE_PROMPT.md` / `SCRAPYBYTES_MASTER_PROMPT.md` — these are the prompt docs themselves
+- `package-lock.json` - regenerates on npm install
+- `SCRAPYBYTES_CLAUDE_CODE_PROMPT.md` / `SCRAPYBYTES_MASTER_PROMPT.md` - these are the prompt docs themselves
 
 Any result outside those two files is a real miss. Report it.
 
 ---
 
-## PHASE 2 — PHILOSOPHY PAGE
+## PHASE 2 - PHILOSOPHY PAGE
 
-### 2A — Add nav entry
+### 2A - Add nav entry
 
 ```
 In src/lib/nav-config.ts only.
@@ -248,7 +248,7 @@ No other changes. Stop.
 
 ---
 
-### 2B — Scaffold page shell
+### 2B - Scaffold page shell
 
 ```
 Create src/app/philosophy/page.tsx.
@@ -258,13 +258,13 @@ No imports beyond what Next.js needs. No content. No styling. Stop.
 
 ---
 
-### 2C — Write content
+### 2C - Write content
 
 ```
 In src/app/philosophy/page.tsx only.
 Replace the empty <main> with the JSX below.
 Do not rewrite, summarise, improve, or restructure the copy.
-The voice is the author's. Preserve it exactly — punctuation, fragments, all of it.
+The voice is the author's. Preserve it exactly - punctuation, fragments, all of it.
 
 ---
 
@@ -275,7 +275,7 @@ The voice is the author's. Preserve it exactly — punctuation, fragments, all o
 
   <p>
     I named it after a feeling. That feeling when you're building something
-    with whatever you have — no perfect setup, no senior engineer to ask.
+    with whatever you have - no perfect setup, no senior engineer to ask.
     Just you, a terminal, and a problem you refuse to walk away from.
   </p>
 
@@ -287,8 +287,8 @@ The voice is the author's. Preserve it exactly — punctuation, fragments, all o
 
   <p>
     There's a difference between knowing how to call an API and understanding
-    that at the bottom of everything — your browser, your phone, this very
-    webpage — there are transistors switching between two states. On and off.
+    that at the bottom of everything - your browser, your phone, this very
+    webpage - there are transistors switching between two states. On and off.
     One and zero.
   </p>
 
@@ -299,7 +299,7 @@ The voice is the author's. Preserve it exactly — punctuation, fragments, all o
   <p>"Byte by byte" isn't just a tagline. It's a pace.</p>
 
   <p>
-    I tried every shortcut — the 10-hour YouTube courses, the bootcamp
+    I tried every shortcut - the 10-hour YouTube courses, the bootcamp
     cheatsheets, the copy-paste mentality. And I kept hitting the same wall.
     The one that appears when something breaks and you have no idea why.
   </p>
@@ -347,7 +347,7 @@ No classes. No styling. No extra imports. Stop.
 
 ---
 
-### 2D — Apply styling
+### 2D - Apply styling
 
 ```
 In src/app/philosophy/page.tsx only.
@@ -367,7 +367,7 @@ No new components. No new colors. Stop.
 
 ---
 
-### 2E — Add metadata
+### 2E - Add metadata
 
 ```
 In src/app/philosophy/page.tsx only.
@@ -384,17 +384,17 @@ No other changes. Stop.
 
 ---
 
-### 2F — Voice review
+### 2F - Voice review
 
 ```
 Read src/app/philosophy/page.tsx.
 Check the content nodes only (ignore JSX, classes, imports).
 
 Flag any of the following:
-1. AI-generated phrasing — overly smooth, no rough edges, sounds like a product page
+1. AI-generated phrasing - overly smooth, no rough edges, sounds like a product page
 2. Sentences starting with: Furthermore, Moreover, In conclusion, It is important to, In today's world
 3. Three or more grammatically parallel sentences in a row (lists disguised as prose)
-4. Tone shift — the voice should sound like a builder writing for himself, not marketing copy
+4. Tone shift - the voice should sound like a builder writing for himself, not marketing copy
 
 Report as a numbered list with line reference and suggested fix.
 If nothing is flagged, write: Voice clean.
@@ -403,7 +403,7 @@ Do not rewrite anything. Stop.
 
 ---
 
-## PHASE 3 — CONTENT HUMANISATION GUIDE
+## PHASE 3 - CONTENT HUMANISATION GUIDE
 
 The following is not a Claude Code prompt. It is guidance for you (the human) on how to review and rewrite existing topic content so it has soul.
 
@@ -430,7 +430,7 @@ Read the content section I've pasted below.
 Do not rewrite it.
 Flag only these four things, with line references:
 
-1. Any phrase that reads like generated text — too smooth, too complete, no rough edges
+1. Any phrase that reads like generated text - too smooth, too complete, no rough edges
 2. Any transition word that signals AI: Furthermore, Moreover, Therefore, Thus, In conclusion
 3. Any three consecutive sentences with the same grammatical structure
 4. Any sentence that explains what something IS without any sense of why the writer thinks it matters
@@ -452,7 +452,7 @@ Before submitting a content section, ask yourself:
 
 ---
 
-## PHASE 4 — BUILD CHECK
+## PHASE 4 - BUILD CHECK
 
 ```
 Run: npm run build
@@ -462,7 +462,7 @@ Do not auto-fix anything. Report each error with file name and line number. Stop
 
 ---
 
-## PHASE 5 — COMMIT
+## PHASE 5 - COMMIT
 
 Only after build is clean:
 
@@ -489,6 +489,6 @@ Run git status after to confirm.
 **Rules that save tokens:**
 1. Always include the exact old string and exact new string. Never say "update the title."
 2. Always say "No other files." at the end of every prompt.
-3. Always say "Stop." — it prevents the model from narrating what it just did.
+3. Always say "Stop." - it prevents the model from narrating what it just did.
 4. Run discovery before editing. Never ask the model to find AND fix in the same prompt.
 5. Verify with grep, not by asking the model to summarise what it changed.

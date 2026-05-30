@@ -1,105 +1,80 @@
 export const metadata = {
   title: "Philosophy | ScrapyBytes",
   description:
-    "Why Scrapy? The mindset and mission behind ScrapyBytes - CS education from bits to blockchain.",
+    "Why Scrapy? The name, the feeling, and the reason ScrapyBytes exists - for builders who got tired of building on sand.",
 };
 
 export default function PhilosophyPage() {
   return (
-    <main id="philosophy" className="max-w-2xl mx-auto px-6 py-20">
-      <h1 className="font-display text-4xl font-bold text-neon-cyan mb-8 leading-tight">
-        Why Scrapy?
-      </h1>
+    <main id="philosophy">
+      <h1>Why Scrapy?</h1>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">I didn&apos;t name it after a framework.</p>
+      <p>I didn&apos;t name it after a framework.</p>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        I named it after a feeling. That feeling when you&apos;re building
-        something with whatever you have — no perfect setup, no senior
-        engineer to ask. Just you, a terminal, and a problem you refuse
-        to walk away from.
+      <p>There&apos;s already one of those. This is something different.</p>
+
+      <p>
+        Scrapy came from a feeling I kept coming back to - that specific
+        kind of building you do when you have no roadmap, no mentor, no
+        perfect environment. Just a problem in front of you and the stubborn
+        refusal to walk away from it.
       </p>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">That&apos;s what scrappy means to me.</p>
-
-      <h2 className="font-mono text-xs font-semibold text-neon-lime uppercase tracking-widest mt-14 mb-4 border-l-2 border-neon-lime pl-3">
-        The Scrappy Mindset
-      </h2>
-
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        Most tutorials teach you to use things. ScrapyBytes tries to teach you what things are.
+      <p>
+        That&apos;s what scrappy means to me. Not messy. Not amateur.
+        Resourceful. Making something real out of whatever&apos;s in front
+        of you.
       </p>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        There&apos;s a difference between knowing how to call an API and
-        understanding that at the bottom of everything — your browser,
-        your phone, this very webpage — there are transistors switching
-        between two states. On and off. One and zero.
+      <h2>The Name</h2>
+
+      <p>Most names in tech sound like they were approved by a committee.</p>
+
+      <p>
+        Scrapy wasn&apos;t. It came from the way I actually learned - not
+        through polished courses or clean tutorials, but by breaking things
+        and figuring out why. By starting over. By hitting the same wall
+        three times and finally understanding what the wall was made of.
       </p>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        I spent years writing code without knowing any of that. And honestly? It showed.
+      <p>That process has a texture to it. It&apos;s not smooth. It&apos;s scrapy.</p>
+
+      <h2>What It&apos;s Really About</h2>
+
+      <p>
+        I spent years learning how to use things without understanding
+        what they were.
       </p>
 
-      <h2 className="font-mono text-xs font-semibold text-neon-lime uppercase tracking-widest mt-14 mb-4 border-l-2 border-neon-lime pl-3">
-        Byte by Byte
-      </h2>
-
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        &quot;Byte by byte&quot; isn&apos;t just a tagline. It&apos;s a pace.
+      <p>
+        I could call APIs I didn&apos;t understand. I could copy-paste solutions
+        I couldn&apos;t explain. And for a while, that felt like progress. Until
+        something broke in a way I&apos;d never seen before, and I had no idea
+        where to even start looking.
       </p>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        I tried every shortcut — the 10-hour YouTube courses, the
-        bootcamp cheatsheets, the copy-paste mentality. And I kept
-        hitting the same wall. The one that appears when something
-        breaks and you have no idea why.
+      <p>Because I&apos;d skipped the foundation.</p>
+
+      <p>
+        ScrapyBytes is built around that realization. Not as a lecture -
+        as a confession. I&apos;m not teaching from a high place. I&apos;m rebuilding
+        from the bottom because I know what it costs to skip it.
       </p>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">Because you skipped the foundation.</p>
+      <h2>Byte by Byte</h2>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        ScrapyBytes is my attempt to fix that. Not just for me.
+      <p>The pace here is deliberate.</p>
+
+      <p>
+        Binary before anything else. Then ASCII. Then logic gates. Then
+        the systems built on top of them. Each layer only after the one
+        beneath it makes sense - not just intellectually, but instinctively.
       </p>
 
-      <h2 className="font-mono text-xs font-semibold text-neon-lime uppercase tracking-widest mt-14 mb-4 border-l-2 border-neon-lime pl-3">
-        The Ecosystem
-      </h2>
+      <p>That&apos;s what byte by byte means. Not slow. Just honest.</p>
 
-      <p className="font-body text-fg-dim leading-relaxed mb-4">ScrapyBytes doesn&apos;t exist alone.</p>
-
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        It&apos;s the education layer of something bigger I&apos;ve been quietly
-        building. ScrapyChain handles the blockchain infrastructure.
-        ScrapyBytes teaches you what runs beneath it. Eventually,
-        there&apos;s a world built on top.
-      </p>
-
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        Each piece was built scrappy. From scratch. With intention.
-      </p>
-
-      <h2 className="font-mono text-xs font-semibold text-neon-lime uppercase tracking-widest mt-14 mb-4 border-l-2 border-neon-lime pl-3">
-        The Anchor
-      </h2>
-
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        Chanakya said: know the root before you study the tree.
-      </p>
-
-      <p className="font-body text-fg-dim leading-relaxed mb-4">
-        I think about that every time someone asks why I&apos;m learning
-        how transistors work when I could just learn React. Because
-        React doesn&apos;t matter if you don&apos;t understand why it exists.
-        The tree doesn&apos;t matter without the root.
-      </p>
-
-      <p className="font-mono text-fg text-sm mb-2">Every transistor is a decision.</p>
-      <p className="font-mono text-fg text-sm mb-2">Every bit is a choice.</p>
-      <p className="font-mono text-fg text-sm mb-2">Every byte you understand is ground you&apos;ll never lose.</p>
-
-      <footer className="mt-20 pt-8 border-t border-line">
-        <p className="font-mono text-neon-amber text-sm italic text-center">Every bit was a choice.</p>
+      <footer>
+        <p>Every bit was a choice.</p>
       </footer>
     </main>
   );

@@ -221,7 +221,7 @@ impl BitcoinNode {
                  * Forget the lock: compile error, not a race. */
                 let mut pool = mempool.lock().unwrap();
                 pool.validate_pending();
-                /* MutexGuard drops here — lock released */
+                /* MutexGuard drops here - lock released */
             }
         });
     }
@@ -339,7 +339,7 @@ export const operatingSystem: PageContent = {
         },
         {
           kind: "raw",
-          html: `<p class="connection-line">A process struct in the kernel is just a data structure in memory. The page table pointer, register state, file descriptor table — all of it binary data at a memory address. The OS manages processes the same way your programs manage linked lists and arrays. With pointers. With structs. With the same memory operations you learned on pages 6 and 9. <a href="/memory">← see: Memory</a> · <a href="/pointers">← see: Pointers</a></p>`,
+          html: `<p class="connection-line">A process struct in the kernel is just a data structure in memory. The page table pointer, register state, file descriptor table - all of it binary data at a memory address. The OS manages processes the same way your programs manage linked lists and arrays. With pointers. With structs. With the same memory operations you learned on pages 6 and 9. <a href="/memory">← see: Memory</a> · <a href="/pointers">← see: Pointers</a></p>`,
         },
         { kind: "heading", text: "Creating processes: fork &amp; exec" },
         {
@@ -491,7 +491,7 @@ export const operatingSystem: PageContent = {
           kind: "prose",
           html: `<p>Every Bitcoin full node on Earth is a program running inside an OS.</p>
 <p>Not a special program. Not a privileged program. A regular user-space process.</p>
-<p>Bitcoin Core — the reference implementation written in C++ — uses every OS primitive this page has described.</p>`,
+<p>Bitcoin Core - the reference implementation written in C++ - uses every OS primitive this page has described.</p>`,
         },
         { kind: "heading", text: "Processes and threads" },
         {
@@ -518,14 +518,14 @@ export const operatingSystem: PageContent = {
           kind: "prose",
           html: `<p>Every Bitcoin Core operation is built on syscalls:</p>
 <ul>
-  <li><code>socket()</code> — create a network socket</li>
-  <li><code>connect()</code> — connect to a peer</li>
-  <li><code>send()</code> — broadcast a transaction</li>
-  <li><code>recv()</code> — receive a new block</li>
-  <li><code>open()</code> — open the block database</li>
-  <li><code>mmap()</code> — map the UTXO set into memory</li>
-  <li><code>epoll()</code> — wait for any peer to send data</li>
-  <li><code>futex()</code> — fast mutex for thread coordination</li>
+  <li><code>socket()</code> - create a network socket</li>
+  <li><code>connect()</code> - connect to a peer</li>
+  <li><code>send()</code> - broadcast a transaction</li>
+  <li><code>recv()</code> - receive a new block</li>
+  <li><code>open()</code> - open the block database</li>
+  <li><code>mmap()</code> - map the UTXO set into memory</li>
+  <li><code>epoll()</code> - wait for any peer to send data</li>
+  <li><code>futex()</code> - fast mutex for thread coordination</li>
 </ul>
 <p>The entire peer-to-peer Bitcoin network is <code>socket()</code> + <code>send()</code> + <code>recv()</code>. That is it. The OS provides the sockets. Bitcoin Core provides the protocol. TCP/IP carries the binary packets. The blockchain page showed the full picture. This page shows the OS layer it runs on top of.</p>`,
         },
@@ -658,7 +658,7 @@ export const operatingSystem: PageContent = {
             {
               label: "15 / big o",
               value: "Context switch is O(1)",
-              desc: "Saving and restoring registers is a fixed number of operations — O(1). But the real cost is cache invalidation and TLB flushes. Big O explains the algorithm. Cache explains the reality.",
+              desc: "Saving and restoring registers is a fixed number of operations - O(1). But the real cost is cache invalidation and TLB flushes. Big O explains the algorithm. Cache explains the reality.",
               href: "/big-o",
             },
           ],

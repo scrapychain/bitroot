@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { WidgetName } from "@/types/content";
@@ -440,7 +440,7 @@ function BitToggleWidget() {
   return (
     <div className="widget-wrap">
       <div className="widget-head">
-        <span className="widget-title">{"// the bit toggle — click any bit"}</span>
+        <span className="widget-title">{"// the bit toggle - click any bit"}</span>
         <div className="widget-controls">
           {BIT_PRESETS.map((p) => (
             <button
@@ -542,7 +542,7 @@ function CharExplorerWidget() {
   return (
     <div className="widget-wrap">
       <div className="widget-head">
-        <span className="widget-title">{"// character explorer — type any letter"}</span>
+        <span className="widget-title">{"// character explorer - type any letter"}</span>
         <div className="widget-controls">
           {CHAR_QUICK_PICKS.map((c) => (
             <button
@@ -625,7 +625,7 @@ function TextEncoderWidget() {
   return (
     <div className="widget-wrap">
       <div className="widget-head">
-        <span className="widget-title">{"// text encoder — every character becomes 8 bits"}</span>
+        <span className="widget-title">{"// text encoder - every character becomes 8 bits"}</span>
         <div className="widget-controls">
           {TEXT_PRESETS.map((p) => (
             <button
@@ -746,7 +746,7 @@ function GateSimulatorWidget() {
   return (
     <div className="widget-wrap">
       <div className="widget-head">
-        <span className="widget-title">{"// try it — wire your own gate"}</span>
+        <span className="widget-title">{"// try it - wire your own gate"}</span>
         <div className="widget-controls">
           {(Object.keys(GATE_INFO) as GateKind[]).map((g) => (
             <button
@@ -931,7 +931,7 @@ function CapVisualiserWidget() {
   return (
     <div className="widget-wrap cap-vis">
       <div className="widget-head">
-        <span className="widget-title">{"// CAP visualiser — cut the network and choose a side"}</span>
+        <span className="widget-title">{"// CAP visualiser - cut the network and choose a side"}</span>
         <div className="widget-controls">
           <button type="button" className="widget-btn" onClick={reset}>
             reset
@@ -3445,7 +3445,7 @@ function SortingRaceWidget() {
       )}
 
       <p className="widget-caption">
-        generate an array, select algorithms, then sort. on nearly-sorted input bubble sort exits early and beats merge sort — a reminder that O(n log n) is not always faster than O(n squared) in practice.
+        generate an array, select algorithms, then sort. on nearly-sorted input bubble sort exits early and beats merge sort - a reminder that O(n log n) is not always faster than O(n squared) in practice.
       </p>
     </div>
   );

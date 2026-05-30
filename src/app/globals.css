@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @theme {
   --color-bg-0: #0a0a0f;
@@ -186,17 +186,16 @@ body::after {
   gap: 0.6rem;
 }
 
-.brand-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--neon-cyan);
-  box-shadow:
+.brand-prompt {
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-shadow:
     0 0 8px var(--neon-cyan),
     0 0 18px var(--neon-cyan);
   animation: pulse 2s ease-in-out infinite;
   display: inline-block;
-  will-change: transform, opacity;
+  will-change: opacity;
 }
 
 @keyframes pulse {
@@ -1131,7 +1130,7 @@ tr:hover td {
    animations entirely. Less work for the GPU, kinder to users. */
 @media (prefers-reduced-motion: reduce) {
   .stream-track,
-  .brand-dot,
+  .brand-prompt,
   .fade-up {
     animation: none !important;
   }
@@ -2765,7 +2764,7 @@ tr:hover td {
 .diagram-svg tspan.tone-lime { fill: var(--neon-lime); }
 
 /* ============================================
-   SPONSORS PAGE — tier blocks in a framed grid
+   SPONSORS PAGE - tier blocks in a framed grid
    ============================================ */
 .sponsors-hero {
   max-width: 760px;

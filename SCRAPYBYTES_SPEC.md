@@ -1,6 +1,6 @@
-﻿# ScrapyBytes — Next.js Project Specification
+﻿# ScrapyBytes - Next.js Project Specification
 
-> Build a layered, beautifully designed educational web app teaching the foundations of computing — binary, ASCII, and transistors/logic gates — with code examples in Rust and C shown side-by-side.
+> Build a layered, beautifully designed educational web app teaching the foundations of computing - binary, ASCII, and transistors/logic gates - with code examples in Rust and C shown side-by-side.
 
 This document is the **single source of truth** for the project. Read it end-to-end before writing any code, then execute the phases in order.
 
@@ -24,12 +24,12 @@ This document is the **single source of truth** for the project. Read it end-to-
 
 - **Next.js 15** with the **App Router** (`app/` directory). Use TypeScript.
 - **React 19**.
-- **Tailwind CSS v4** (the new CSS-first config — no `tailwind.config.ts`; configure via `@theme` in `globals.css`).
-- **shiki** for syntax highlighting at build time (via `rehype-pretty-code` is fine if it simplifies things, but plain `shiki` called in a server component is preferred — see §6).
+- **Tailwind CSS v4** (the new CSS-first config - no `tailwind.config.ts`; configure via `@theme` in `globals.css`).
+- **shiki** for syntax highlighting at build time (via `rehype-pretty-code` is fine if it simplifies things, but plain `shiki` called in a server component is preferred - see §6).
 - **Geist Mono** + **Geist Sans** + **Space Grotesk** from `next/font/google` (or `next/font/local` for Geist if needed). Three font roles: display (Space Grotesk), body (Geist Sans), mono (Geist Mono / JetBrains Mono fallback).
 - **lucide-react** for any icons.
 - **clsx** + **tailwind-merge** (combined as a `cn()` util).
-- **No** state management library. **No** UI component library (shadcn/ui is fine if Claude Code prefers, but not required — the design is custom and shadcn buttons/cards would need restyling anyway).
+- **No** state management library. **No** UI component library (shadcn/ui is fine if Claude Code prefers, but not required - the design is custom and shadcn buttons/cards would need restyling anyway).
 
 Initialize with:
 
@@ -84,7 +84,7 @@ ScrapyBytes/
 │   └── types/
 │       └── content.ts              # types for level sections, code samples, etc.
 ├── public/
-│   └── (static assets if needed — keep minimal)
+│   └── (static assets if needed - keep minimal)
 ├── README.md
 ├── next.config.ts
 ├── tsconfig.json
@@ -97,7 +97,7 @@ ScrapyBytes/
 
 ## 4. Design system
 
-The site has an established visual identity — **terminal-meets-neon**. Implement it precisely.
+The site has an established visual identity - **terminal-meets-neon**. Implement it precisely.
 
 ### 4.1 Color tokens (define in `globals.css` via `@theme`)
 
@@ -162,11 +162,11 @@ These are all `pointer-events: none`, `position: fixed`, and behind content (z-i
 
 ### 4.5 Animations
 
-Keep these — the site has them already and they're part of the identity:
+Keep these - the site has them already and they're part of the identity:
 
-- `fadeUp` — opacity 0→1 + translateY 20px→0, 0.8s ease, with stagger via `delay-1/2/3/4` utility classes on hero elements.
-- `pulse` — brand dot, 2s ease-in-out infinite.
-- `stream` — homepage binary marquee, 60s linear infinite, translateX 0 → -50%.
+- `fadeUp` - opacity 0→1 + translateY 20px→0, 0.8s ease, with stagger via `delay-1/2/3/4` utility classes on hero elements.
+- `pulse` - brand dot, 2s ease-in-out infinite.
+- `stream` - homepage binary marquee, 60s linear infinite, translateX 0 → -50%.
 - Hover on cards/buttons should be smooth (180–250ms ease).
 
 No JS-driven scroll animations. Keep it CSS-only for performance and SSR cleanliness.
@@ -175,7 +175,7 @@ No JS-driven scroll animations. Keep it CSS-only for performance and SSR cleanli
 
 ## 5. Content (full text)
 
-The static HTML version of this site already exists. Port the content faithfully — **do not rewrite the prose**. Each content file should export a typed object describing the page's structure. Below is the expected shape.
+The static HTML version of this site already exists. Port the content faithfully - **do not rewrite the prose**. Each content file should export a typed object describing the page's structure. Below is the expected shape.
 
 ### 5.1 Type definitions (`src/types/content.ts`)
 
@@ -207,7 +207,7 @@ export interface Block =
 export interface LevelContent {
   level: Level;
   number: '01' | '02' | '03';
-  title: string;          // "What is **binary**, really?" — with `**accent**` for the highlighted word
+  title: string;          // "What is **binary**, really?" - with `**accent**` for the highlighted word
   blocks: Block[];
 }
 
@@ -235,7 +235,7 @@ export interface PageContent {
 
 The reference HTML files contain the exact, approved copy. Treat them as the canonical text source:
 
-- Hero copy, lede, level titles, prose paragraphs, code samples, callouts, tables, grids, "next up" blocks — all already written. Port them verbatim into the structured `content/*.ts` files.
+- Hero copy, lede, level titles, prose paragraphs, code samples, callouts, tables, grids, "next up" blocks - all already written. Port them verbatim into the structured `content/*.ts` files.
 - Markdown-style emphasis in the original (`**bold**` for accent words) maps to the `accent` color on h2 headings.
 - Inline `<code>` and `<strong>` and `<em>` in prose should be preserved as raw HTML strings in `prose` blocks.
 
@@ -245,7 +245,7 @@ The reference HTML files contain the exact, approved copy. Treat them as the can
 
 ## 6. Syntax highlighting (shiki)
 
-Use `shiki` directly in a server component. Build-time highlighting only — no client runtime cost.
+Use `shiki` directly in a server component. Build-time highlighting only - no client runtime cost.
 
 ```ts
 // src/lib/highlight.ts
@@ -290,7 +290,7 @@ export async function highlight(
 Use it in `<CodeBlock>`:
 
 ```tsx
-// src/components/code-block.tsx — server component
+// src/components/code-block.tsx - server component
 import { highlight } from "@/lib/highlight";
 
 export async function CodeBlock({
@@ -320,9 +320,9 @@ Each page exports `metadata`:
 
 ```ts
 export const metadata: Metadata = {
-  title: "Binary — ScrapyBytes",
+  title: "Binary - ScrapyBytes",
   description:
-    "The binary number system, explained from first principles. Beginner, intermediate, advanced — Rust and C side-by-side.",
+    "The binary number system, explained from first principles. Beginner, intermediate, advanced - Rust and C side-by-side.",
 };
 ```
 
@@ -332,8 +332,8 @@ Root layout (`app/layout.tsx`) sets:
 export const metadata: Metadata = {
   metadataBase: new URL("https://ScrapyBytes.dev"),
   title: {
-    default: "ScrapyBytes — From Electrons to Code",
-    template: "%s — ScrapyBytes",
+    default: "ScrapyBytes - From Electrons to Code",
+    template: "%s - ScrapyBytes",
   },
   description: "A layered field guide to the foundations of computing.",
   openGraph: { type: "website", siteName: "ScrapyBytes" },
@@ -341,11 +341,11 @@ export const metadata: Metadata = {
 };
 ```
 
-Generate a dynamic OG image via `app/opengraph-image.tsx` using `ImageResponse` — ScrapyBytes wordmark on dark background with a subtle grid, cyan accent.
+Generate a dynamic OG image via `app/opengraph-image.tsx` using `ImageResponse` - ScrapyBytes wordmark on dark background with a subtle grid, cyan accent.
 
 ---
 
-## 8. Components — implementation details
+## 8. Components - implementation details
 
 ### 8.1 `<Nav>` (client component because of `usePathname`)
 
@@ -412,7 +412,7 @@ The logic-gates page should render all 4 main gates (AND, OR, NOT, XOR) on the b
 
 ### 8.5 `<AsciiGrid>` (client component)
 
-Builds the printable ASCII grid 32–126 in `useMemo`. Each cell shows the character (with HTML entity escaping for `<`, `>`, `&`, and showing `␣` for space). On hover, the cell border lights cyan. Clicking a cell shows a small popover with decimal/hex/binary forms. Keep popover lightweight — pure CSS or React state, no library.
+Builds the printable ASCII grid 32–126 in `useMemo`. Each cell shows the character (with HTML entity escaping for `<`, `>`, `&`, and showing `␣` for space). On hover, the cell border lights cyan. Clicking a cell shows a small popover with decimal/hex/binary forms. Keep popover lightweight - pure CSS or React state, no library.
 
 ### 8.6 `<BinaryStream>`
 
@@ -463,20 +463,20 @@ The bottom-of-page CTA. Shows eyebrow ("next up / 0x02"), title, and a button li
   --radius-lg: 12px;
 }
 
-/* body atmosphere, scanlines, noise — port from existing styles.css */
+/* body atmosphere, scanlines, noise - port from existing styles.css */
 /* keyframes: pulse, stream, fadeUp */
 /* selection, scrollbar */
 ```
 
-The legacy `styles.css` already contains correct, working CSS for atmosphere, animations, and selection. Port those rules into `globals.css` after the `@theme` block, replacing legacy CSS variable names with the Tailwind v4 `--color-*` equivalents where needed. Custom utilities like `.fade-up` and `.delay-1/2/3/4` should be defined as plain CSS classes in `globals.css`, not as Tailwind variants — they're simple enough.
+The legacy `styles.css` already contains correct, working CSS for atmosphere, animations, and selection. Port those rules into `globals.css` after the `@theme` block, replacing legacy CSS variable names with the Tailwind v4 `--color-*` equivalents where needed. Custom utilities like `.fade-up` and `.delay-1/2/3/4` should be defined as plain CSS classes in `globals.css`, not as Tailwind variants - they're simple enough.
 
 ---
 
 ## 10. Phased build plan
 
-Execute in order. Don't skip ahead — each phase ends in a working, viewable site.
+Execute in order. Don't skip ahead - each phase ends in a working, viewable site.
 
-### Phase 0 — Scaffold (15 min)
+### Phase 0 - Scaffold (15 min)
 
 1. `npx create-next-app@latest ScrapyBytes --typescript --tailwind --app --src-dir --import-alias "@/*" --eslint`
 2. Install deps: `npm i clsx tailwind-merge lucide-react shiki`
@@ -484,27 +484,27 @@ Execute in order. Don't skip ahead — each phase ends in a working, viewable si
 4. Add `next/font` setup in `layout.tsx` exposing the three font variables.
 5. Verify `npm run dev` shows a blank dark page with the right background atmosphere.
 
-### Phase 1 — Layout chrome (30 min)
+### Phase 1 - Layout chrome (30 min)
 
 1. Build `<Nav>` and `<Footer>` components.
 2. Wire them into `app/layout.tsx`.
 3. Create stub pages for `/binary`, `/ascii`, `/logic-gates`, each with just an `<h1>`.
 4. Verify navigation works and active state highlights correctly.
 
-### Phase 2 — Homepage (45 min)
+### Phase 2 - Homepage (45 min)
 
 1. Build `<Hero>`, `<TopicCard>`, `<BinaryStream>`, `<NextUp>`.
 2. Implement `app/page.tsx` matching the existing `index.html` layout exactly.
 3. Verify visual fidelity against the reference HTML (atmosphere, fade-up animations, marquee).
 
-### Phase 3 — Content infrastructure (45 min)
+### Phase 3 - Content infrastructure (45 min)
 
 1. Define types in `src/types/content.ts`.
 2. Implement `<CodeBlock>`, `<CodePair>`, `<LevelSection>`, `<Callout>`, `<TruthTable>`, `<Card>` (reused for grid cards).
 3. Set up shiki highlighter in `src/lib/highlight.ts`.
 4. Build a tiny test page that renders a `LevelContent` to verify all block types render correctly.
 
-### Phase 4 — Topic pages (90 min)
+### Phase 4 - Topic pages (90 min)
 
 1. Port `binary.html` content into `src/content/binary.ts` as a typed `PageContent`.
 2. Implement `app/binary/page.tsx` that consumes the content and renders it through `<Hero>` + `<LevelSection>` × 3 + `<NextUp>`.
@@ -512,16 +512,16 @@ Execute in order. Don't skip ahead — each phase ends in a working, viewable si
 4. Repeat for `logic-gates.html` → `src/content/logic-gates.ts` → `app/logic-gates/page.tsx`.
 5. Build the page-specific components: `<AsciiGrid>` (used only on ascii page) and `<GateDiagram>` (used only on logic-gates page).
 
-### Phase 5 — Polish (30 min)
+### Phase 5 - Polish (30 min)
 
 1. Implement `app/opengraph-image.tsx` using `ImageResponse`.
 2. Implement `app/icon.tsx` for the favicon (a small cyan square or the brand dot).
 3. Add `app/not-found.tsx` styled to match the site.
-4. Tab through every page with keyboard — verify focus rings are visible and routing works without JS.
-5. Run Lighthouse — target 95+ on Performance, 100 on Accessibility, SEO, Best Practices.
+4. Tab through every page with keyboard - verify focus rings are visible and routing works without JS.
+5. Run Lighthouse - target 95+ on Performance, 100 on Accessibility, SEO, Best Practices.
 6. Run `npm run build` and verify it ships clean (no warnings about hydration, missing keys, or font issues).
 
-### Phase 6 — Deploy
+### Phase 6 - Deploy
 
 1. Push to a GitHub repo.
 2. Import to Vercel. Default settings work.
@@ -535,7 +535,7 @@ Execute in order. Don't skip ahead — each phase ends in a working, viewable si
 - **Performance.** No unnecessary client components. The only `'use client'` files should be `<Nav>` (uses `usePathname`) and `<AsciiGrid>` (interactive popover). Everything else server-side.
 - **Type safety.** No `any`. Strict TS. The `Block` discriminated union should drive exhaustive switch in `<LevelSection>`.
 - **No layout shift.** Fonts loaded with `display: 'swap'` and a sensible fallback. Reserve aspect ratios for SVG diagrams.
-- **Mobile.** Test at 375px width. The code-pair stacks. The nav stays usable (consider a smaller logo + dropdown or a horizontal scroll if links overflow — but with only 4 links, they should fit).
+- **Mobile.** Test at 375px width. The code-pair stacks. The nav stays usable (consider a smaller logo + dropdown or a horizontal scroll if links overflow - but with only 4 links, they should fit).
 
 ---
 
@@ -543,7 +543,7 @@ Execute in order. Don't skip ahead — each phase ends in a working, viewable si
 
 - **Missing prose:** ask the user for the reference HTML files (`index.html`, `binary.html`, `ascii.html`, `logic-gates.html`, `styles.css`). Do not invent content. The voice and pacing are specific and have been authored deliberately.
 - **Unclear visual detail:** prefer the reference HTML's behavior. It's the design source of truth.
-- **Tailwind v4 ambiguity:** if v4 syntax causes friction, fall back to v3 (`tailwind.config.ts`) — but only as a last resort, and call it out in the PR.
+- **Tailwind v4 ambiguity:** if v4 syntax causes friction, fall back to v3 (`tailwind.config.ts`) - but only as a last resort, and call it out in the PR.
 - **Tradeoff between fidelity and idioms:** lean fidelity. The design has been tuned; don't drift toward generic Next.js templates.
 
 ---

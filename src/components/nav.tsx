@@ -51,9 +51,9 @@ export function Nav() {
     <nav className="nav" aria-label="Primary">
       <div className="nav-inner">
         <Link href="/" className="brand">
-          <span className="brand-dot" aria-hidden="true" />
+          <span className="brand-prompt" aria-hidden="true">{">"}</span>
           <span className="brand-name">
-            bit<b>root</b>
+            scrapy<b>bytes</b>
           </span>
         </Link>
 

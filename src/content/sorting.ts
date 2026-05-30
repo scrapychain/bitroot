@@ -197,7 +197,7 @@ void quicksort(int *arr, size_t lo, size_t hi) {
  *
  * C stdlib equivalent:
  *   qsort(arr, n, sizeof(int), cmp_int);
- * Takes void* — no type safety at all.
+ * Takes void* - no type safety at all.
  * Rust generics replace void* with compile-time checks. */`;
 
 const rustStdlib = `// Use the standard library. Always.
@@ -433,7 +433,7 @@ export const sorting: PageContent = {
         {
           kind: "raw",
           html: `<div style="background:var(--bg-2);border-radius:0.5rem;padding:1rem 1.25rem;font-family:var(--font-mono);font-size:0.78rem;line-height:2;overflow-x:auto;">
-<div style="color:var(--fg-mute);margin-bottom:0.5rem;font-size:0.65rem;letter-spacing:0.08em;">// bubble sort walkthrough — array: [5, 3, 8, 1, 4]</div>
+<div style="color:var(--fg-mute);margin-bottom:0.5rem;font-size:0.65rem;letter-spacing:0.08em;">// bubble sort walkthrough - array: [5, 3, 8, 1, 4]</div>
 <div><span style="background:#00d4ff22;color:#00d4ff;padding:0.1rem 0.3rem;border-radius:3px;">5</span> <span style="background:#00d4ff22;color:#00d4ff;padding:0.1rem 0.3rem;border-radius:3px;">3</span> &nbsp;8&nbsp; &nbsp;1&nbsp; &nbsp;4&nbsp; &nbsp;<span style="color:#f59e0b;">5&gt;3 swap</span></div>
 <div>&nbsp;3&nbsp; <span style="background:#00d4ff22;color:#00d4ff;padding:0.1rem 0.3rem;border-radius:3px;">5</span> <span style="background:#00d4ff22;color:#00d4ff;padding:0.1rem 0.3rem;border-radius:3px;">8</span> &nbsp;1&nbsp; &nbsp;4&nbsp; &nbsp;<span style="color:var(--fg-mute);">5&lt;8 no swap</span></div>
 <div>&nbsp;3&nbsp; &nbsp;5&nbsp; <span style="background:#00d4ff22;color:#00d4ff;padding:0.1rem 0.3rem;border-radius:3px;">8</span> <span style="background:#00d4ff22;color:#00d4ff;padding:0.1rem 0.3rem;border-radius:3px;">1</span> &nbsp;4&nbsp; &nbsp;<span style="color:#f59e0b;">8&gt;1 swap</span></div>
@@ -469,7 +469,7 @@ export const sorting: PageContent = {
     {
       level: "intermediate",
       number: "02",
-      title: "Merge sort — the **recursion** payoff",
+      title: "Merge sort - the **recursion** payoff",
       blocks: [
         {
           kind: "prose",
@@ -485,7 +485,7 @@ export const sorting: PageContent = {
         {
           kind: "raw",
           html: `<div style="background:var(--bg-2);border-radius:0.5rem;padding:1.25rem;font-family:var(--font-mono);font-size:0.75rem;line-height:1.9;overflow-x:auto;">
-<div style="color:var(--fg-mute);margin-bottom:0.75rem;font-size:0.65rem;letter-spacing:0.08em;">// merge sort — divide and conquer on [5 3 8 1 4 2 7 6]</div>
+<div style="color:var(--fg-mute);margin-bottom:0.75rem;font-size:0.65rem;letter-spacing:0.08em;">// merge sort - divide and conquer on [5 3 8 1 4 2 7 6]</div>
 <div style="color:var(--fg);">[5 &nbsp;3 &nbsp;8 &nbsp;1 &nbsp;4 &nbsp;2 &nbsp;7 &nbsp;6]</div>
 <div style="color:var(--fg-mute);margin-left:1rem;">split</div>
 <div style="color:var(--fg);margin-left:1rem;">[5 &nbsp;3 &nbsp;8 &nbsp;1] &nbsp;&nbsp;[4 &nbsp;2 &nbsp;7 &nbsp;6]</div>
@@ -542,7 +542,7 @@ export const sorting: PageContent = {
         {
           kind: "raw",
           html: `<div style="background:var(--bg-2);border-radius:0.5rem;padding:1rem 1.25rem;font-family:var(--font-mono);font-size:0.78rem;line-height:2;overflow-x:auto;">
-<div style="color:var(--fg-mute);margin-bottom:0.5rem;font-size:0.65rem;letter-spacing:0.08em;">// quicksort partition — pivot = last element</div>
+<div style="color:var(--fg-mute);margin-bottom:0.5rem;font-size:0.65rem;letter-spacing:0.08em;">// quicksort partition - pivot = last element</div>
 <div><span style="color:var(--fg);">[3 &nbsp;6 &nbsp;8 &nbsp;10 &nbsp;1 &nbsp;2</span> &nbsp;<span style="background:#f59e0b22;color:#f59e0b;padding:0.1rem 0.3rem;border-radius:3px;">1</span>]&nbsp;&nbsp;<span style="color:var(--fg-mute);">pivot = 1 (last)</span></div>
 <div style="color:var(--fg-mute);">partition: move everything &lt; 1 left...</div>
 <div>[<span style="color:#10b981;">1</span> &nbsp;| &nbsp;<span style="color:var(--fg);">1 &nbsp;2 &nbsp;3 &nbsp;6 &nbsp;8 &nbsp;10</span>]&nbsp;&nbsp;<span style="color:#10b981;">pivot in final position</span></div>

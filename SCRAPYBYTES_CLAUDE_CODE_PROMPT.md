@@ -1,10 +1,10 @@
-# ScrapyBytes — Claude Code Master Prompt
+﻿# ScrapyBytes - Claude Code Master Prompt
 > Rebrand BitRoot → ScrapyBytes + Philosophy Page
 > Execute each phase in order. One phase = one Claude Code session. Do not skip ahead.
 
 ---
 
-## BEFORE YOU START — READ THESE RULES
+## BEFORE YOU START - READ THESE RULES
 
 ```
 EXECUTION RULES:
@@ -18,7 +18,7 @@ EXECUTION RULES:
 
 ---
 
-## PHASE 0 — DISCOVERY (Run First. Zero Edits.)
+## PHASE 0 - DISCOVERY (Run First. Zero Edits.)
 
 ```
 Run this command and show output only:
@@ -38,24 +38,24 @@ Show both outputs. Make zero edits.
 
 ---
 
-## PHASE 1 — REBRAND: FILE BY FILE
+## PHASE 1 - REBRAND: FILE BY FILE
 
 Run each block as a separate prompt. Wait for confirmation between each.
 
 ---
 
-### 1A — package.json
+### 1A - package.json
 
 ```
 In package.json only:
 - "name": change value to "scrapybytes"
-- Add "description": "ScrapyBytes — CS fundamentals from bits to blockchain"
+- Add "description": "ScrapyBytes - CS fundamentals from bits to blockchain"
 No other files. No other changes.
 ```
 
 ---
 
-### 1B — src/lib/nav-config.ts
+### 1B - src/lib/nav-config.ts
 
 ```
 In src/lib/nav-config.ts only:
@@ -66,7 +66,7 @@ No other files.
 
 ---
 
-### 1C — src/app/layout.tsx
+### 1C - src/app/layout.tsx
 
 ```
 In src/app/layout.tsx only:
@@ -75,7 +75,7 @@ In src/app/layout.tsx only:
 - If a title template exists (e.g. "%s | BitRoot"): change to "%s | ScrapyBytes"
 - metadata.description: change to 
   "Learn computing from bits to blockchain. 
-   Binary, ASCII, logic gates — taught from first principles."
+   Binary, ASCII, logic gates - taught from first principles."
 - Replace all remaining "BitRoot" → "ScrapyBytes"
 - Replace all remaining "bitroot" → "scrapybytes"
 No other files.
@@ -83,7 +83,7 @@ No other files.
 
 ---
 
-### 1D — src/app/opengraph-image.tsx
+### 1D - src/app/opengraph-image.tsx
 
 ```
 In src/app/opengraph-image.tsx only:
@@ -94,7 +94,7 @@ No other files.
 
 ---
 
-### 1E — src/app/not-found.tsx
+### 1E - src/app/not-found.tsx
 
 ```
 In src/app/not-found.tsx only:
@@ -105,7 +105,7 @@ No other files.
 
 ---
 
-### 1F — src/components/footer.tsx
+### 1F - src/components/footer.tsx
 
 ```
 In src/components/footer.tsx only:
@@ -117,7 +117,7 @@ No other files.
 
 ---
 
-### 1G — README.md
+### 1G - README.md
 
 ```
 In README.md only:
@@ -130,14 +130,14 @@ No reformatting. Text replacements only.
 
 ---
 
-### 1H — Rename Spec File
+### 1H - Rename Spec File
 
 ```
 Rename spec.md → SCRAPYBYTES_SPEC.md
 
 In SCRAPYBYTES_SPEC.md make these changes only:
-- Line 1 heading: "BitRoot — Next.js Project Specification"
-  → "ScrapyBytes — Next.js Project Specification"
+- Line 1 heading: "BitRoot - Next.js Project Specification"
+  → "ScrapyBytes - Next.js Project Specification"
 - Replace "bitroot.dev" → "scrapybytes.dev"
 - In Phase 0 scaffold command, change "bitroot" argument → "scrapybytes"
 
@@ -146,7 +146,7 @@ No other changes to the spec file.
 
 ---
 
-### 1I — Verify Clean
+### 1I - Verify Clean
 
 ```
 Run this and show output only:
@@ -163,13 +163,13 @@ Zero results = clean. If results appear, report them. Do not auto-fix.
 
 ---
 
-## PHASE 2 — PHILOSOPHY PAGE
+## PHASE 2 - PHILOSOPHY PAGE
 
 Run each block as a separate prompt. Wait for confirmation between each.
 
 ---
 
-### 2A — Add to Nav
+### 2A - Add to Nav
 
 ```
 In src/lib/nav-config.ts only:
@@ -181,7 +181,7 @@ No other changes.
 
 ---
 
-### 2B — Scaffold Page
+### 2B - Scaffold Page
 
 ```
 Create src/app/philosophy/page.tsx.
@@ -192,7 +192,7 @@ No content. No styling. No extra imports.
 
 ---
 
-### 2C — Write Content
+### 2C - Write Content
 
 ```
 In src/app/philosophy/page.tsx only.
@@ -208,7 +208,7 @@ COPY START:
 <p>I didn't name it after a framework.</p>
 
 <p>I named it after a feeling. That feeling when you're building
-something with whatever you have — no perfect setup, no senior
+something with whatever you have - no perfect setup, no senior
 engineer to ask. Just you, a terminal, and a problem you refuse
 to walk away from.</p>
 
@@ -220,8 +220,8 @@ to walk away from.</p>
 ScrapyBytes tries to teach you what things are.</p>
 
 <p>There's a difference between knowing how to call an API and
-understanding that at the bottom of everything — your browser,
-your phone, this very webpage — there are transistors switching
+understanding that at the bottom of everything - your browser,
+your phone, this very webpage - there are transistors switching
 between two states. On and off. One and zero.</p>
 
 <p>I spent years writing code without knowing any of that.
@@ -231,7 +231,7 @@ And honestly? It showed.</p>
 
 <p>"Byte by byte" isn't just a tagline. It's a pace.</p>
 
-<p>I tried every shortcut — the 10-hour YouTube courses, the
+<p>I tried every shortcut - the 10-hour YouTube courses, the
 bootcamp cheatsheets, the copy-paste mentality. And I kept
 hitting the same wall. The one that appears when something
 breaks and you have no idea why.</p>
@@ -276,7 +276,7 @@ No classes. No styling. No imports beyond React.
 
 ---
 
-### 2D — Apply Styling
+### 2D - Apply Styling
 
 ```
 In src/app/philosophy/page.tsx apply Tailwind classes only.
@@ -311,7 +311,7 @@ No layout changes. No new components. Classes only.
 
 ---
 
-### 2E — Metadata
+### 2E - Metadata
 
 ```
 In src/app/philosophy/page.tsx add this export
@@ -320,7 +320,7 @@ above the component function:
 export const metadata = {
   title: "Philosophy | ScrapyBytes",
   description: "Why Scrapy? The mindset and mission behind
-  ScrapyBytes — CS education from bits to blockchain.",
+  ScrapyBytes - CS education from bits to blockchain.",
 }
 
 No other changes.
@@ -328,7 +328,7 @@ No other changes.
 
 ---
 
-### 2F — Peer Review Pass
+### 2F - Peer Review Pass
 
 ```
 Read src/app/philosophy/page.tsx content nodes only.
@@ -339,7 +339,7 @@ Check for:
 2. Any sentence starting with "Furthermore", "Moreover",
    "In conclusion", "It is important to", "In today's world"
 3. Any three grammatically parallel bullets or sentences in a row
-4. Any tone shift — content should sound like a builder's
+4. Any tone shift - content should sound like a builder's
    personal note, not a product landing page
 
 Do not rewrite anything.
@@ -348,7 +348,7 @@ Report issues as a numbered list. If none found, say "Voice clean."
 
 ---
 
-## PHASE 3 — BUILD CHECK
+## PHASE 3 - BUILD CHECK
 
 ```
 Run: npm run build
@@ -358,7 +358,7 @@ Do not auto-fix. Report each issue with file name and line number.
 
 ---
 
-## PHASE 4 — COMMIT
+## PHASE 4 - COMMIT
 
 After build is clean, run:
 
@@ -375,7 +375,7 @@ git commit -m "rebrand: BitRoot → ScrapyBytes + add /philosophy page"
 PHASE 0
 [ ] Discovery grep ran, files identified
 
-PHASE 1 — REBRAND
+PHASE 1 - REBRAND
 [ ] 1A  package.json
 [ ] 1B  nav-config.ts
 [ ] 1C  layout.tsx
@@ -386,7 +386,7 @@ PHASE 1 — REBRAND
 [ ] 1H  spec.md renamed → SCRAPYBYTES_SPEC.md
 [ ] 1I  Verify grep = zero results
 
-PHASE 2 — PHILOSOPHY PAGE
+PHASE 2 - PHILOSOPHY PAGE
 [ ] 2A  Nav link added
 [ ] 2B  Page scaffolded
 [ ] 2C  Content written
