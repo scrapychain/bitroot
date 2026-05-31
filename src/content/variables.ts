@@ -168,6 +168,64 @@ int main(void) {
     return 0;
 }`;
 
+const cBlockHeader = `/* Bitcoin block header - 80 bytes exactly.
+ * Alignment matters: this struct is hashed
+ * by passing its raw memory to SHA-256.
+ * Any padding would corrupt the hash. */
+struct __attribute__((packed)) BlockHeader {
+    uint32_t version;         /*  4 bytes - offset 0  */
+    uint8_t  prev_hash[32];   /* 32 bytes - offset 4  */
+    uint8_t  merkle_root[32]; /* 32 bytes - offset 36 */
+    uint32_t timestamp;       /*  4 bytes - offset 68 */
+    uint32_t bits;            /*  4 bytes - offset 72 */
+    uint32_t nonce;           /*  4 bytes - offset 76 */
+};                            /* total: 80 bytes      */
+
+/* __attribute__((packed)) tells the compiler:
+ * no padding. ever.
+ * sizeof(BlockHeader) must equal exactly 80,
+ * because SHA-256 hashes these 80 raw bytes.
+ * if the compiler added padding
+ * the hash would change.
+ * the block would be invalid.
+ * every miner would reject it. */
+
+/* verify at compile time: */
+_Static_assert(sizeof(struct BlockHeader) == 80,
+    "BlockHeader must be exactly 80 bytes");`;
+
+const rustBlockHeader = `// Same struct in Rust with explicit layout control.
+#[repr(C, packed)]
+struct BlockHeader {
+    version:     u32,        //  4 bytes - offset 0
+    prev_hash:   [u8; 32],   // 32 bytes - offset 4
+    merkle_root: [u8; 32],   // 32 bytes - offset 36
+    timestamp:   u32,        //  4 bytes - offset 68
+    bits:        u32,        //  4 bytes - offset 72
+    nonce:       u32,        //  4 bytes - offset 76
+}                            // total: 80 bytes
+
+// #[repr(C, packed)]:
+//   C      = C-compatible field order and alignment rules
+//   packed = no padding bytes between fields
+//
+// Rust would normally feel free to reorder fields
+// for better alignment performance.
+// repr(C) stops that.
+// packed removes all padding.
+// Together they guarantee 80 bytes.
+
+const _: () = assert!(
+    std::mem::size_of::<BlockHeader>() == 80,
+    "BlockHeader must be exactly 80 bytes"
+);
+
+// The compile-time assert catches layout bugs
+// before a single block is hashed.
+// C's _Static_assert does the same.
+// Without it you ship wrong code to production
+// and every node rejects your blocks.`;
+
 export const variables: PageContent = {
   slug: "variables",
   hexLabel: "0x08",
@@ -176,6 +234,18 @@ export const variables: PageContent = {
     eyebrow: "root.system / 0x08 / data",
     title: `let x = 42.<br><span class="highlight">Where does it go?</span>`,
     lede: `You write a single line, <code>let x = 42</code> in Rust or <code>int x = 42;</code> in C, and somewhere in your machine four bytes get the pattern <code>00101010</code> stamped into them. <em>Where</em> exactly? Why does <code>String</code> behave differently from <code>i32</code>? This page traces a variable from your source line to its actual bytes in RAM.`,
+    narrativeHtml: `<p>You write one line.</p>
+<p><code>let x = 42;</code></p>
+<p>Seems like nothing.</p>
+<p>But that single line sets off a chain of events that reaches from your text editor all the way down to transistors on a chip.</p>
+<p>The compiler reads it.<br>Decides where <code>x</code> will live.<br>Emits a store instruction.</p>
+<p>The OS loads your program.<br>Creates a virtual address space.<br>Reserves a stack. A heap. Sections for your code.</p>
+<p>The CPU executes the store.<br>The MMU translates the address.<br>Four bytes in actual RAM get the pattern <code>00101010</code> stamped into them.</p>
+<p>And then <code>x</code> exists.</p>
+<p>Not as a name.<br>Not as a concept.<br>As charged capacitors holding a voltage state somewhere on your motherboard.</p>
+<p>You already know what those voltage states are.</p>
+<p><code>0</code> and <code>1</code>.</p>
+<p>A variable is not a named box.<br>A variable is a binary number at a memory address that the compiler agreed to call <code>x</code>.</p>`,
   },
   levels: [
     {
@@ -205,6 +275,10 @@ export const variables: PageContent = {
   <li>Left a giant gap in the middle for the heap to grow into on demand.</li>
 </ul>
 <p>From there, your variables can land in <em>any</em> of those regions, depending on how they're declared. The compiler picks; the OS just made the regions exist.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">The OS creates the virtual address space. Stack near the top of memory. Heap in the middle. Binary sections at the bottom. These are not abstract concepts. They are real memory addresses. Written in hex. <code>0x7ffe23a4f8d4</code> for the stack. <code>0x55b6ea102b30</code> for the heap. You learned hex on page 1. You learned why addresses are hex on page 6. This is both of those pages made physical. <a href="/number-systems">← see: Number Systems</a> · <a href="/memory">Memory</a></p>`,
         },
         { kind: "heading", text: "Five places a value can live" },
         {
@@ -251,6 +325,8 @@ export const variables: PageContent = {
             c: { language: "c", code: cWhereLives },
           },
         },
+        { kind: "heading", text: "Declare a variable. Watch it land." },
+        { kind: "widget", name: "memory-layout" },
         {
           kind: "callout",
           variant: "info",
@@ -319,6 +395,10 @@ export const variables: PageContent = {
 <p>All of them are, in memory, the same 8 bytes (on a 64-bit system) holding an address. The differences are entirely about <em>what guarantees the type system makes</em> about that address.</p>`,
         },
         {
+          kind: "raw",
+          html: `<p class="connection-line">A Rust reference and a C pointer are the same eight bytes in memory. The same binary number. The same memory address. The difference is entirely in what the type system guarantees about that address at compile time. Rust refuses to compile programs where that address might be invalid. C trusts you to never follow an invalid one. This is the compile vs runtime page applied to a single variable type. <a href="/compile-vs-runtime">← see: Compile vs Runtime</a> · <a href="/pointers">Pointers</a></p>`,
+        },
+        {
           kind: "callout",
           variant: "info",
           title: "// the rule",
@@ -343,6 +423,10 @@ export const variables: PageContent = {
         {
           kind: "prose",
           html: `<p>Same fields, two byte-counts. In hot loops on millions of objects, this matters. Rust's <code>#[repr(C)]</code> turns off field reordering for FFI compatibility; default Rust is free to reorder for size.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Rust lets you control alignment explicitly. <code>#[repr(C)]</code> matches C's layout rules exactly. <code>#[repr(align(64))]</code> aligns to a cache line. When Bitcoin Core's C++ structs cross the FFI boundary into Rust bindings the layout must match exactly. One misaligned field corrupts everything. Silent. No warning. No error. Just wrong data at a wrong address. <a href="/memory">← see: Memory</a></p>`,
         },
         { kind: "heading", text: "Lifetime: when does the memory stop being valid?" },
         {
@@ -378,6 +462,35 @@ export const variables: PageContent = {
               desc: "The compiler reads ownership and lifetime annotations, refuses programs that could free memory while a reference is still alive. No GC. No manual free. The check is in the type system.",
             },
           ],
+        },
+        { kind: "heading", text: "Variables in Bitcoin Core" },
+        {
+          kind: "prose",
+          html: `<p>Every data structure Bitcoin Core works with is variables in memory. Laid out according to the same alignment rules this page just described.</p>
+<p>Here is the actual Bitcoin block header struct. Exactly as it sits in RAM on every full node:</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustBlockHeader },
+            c: { language: "c", code: cBlockHeader },
+          },
+        },
+        {
+          kind: "prose",
+          html: `<p>Now the mining variable.</p>`,
+        },
+        {
+          kind: "callout",
+          variant: "info",
+          title: "// nonce: the most expensive variable assignment in computing",
+          body: `<code>nonce</code> is the variable miners change. One <code>u32</code>. Four bytes. Starts at 0. Increments until the hash meets the target. It has been incremented roughly <code>10^21</code> times across all of Bitcoin history. Each increment is a store instruction. Each store writes four bytes to RAM. The same store instruction from the beginner section of this page. Mining is just: increment a <code>u32</code>, hash, check.`,
+        },
+        {
+          kind: "prose",
+          html: `<p>A single <code>u32</code>. Four bytes. Incrementing.</p>
+<p>That is what secures the Bitcoin network.</p>
+<p>From the alignment rules on this page to the most valuable computation ever performed. <em>Variables all the way down.</em></p>`,
         },
         { kind: "heading", text: "Globals, statics, constants: what are they really?" },
         {
@@ -453,6 +566,89 @@ export const variables: PageContent = {
   <li><strong>The Rustonomicon</strong>, chapter on data representation: exhaustive on layout, repr, niches, and how Rust packs enums.</li>
   <li><strong>Hennessy &amp; Patterson, <em>Computer Architecture</em></strong>, for the hardware end of the chain (caches, prefetchers, write buffers).</li>
 </ul>`,
+        },
+        { kind: "heading", text: "Where variables appear in ScrapyBytes" },
+        {
+          kind: "prose",
+          html: `<p>One variable, traced down to its bits, touches nearly every other page on the site. Here is where it shows up.</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 4,
+          cards: [
+            {
+              label: "02 / binary",
+              value: "Every variable is binary",
+              desc: "int x = 42 is 00101010 in RAM. The name x disappears at compile time; the binary pattern is what actually exists. Binary is the foundation of every variable ever declared.",
+              href: "/binary",
+            },
+            {
+              label: "01 / number systems",
+              value: "Addresses are hex",
+              desc: "0x7fff5fbff8d4 for x on the stack, 0x55b6ea102b30 for heap data. Hex because binary addresses would be unreadable. The number systems page explains why 16 is the right shorthand.",
+              href: "/number-systems",
+            },
+            {
+              label: "04 / logic gates",
+              value: "Bits are gate states",
+              desc: "The bits of your variable are stored in DRAM cells: transistors and capacitors. A flip-flop holds one bit, built from the same gates as your CPU's ALU. Variables exist as silicon holding charge.",
+              href: "/logic-gates",
+            },
+            {
+              label: "05 / cpu",
+              value: "Loads and stores",
+              desc: "The compiler emits load and store instructions; the CPU executes them. Every read is a load, every write a store. The CPU has no idea what a variable is. It only knows addresses.",
+              href: "/cpu",
+            },
+            {
+              label: "06 / memory",
+              value: "Where variables live",
+              desc: "Stack, heap, data, bss, text and rodata are the regions from the memory page. Variables land in one of them based on how they are declared. The memory hierarchy is where all variables live.",
+              href: "/memory",
+            },
+            {
+              label: "07 / operating system",
+              value: "Makes variables possible",
+              desc: "The OS creates the virtual address space, reserves the stack, maps the binary's sections. Without an address space there is no variable. Process creation is what makes variables possible.",
+              href: "/operating-system",
+            },
+            {
+              label: "09 / pointers",
+              value: "A variable holding an address",
+              desc: "A pointer is a variable whose value is the address of another variable. int *p = &x stores the address of x; *p reads what lives there. Pointers and variables are inseparable.",
+              href: "/pointers",
+            },
+            {
+              label: "10 / compile vs runtime",
+              value: "Two moments",
+              desc: "The compiler decides where each variable lives: stack or heap, region, offset. That decision is compile time. The actual store into RAM happens at runtime. Every variable lives through both.",
+              href: "/compile-vs-runtime",
+            },
+            {
+              label: "11 / arrays",
+              value: "Variables in sequence",
+              desc: "An array is a block of variables stored contiguously. arr[0] is a variable; arr[1] is a variable 4 bytes later. The same alignment rules from this page apply to every element.",
+              href: "/arrays",
+            },
+            {
+              label: "20 / recursion",
+              value: "Variables fill the stack",
+              desc: "Every recursive call creates new variables: a new stack frame, new locals, a new return address. Without a base case the stack fills with frames until the OS kills the process.",
+              href: "/recursion",
+            },
+            {
+              label: "13 / hashing",
+              value: "Alignment is security",
+              desc: "Bitcoin's block header is 80 bytes of variables in memory. SHA-256 hashes those raw bytes. One padding byte changes the hash, making an invalid block the network rejects. Alignment is a security property.",
+              href: "/hashing",
+            },
+            {
+              label: "19 / blockchain",
+              value: "The nonce variable",
+              desc: "The nonce in a block header is a u32 variable, four bytes. Miners increment it billions of times per second; each increment is a store instruction. The most expensive variable assignment in computing.",
+              href: "/blockchain",
+            },
+          ],
         },
       ],
     },

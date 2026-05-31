@@ -3454,6 +3454,355 @@ function SortingRaceWidget() {
 /* =====================================================================
    Public dispatcher
    ===================================================================== */
+/* =====================================================================
+   17. Memory-layout visualiser: declare a variable, watch it land in the
+   correct region of the process address space (variables page)
+   ===================================================================== */
+type MlvType = "i32" | "f64" | "bool" | "String" | "Vec<i32>" | "struct" | "static" | "const";
+type MlvRegion = "stack" | "heap" | "bss" | "data" | "rodata" | "text";
+
+interface MlvTypeMeta {
+  rust: string;
+  c: string;
+  region: MlvRegion;
+  size: number; // size of the stack/region slot in bytes
+  heap: boolean; // true => header on stack + buffer on heap
+  def: string; // default value
+}
+
+const MLV_TYPES: Record<MlvType, MlvTypeMeta> = {
+  i32: { rust: "i32", c: "int", region: "stack", size: 4, heap: false, def: "42" },
+  f64: { rust: "f64", c: "double", region: "stack", size: 8, heap: false, def: "3.14" },
+  bool: { rust: "bool", c: "bool", region: "stack", size: 1, heap: false, def: "true" },
+  String: { rust: "String", c: "char *", region: "stack", size: 24, heap: true, def: "hello" },
+  "Vec<i32>": { rust: "Vec<i32>", c: "int *", region: "stack", size: 24, heap: true, def: "1, 2, 3" },
+  struct: { rust: "Point", c: "Point", region: "stack", size: 16, heap: false, def: "3.14, 2.71" },
+  static: { rust: "i32", c: "int", region: "data", size: 4, heap: false, def: "100" },
+  const: { rust: "i32", c: "int", region: "rodata", size: 4, heap: false, def: "999" },
+};
+
+const MLV_PALETTE = ["var(--neon-cyan)", "var(--neon-rose)", "var(--neon-lime)", "var(--neon-violet)", "var(--neon-indigo)"];
+
+const MLV_REGION_LABEL: Record<MlvRegion, string> = {
+  stack: "STACK",
+  heap: "HEAP",
+  bss: "BSS  (zero globals)",
+  data: "DATA  (init globals)",
+  rodata: "RODATA  (constants)",
+  text: "TEXT  (code)",
+};
+
+const MLV_LIFETIME: Record<MlvRegion, string> = {
+  stack: "until function returns",
+  heap: "until dropped / freed",
+  data: "process lifetime",
+  bss: "process lifetime",
+  rodata: "process lifetime (read-only)",
+  text: "process lifetime (read-only)",
+};
+
+interface MlvVar {
+  id: number;
+  name: string;
+  type: MlvType;
+  value: string;
+  lang: "rust" | "c";
+  color: string;
+  region: MlvRegion;
+  heap: boolean;
+  size: number;
+  stackAddr: string;
+  heapAddr: string | null;
+  heapBytes: number;
+}
+
+const hex16 = (n: number) => "0x" + n.toString(16).padStart(12, "0");
+
+// MSB-first binary, grouped into bytes, for an integer value across `bytes` bytes
+function mlvBin(value: number, bytes: number): string {
+  const mask = BigInt.asUintN(bytes * 8, BigInt(Math.trunc(value)));
+  const s = mask.toString(2).padStart(bytes * 8, "0");
+  return s.match(/.{1,8}/g)!.join(" ");
+}
+function mlvHex(value: number, bytes: number): string {
+  const mask = BigInt.asUintN(bytes * 8, BigInt(Math.trunc(value)));
+  return "0x" + mask.toString(16).toUpperCase().padStart(bytes * 2, "0");
+}
+// IEEE-754 double, byte order as stored in little-endian RAM
+function mlvF64(value: number): { bin: string; hex: string } {
+  const buf = new ArrayBuffer(8);
+  new DataView(buf).setFloat64(0, value, true);
+  const arr = [...new Uint8Array(buf)];
+  return {
+    bin: arr.map((b) => b.toString(2).padStart(8, "0")).join(" "),
+    hex: "0x" + arr.map((b) => b.toString(16).padStart(2, "0")).reverse().join("").toUpperCase(),
+  };
+}
+
+function mlvDecl(v: MlvVar): string {
+  const m = MLV_TYPES[v.type];
+  const upper = v.name;
+  if (v.lang === "rust") {
+    switch (v.type) {
+      case "String":
+        return `let ${v.name} = String::from("${v.value}");`;
+      case "Vec<i32>":
+        return `let ${v.name} = vec![${v.value}];`;
+      case "static":
+        return `static ${upper}: i32 = ${v.value};`;
+      case "const":
+        return `const ${upper}: i32 = ${v.value};`;
+      case "struct":
+        return `let ${v.name} = Point { x: ${v.value.split(",")[0]?.trim() || "0.0"}, y: ${v.value.split(",")[1]?.trim() || "0.0"} };`;
+      default:
+        return `let ${v.name}: ${m.rust} = ${v.value};`;
+    }
+  }
+  // C
+  switch (v.type) {
+    case "String":
+      return `char *${v.name} = strdup("${v.value}");`;
+    case "Vec<i32>":
+      return `int *${v.name} = malloc(${v.value.split(",").length} * sizeof(int));`;
+    case "static":
+      return `static int ${v.name} = ${v.value};`;
+    case "const":
+      return `const int ${v.name} = ${v.value};`;
+    case "struct":
+      return `Point ${v.name} = { ${v.value} };`;
+    default:
+      return `${m.c} ${v.name} = ${v.value};`;
+  }
+}
+
+function MemoryLayoutWidget() {
+  const [lang, setLang] = useState<"rust" | "c">("rust");
+  const [type, setType] = useState<MlvType>("i32");
+  const [name, setName] = useState("x");
+  const [value, setValue] = useState("42");
+  const [vars, setVars] = useState<MlvVar[]>([]);
+  const idRef = useRef(0);
+
+  const pickType = (t: MlvType) => {
+    setType(t);
+    setValue(MLV_TYPES[t].def);
+    if (t === "static" || t === "const") setName(name.toUpperCase() === name ? name : "X");
+    else if (name === name.toUpperCase()) setName("x");
+  };
+
+  const declare = () => {
+    if (vars.length >= 5) return;
+    const m = MLV_TYPES[type];
+    const idx = idRef.current++;
+    const stackCount = vars.filter((v) => v.region === "stack").length;
+    const heapCount = vars.filter((v) => v.heap).length;
+    const dataCount = vars.filter((v) => v.region === "data").length;
+    const rodataCount = vars.filter((v) => v.region === "rodata").length;
+
+    let stackAddr = "";
+    if (m.region === "stack") stackAddr = hex16(0x7ffe23a4f8d4 - stackCount * 16);
+    else if (m.region === "data") stackAddr = hex16(0x55b6e9c1d100 + dataCount * 16);
+    else if (m.region === "rodata") stackAddr = hex16(0x55b6e9c1d000 + rodataCount * 16);
+
+    let heapBytes = 0;
+    if (type === "String") heapBytes = value.length;
+    if (type === "Vec<i32>") heapBytes = value.split(",").filter((s) => s.trim() !== "").length * 4;
+
+    const v: MlvVar = {
+      id: idx,
+      name: name || "x",
+      type,
+      value,
+      lang,
+      color: MLV_PALETTE[vars.length % MLV_PALETTE.length],
+      region: m.region,
+      heap: m.heap,
+      size: m.size,
+      stackAddr,
+      heapAddr: m.heap ? hex16(0x55b6ea102b30 + heapCount * 0x40) : null,
+      heapBytes,
+    };
+    setVars((cur) => [...cur, v]);
+  };
+
+  const clear = () => {
+    setVars([]);
+    idRef.current = 0;
+  };
+
+  const last = vars[vars.length - 1] ?? null;
+
+  // details rows for the most recently declared variable
+  const detailRows = (() => {
+    if (!last) return null;
+    const rows: Array<[string, string]> = [];
+    rows.push(["Region", MLV_REGION_LABEL[last.region].split("  ")[0]]);
+    rows.push(["Address", last.stackAddr]);
+    if (last.heap && last.heapAddr) {
+      rows.push(["Buffer", `${last.heapAddr}  (HEAP)`]);
+      rows.push(["Size", `${last.size} byte header + ${last.heapBytes} byte buffer`]);
+    } else {
+      rows.push(["Size", `${last.size} bytes`]);
+    }
+    const num = parseFloat(last.value);
+    if (last.type === "i32" || last.type === "static" || last.type === "const") {
+      rows.push(["Binary", mlvBin(num || 0, 4)]);
+      rows.push(["Hex", mlvHex(num || 0, 4)]);
+    } else if (last.type === "bool") {
+      const b = /^(true|1)$/i.test(last.value.trim()) ? 1 : 0;
+      rows.push(["Binary", mlvBin(b, 1)]);
+      rows.push(["Hex", mlvHex(b, 1)]);
+    } else if (last.type === "f64") {
+      const f = mlvF64(num || 0);
+      rows.push(["Binary", f.bin]);
+      rows.push(["Hex", f.hex]);
+    } else if (last.type === "struct") {
+      rows.push(["Layout", "2 x f64, contiguous, 8-byte aligned"]);
+    } else if (last.heap) {
+      rows.push(["Header", "ptr (8) + len (8) + cap (8) = 24 bytes"]);
+    }
+    rows.push(["Lifetime", MLV_LIFETIME[last.region]]);
+    return rows;
+  })();
+
+  // one rendered block per variable, for a given region
+  const blockFor = (v: MlvVar, slot: "stack" | "heap") => {
+    const isHeader = v.heap && slot === "stack";
+    const isBuffer = v.heap && slot === "heap";
+    return (
+      <div key={`${v.id}-${slot}`} className="mlv-var" style={{ borderLeftColor: v.color }}>
+        <div className="mlv-var-top">
+          <span className="mlv-var-name" style={{ color: v.color }}>
+            {v.name}
+            {isHeader ? " (header)" : isBuffer ? " (buffer)" : ""}
+          </span>
+          <span className="mlv-var-type">{lang === "rust" ? MLV_TYPES[v.type].rust : MLV_TYPES[v.type].c}</span>
+        </div>
+        <div className="mlv-var-meta">
+          {isBuffer ? (
+            <>
+              <span className="mlv-var-addr">{v.heapAddr}</span>
+              <span className="mlv-var-size">{v.heapBytes} bytes</span>
+            </>
+          ) : (
+            <>
+              <span className="mlv-var-addr">{v.stackAddr}</span>
+              <span className="mlv-var-size">{isHeader ? "24 B hdr" : `${v.size} bytes`}</span>
+            </>
+          )}
+        </div>
+        {isHeader && <span className="mlv-var-link">→ buffer @ {v.heapAddr}</span>}
+        {isBuffer && <span className="mlv-var-link">↑ header @ {v.stackAddr}</span>}
+        {!v.heap && <span className="mlv-var-val">= {v.value}</span>}
+      </div>
+    );
+  };
+
+  const lane = (region: MlvRegion, note?: string) => {
+    const isHeapLane = region === "heap";
+    const slot: "stack" | "heap" = isHeapLane ? "heap" : "stack";
+    const items = isHeapLane ? vars.filter((v) => v.heap) : vars.filter((v) => v.region === region);
+    return (
+      <div className={`mlv-lane mlv-lane-${region}`}>
+        <div className="mlv-lane-label">{MLV_REGION_LABEL[region]}</div>
+        <div className="mlv-lane-body">
+          {items.map((v) => blockFor(v, slot))}
+          {items.length === 0 && note && <span className="mlv-lane-note">{note}</span>}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// declare a variable. watch it land."}</span>
+        <div className="widget-controls">
+          <button type="button" className={`widget-btn ${lang === "rust" ? "is-active" : ""}`} onClick={() => setLang("rust")}>
+            Rust
+          </button>
+          <button type="button" className={`widget-btn ${lang === "c" ? "is-active" : ""}`} onClick={() => setLang("c")}>
+            C
+          </button>
+        </div>
+      </div>
+
+      <div className="mlv">
+        {/* LEFT: declaration controls */}
+        <div className="mlv-declare">
+          <div className="mlv-col-title">declare</div>
+
+          <div className="mlv-type-tabs">
+            {(Object.keys(MLV_TYPES) as MlvType[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`widget-btn ${type === t ? "is-active" : ""}`}
+                onClick={() => pickType(t)}
+              >
+                {lang === "rust" ? t : MLV_TYPES[t].c.trim() === "char *" ? "char*" : t === "Vec<i32>" ? "int*" : MLV_TYPES[t].c}
+              </button>
+            ))}
+          </div>
+
+          <div className="mlv-inputs">
+            <label className="cs-field">
+              name
+              <input value={name} onChange={(e) => setName(e.target.value.replace(/\s/g, "") || "")} maxLength={12} />
+            </label>
+            <label className="cs-field">
+              value ({lang === "rust" ? MLV_TYPES[type].rust : MLV_TYPES[type].c})
+              <input value={value} onChange={(e) => setValue(e.target.value)} maxLength={24} />
+            </label>
+          </div>
+
+          <pre className="mlv-decl-preview">
+            <code>{mlvDecl({ ...({} as MlvVar), name: name || "x", type, value, lang })}</code>
+          </pre>
+
+          <div className="mlv-actions">
+            <button type="button" className="widget-btn mlv-declare-btn" onClick={declare} disabled={vars.length >= 5}>
+              {vars.length >= 5 ? "max 5 declared" : "declare →"}
+            </button>
+            <button type="button" className="widget-btn" onClick={clear}>
+              clear
+            </button>
+          </div>
+
+          {detailRows && (
+            <div className="mlv-details">
+              <div className="mlv-col-title">last declared: {last!.name}</div>
+              {detailRows.map(([k, val]) => (
+                <div key={k} className="mlv-detail-row">
+                  <span className="mlv-detail-key">{k}</span>
+                  <span className="mlv-detail-val">{val}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT: process memory map */}
+        <div className="mlv-map">
+          <div className="mlv-edge mlv-edge-high">high addresses</div>
+          {lane("stack", "↓ stack grows downward")}
+          <div className="mlv-free">free address space</div>
+          {lane("heap", "↑ heap grows upward")}
+          {lane("bss", "zero-initialised globals")}
+          {lane("data", "static / initialised globals")}
+          {lane("rodata", "const / string literals")}
+          {lane("text", "your compiled instructions")}
+          <div className="mlv-edge mlv-edge-low">low addresses</div>
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        pick a type, name it, give it a value, then declare. scalars land on the STACK; <code>String</code> and <code>Vec</code> split into a stack header and a heap buffer; <code>static</code> lands in DATA, <code>const</code> in RODATA. declare up to five and watch them stack up in the right regions.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -3482,6 +3831,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <CallStackVisualiserWidget />;
     case "memory-explorer":
       return <MemoryExplorerWidget />;
+    case "memory-layout":
+      return <MemoryLayoutWidget />;
     case "big-o-race":
       return <BigORaceWidget />;
     case "process-scheduler":

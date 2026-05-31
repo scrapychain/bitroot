@@ -60,6 +60,7 @@ export type WidgetName =
   | "blockchain-simulator"
   | "call-stack-visualiser"
   | "memory-explorer"
+  | "memory-layout"
   | "big-o-race"
   | "process-scheduler"
   | "sorting-race";
