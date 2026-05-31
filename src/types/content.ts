@@ -61,6 +61,8 @@ export type WidgetName =
   | "call-stack-visualiser"
   | "memory-explorer"
   | "memory-layout"
+  | "pointer-visualiser"
+  | "phase-classifier"
   | "big-o-race"
   | "process-scheduler"
   | "sorting-race";

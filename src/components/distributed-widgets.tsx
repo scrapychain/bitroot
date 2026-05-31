@@ -3803,6 +3803,567 @@ function MemoryLayoutWidget() {
   );
 }
 
+/* =====================================================================
+   18. Pointer visualiser: take an address, dereference, write through,
+   create a dangling pointer, build a pointer chain (pointers page)
+   ===================================================================== */
+type PvMode = "basic" | "danger" | "chain";
+type PvLang = "rust" | "c";
+type PvTone = "ok" | "warn" | "bad";
+
+interface PvRow {
+  addr: string;
+  kind: "data" | "pointer" | "empty" | "freed";
+  name?: string;
+  typeLabel?: string;
+  value?: string;
+  target?: number;
+}
+
+const PV_ROW_H = 50;
+const PV_ROW_GAP = 8;
+const PV_GUTTER = 30;
+
+const pvBasicRows = (xVal: number): PvRow[] => [
+  { addr: "0x1000", kind: "data", name: "x", typeLabel: "i32", value: String(xVal) },
+  { addr: "0x1004", kind: "empty" },
+  { addr: "0x1008", kind: "pointer", name: "p", typeLabel: "&x", value: "0x1000", target: 0 },
+  { addr: "0x100C", kind: "empty" },
+  { addr: "0x1010", kind: "data", name: "y", typeLabel: "i32", value: "99" },
+  { addr: "0x1014", kind: "pointer", name: "q", typeLabel: "&y", value: "0x1010", target: 4 },
+];
+
+const pvChainRows = (): PvRow[] => [
+  { addr: "0x1000", kind: "data", name: "x", typeLabel: "i32", value: "42" },
+  { addr: "0x2000", kind: "pointer", name: "p", typeLabel: "&x", value: "0x1000", target: 0 },
+  { addr: "0x3000", kind: "pointer", name: "pp", typeLabel: "&p", value: "0x2000", target: 1 },
+];
+
+const pvDangerRows = (freed: boolean): PvRow[] => [
+  { addr: "0x1000", kind: freed ? "freed" : "data", name: "x", typeLabel: "i32", value: freed ? "????" : "42" },
+  { addr: "0x1008", kind: "pointer", name: "p", typeLabel: "&x", value: "0x1000", target: 0 },
+];
+
+function pvCode(mode: PvMode, lang: PvLang, xVal: number): string {
+  if (mode === "danger") {
+    return lang === "rust"
+      ? `let owned = Box::new(42);
+let r = &*owned;
+drop(owned);
+// println!("{}", *r);
+//   error[E0382]: borrow of
+//   moved value \`owned\``
+      : `int *p = malloc(sizeof(int));
+*p = 42;
+free(p);
+printf("%d", *p);  // use-after-free: UB`;
+  }
+  if (mode === "chain") {
+    return lang === "rust"
+      ? `let x = 42;
+let p = &x;      // p  -> x
+let pp = &p;     // pp -> p -> x
+// **pp == 42`
+      : `int x = 42;
+int *p = &x;     // p  -> x
+int **pp = &p;   // pp -> p -> x
+// **pp == 42`;
+  }
+  return lang === "rust"
+    ? `let x: i32 = ${xVal};
+let p: *const i32 = &x;
+// p  = 0x1000
+// *p = ${xVal}`
+    : `int x = ${xVal};
+int *p = &x;
+// p  = 0x1000
+// *p = ${xVal}`;
+}
+
+function PointerVisualiserWidget() {
+  const [mode, setMode] = useState<PvMode>("basic");
+  const [lang, setLang] = useState<PvLang>("rust");
+  const [xVal, setXVal] = useState(42);
+  const [arrows, setArrows] = useState<Array<{ from: number; to: number }>>([]);
+  const [glow, setGlow] = useState<number[]>([]);
+  const [freed, setFreed] = useState(false);
+  const [derefDead, setDerefDead] = useState(false);
+  const [message, setMessage] = useState<{ text: string; tone: PvTone }>({
+    text: "click a pointer row, or run an operation below",
+    tone: "ok",
+  });
+
+  const rows = mode === "chain" ? pvChainRows() : mode === "danger" ? pvDangerRows(freed) : pvBasicRows(xVal);
+
+  const goBasic = () => {
+    setMode("basic");
+    setArrows([]);
+    setGlow([]);
+    setXVal(42);
+    setFreed(false);
+    setDerefDead(false);
+    setMessage({ text: "click a pointer row, or run an operation below", tone: "ok" });
+  };
+  const goDanger = () => {
+    setMode("danger");
+    setFreed(false);
+    setDerefDead(false);
+    setArrows([{ from: 1, to: 0 }]);
+    setGlow([]);
+    setMessage({ text: "p points to x. valid, for now.", tone: "ok" });
+  };
+  const goChain = () => {
+    setMode("chain");
+    setArrows([
+      { from: 2, to: 1 },
+      { from: 1, to: 0 },
+    ]);
+    setGlow([]);
+    setMessage({ text: "pp -> p -> x -> 42. a pointer to a pointer.", tone: "ok" });
+  };
+
+  const clickPointer = (i: number) => {
+    const r = rows[i];
+    if (r.kind !== "pointer" || r.target == null) return;
+    const t = rows[r.target];
+    setArrows([{ from: i, to: r.target }]);
+    if (mode === "danger" && freed) {
+      setDerefDead(true);
+      setGlow([]);
+      setMessage({ text: "use after free: p still reads 0x1000, but it is freed", tone: "bad" });
+      return;
+    }
+    setGlow([r.target]);
+    setMessage({ text: `${r.name} -> ${t.name} @ ${t.addr}   (*${r.name} = ${t.value})`, tone: "ok" });
+  };
+
+  const opAddr = () => {
+    setArrows([{ from: 2, to: 0 }]);
+    setGlow([]);
+    setMessage({ text: "p = &x = 0x1000   (p now holds the address of x)", tone: "ok" });
+  };
+  const opDeref = () => {
+    setArrows([{ from: 2, to: 0 }]);
+    setGlow([0]);
+    setMessage({ text: `*p = ${xVal}   (the value stored at 0x1000)`, tone: "ok" });
+  };
+  const opWrite = () => {
+    setXVal(99);
+    setArrows([{ from: 2, to: 0 }]);
+    setGlow([0]);
+    setMessage({ text: "*p = 99   wrote through the pointer. now x == *p == 99", tone: "warn" });
+  };
+
+  const freeX = () => {
+    setFreed(true);
+    setDerefDead(false);
+    setGlow([]);
+    setArrows([{ from: 1, to: 0 }]);
+    setMessage({ text: "x dropped. p still holds 0x1000, now a dangling pointer.", tone: "warn" });
+  };
+  const derefDanger = () => {
+    setArrows([{ from: 1, to: 0 }]);
+    if (!freed) {
+      setGlow([0]);
+      setMessage({ text: "*p = 42. a valid read, while x is still alive.", tone: "ok" });
+    } else {
+      setDerefDead(true);
+      setGlow([]);
+      setMessage({ text: "use after free: reading freed memory is undefined behaviour", tone: "bad" });
+    }
+  };
+
+  const PvArrow = ({ from, to }: { from: number; to: number }) => {
+    const ya = from * (PV_ROW_H + PV_ROW_GAP) + PV_ROW_H / 2;
+    const yb = to * (PV_ROW_H + PV_ROW_GAP) + PV_ROW_H / 2;
+    const dead = derefDead;
+    const col = dead ? "var(--neon-rose)" : "var(--neon-indigo)";
+    return (
+      <g>
+        <path
+          d={`M ${PV_GUTTER - 2},${ya} C 3,${ya} 3,${yb} ${PV_GUTTER - 2},${yb}`}
+          fill="none"
+          stroke={col}
+          strokeWidth="1.6"
+          strokeDasharray={dead ? "4 3" : undefined}
+        />
+        <polygon points={`${PV_GUTTER - 2},${yb} ${PV_GUTTER - 9},${yb - 4} ${PV_GUTTER - 9},${yb + 4}`} fill={col} />
+        <circle cx={PV_GUTTER - 2} cy={ya} r="2.5" fill={col} />
+      </g>
+    );
+  };
+
+  const svgH = rows.length * (PV_ROW_H + PV_ROW_GAP);
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// follow the pointer"}</span>
+        <div className="widget-controls">
+          <button type="button" className={`widget-btn ${mode === "basic" ? "is-active" : ""}`} onClick={goBasic}>
+            basic
+          </button>
+          <button type="button" className={`widget-btn ${mode === "chain" ? "is-active" : ""}`} onClick={goChain}>
+            pointer chain
+          </button>
+          <button type="button" className={`widget-btn pv-skull ${mode === "danger" ? "is-active" : ""}`} onClick={goDanger}>
+            &#9760; dangling
+          </button>
+        </div>
+      </div>
+
+      <div className="pv">
+        {/* LEFT: memory */}
+        <div className="pv-mem">
+          <div className="pv-col-title">variables in memory</div>
+          <div className="pv-mem-body">
+            <svg className="pv-gutter" width={PV_GUTTER} height={svgH} viewBox={`0 0 ${PV_GUTTER} ${svgH}`} aria-hidden="true">
+              {arrows.map((a, i) => (
+                <PvArrow key={i} from={a.from} to={a.to} />
+              ))}
+            </svg>
+            <div className="pv-rows">
+              {rows.map((r, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`pv-cell pv-${r.kind} ${glow.includes(i) ? "is-glow" : ""} ${r.kind === "pointer" ? "is-clickable" : ""}`}
+                  onClick={() => clickPointer(i)}
+                  disabled={r.kind !== "pointer"}
+                >
+                  <span className="pv-addr">{r.addr}</span>
+                  <span className="pv-val">
+                    {r.kind === "empty" ? "·" : r.kind === "freed" ? "FREED" : r.value}
+                  </span>
+                  <span className="pv-name">
+                    {r.kind === "freed"
+                      ? "use-after-free → UB"
+                      : r.name
+                        ? `${r.name}${r.typeLabel ? `  (${r.typeLabel})` : ""}`
+                        : ""}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* MIDDLE: operation */}
+        <div className="pv-ops">
+          <div className="pv-col-title">operation</div>
+
+          {mode === "basic" && (
+            <div className="pv-op-btns">
+              <button type="button" className="widget-btn" onClick={opAddr}>
+                &amp; addr
+              </button>
+              <button type="button" className="widget-btn" onClick={opDeref}>
+                *p read
+              </button>
+              <button type="button" className="widget-btn" onClick={opWrite}>
+                *p = 99
+              </button>
+            </div>
+          )}
+
+          {mode === "danger" && (
+            <div className="pv-op-btns">
+              <button type="button" className="widget-btn" onClick={freeX} disabled={freed}>
+                drop / free x
+              </button>
+              <button type="button" className="widget-btn" onClick={derefDanger}>
+                dereference p
+              </button>
+            </div>
+          )}
+
+          {mode === "chain" && <p className="pv-chain-note">pp holds the address of p, which holds the address of x. three cells, two hops, one value at the end.</p>}
+
+          <div className={`pv-readout tone-${message.tone}`}>{message.text}</div>
+
+          {mode === "danger" && derefDead && (
+            <div className="pv-danger-detail">
+              <div className="pv-danger-line c">C: silently returns garbage from freed memory</div>
+              <div className="pv-danger-line rust">Rust: compile error, borrow outlives owner</div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT: code */}
+        <div className="pv-code">
+          <div className="pv-code-head">
+            <span className="pv-col-title">code</span>
+            <div className="pv-lang-tabs">
+              <button type="button" className={`widget-btn ${lang === "rust" ? "is-active" : ""}`} onClick={() => setLang("rust")}>
+                Rust
+              </button>
+              <button type="button" className={`widget-btn ${lang === "c" ? "is-active" : ""}`} onClick={() => setLang("c")}>
+                C
+              </button>
+            </div>
+          </div>
+          <pre className="pv-code-pre">
+            <code>{pvCode(mode, lang, xVal)}</code>
+          </pre>
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        in basic mode, take an address, read through the pointer, or write through it and watch x change. the dangling mode drops x and shows what a use-after-free is in C versus Rust. the chain mode builds a pointer to a pointer.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
+   19. Phase classifier: a 10-question quiz, compile time vs runtime
+   (compile-vs-runtime page)
+   ===================================================================== */
+type PcPhase = "compile" | "runtime";
+type PcLang = "rust" | "c";
+
+interface PcScenario {
+  title: string;
+  desc: string;
+  rust: string;
+  c: string;
+  answer: PcPhase;
+  answerLabel: string;
+  explanation: string;
+}
+
+const PC_SCENARIOS: PcScenario[] = [
+  {
+    title: "Type mismatch",
+    desc: "Assigning a string literal to an integer variable.",
+    rust: `let x: u32 = "hello";`,
+    c: `unsigned x = "hello";`,
+    answer: "compile",
+    answerLabel: "COMPILE TIME",
+    explanation: "The compiler reads the types before producing any binary. No CPU ever runs this line.",
+  },
+  {
+    title: "Out of bounds, literal index",
+    desc: "Indexing a 3-element array at the constant index 5.",
+    rust: `let arr = [1, 2, 3];\nlet v = arr[5];`,
+    c: `int arr[3] = {1, 2, 3};\nint v = arr[5];`,
+    answer: "compile",
+    answerLabel: "COMPILE TIME (in Rust)",
+    explanation: "Rust detects a literal out-of-bounds index at compile time. In C this compiles and corrupts memory at runtime.",
+  },
+  {
+    title: "Out of bounds, variable index",
+    desc: "Indexing an array with a value read from the user.",
+    rust: `let i = user_input();\nlet v = arr[i];`,
+    c: `int i = atoi(argv[1]);\nint v = arr[i];`,
+    answer: "runtime",
+    answerLabel: "RUNTIME",
+    explanation: "The compiler cannot know what user_input() returns. It must be checked when the program runs.",
+  },
+  {
+    title: "const fn factorial(10)",
+    desc: "Computing factorial(10) as a const fn / constant expression.",
+    rust: `const fn factorial(n: u64) -> u64 { /* ... */ }\nconst F: u64 = factorial(10);`,
+    c: `enum { F = 1*2*3*4*5*6*7*8*9*10 };`,
+    answer: "compile",
+    answerLabel: "COMPILE TIME",
+    explanation: "const fn runs during compilation. The result is baked into the binary. No CPU work at runtime.",
+  },
+  {
+    title: "Heap allocation",
+    desc: "Allocating memory with Box::new / malloc.",
+    rust: `let b = Box::new(42);`,
+    c: `int *p = malloc(sizeof(int));`,
+    answer: "runtime",
+    answerLabel: "RUNTIME",
+    explanation: "The allocator asks the OS for memory and the OS decides where. This cannot happen before the program runs.",
+  },
+  {
+    title: "Type inference",
+    desc: "Letting the compiler infer the type of x.",
+    rust: `let x = 42;`,
+    c: `int x = 42; // C makes you write the type`,
+    answer: "compile",
+    answerLabel: "COMPILE TIME",
+    explanation: "The compiler infers u32 from context. x's type is fixed in the binary; the CPU sees a typed slot, not inference.",
+  },
+  {
+    title: "Division by literal zero",
+    desc: "Dividing by a literal 0.",
+    rust: `let x = 10 / 0;`,
+    c: `int x = 10 / 0;`,
+    answer: "compile",
+    answerLabel: "COMPILE TIME (Rust panics at compile)",
+    explanation: "Rust detects division by literal zero during compilation. C compiles it and produces undefined behaviour.",
+  },
+  {
+    title: "Division by variable zero",
+    desc: "Dividing by a value read from the user.",
+    rust: `let x = 10 / user_input();`,
+    c: `int x = 10 / atoi(argv[1]);`,
+    answer: "runtime",
+    answerLabel: "RUNTIME",
+    explanation: "The compiler cannot know if the user input is zero. It is checked when the division executes.",
+  },
+  {
+    title: "Stack overflow from recursion",
+    desc: "Unbounded recursion that exhausts the stack.",
+    rust: `fn recurse(n: u64) { recurse(n + 1); }`,
+    c: `void recurse(unsigned long n) { recurse(n + 1); }`,
+    answer: "runtime",
+    answerLabel: "RUNTIME",
+    explanation: "The OS sets the stack limit. The compiler cannot know the call depth for arbitrary inputs.",
+  },
+  {
+    title: "Bitcoin consensus violation",
+    desc: "A block arrives with invalid proof of work.",
+    rust: `if !block.meets_pow() {\n    reject(block);\n}`,
+    c: `if (!meets_target(hash, bits)) {\n    reject_block();\n}`,
+    answer: "runtime",
+    answerLabel: "RUNTIME",
+    explanation: "Consensus rules are compile-time contracts hardcoded in the binary. Whether a specific block satisfies them is checked at runtime, when the block arrives.",
+  },
+];
+
+function pcShuffle(n: number): number[] {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function PhaseClassifierWidget() {
+  const [lang, setLang] = useState<PcLang>("rust");
+  const [order, setOrder] = useState<number[]>(() => Array.from({ length: PC_SCENARIOS.length }, (_, i) => i));
+  const [pos, setPos] = useState(0);
+  const [selected, setSelected] = useState<PcPhase | null>(null);
+  const [correct, setCorrect] = useState(0);
+
+  // shuffle on mount (kept deterministic for SSR, randomised after hydration)
+  useEffect(() => {
+    setOrder(pcShuffle(PC_SCENARIOS.length));
+  }, []);
+
+  const total = PC_SCENARIOS.length;
+  const finished = pos >= total;
+  const cur = finished ? null : PC_SCENARIOS[order[pos]];
+
+  const choose = (p: PcPhase) => {
+    if (selected || !cur) return;
+    setSelected(p);
+    if (p === cur.answer) setCorrect((c) => c + 1);
+  };
+  const next = () => {
+    setSelected(null);
+    setPos((p) => p + 1);
+  };
+  const retry = () => {
+    setOrder(pcShuffle(total));
+    setPos(0);
+    setSelected(null);
+    setCorrect(0);
+  };
+
+  const scoreTone = correct >= 8 ? "cyan" : correct >= 5 ? "amber" : "rose";
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// which phase? you decide."}</span>
+        <div className="widget-controls">
+          {!finished && (
+            <>
+              <button type="button" className={`widget-btn ${lang === "rust" ? "is-active" : ""}`} onClick={() => setLang("rust")}>
+                Rust
+              </button>
+              <button type="button" className={`widget-btn ${lang === "c" ? "is-active" : ""}`} onClick={() => setLang("c")}>
+                C
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {!finished && cur && (
+        <div className="pc">
+          <div className="pc-progress">
+            <span className="pc-progress-label">
+              scenario {pos + 1} / {total}
+            </span>
+            <div className="pc-progress-track">
+              <div className="pc-progress-fill" style={{ width: `${(pos / total) * 100}%` }} />
+            </div>
+            <span className="pc-progress-score">{correct} correct</span>
+          </div>
+
+          <div className="pc-card">
+            <div className="pc-card-title">{cur.title}</div>
+            <pre className="pc-code">
+              <code>{lang === "rust" ? cur.rust : cur.c}</code>
+            </pre>
+            <p className="pc-desc">{cur.desc}</p>
+
+            <div className="pc-choices">
+              <button
+                type="button"
+                className={`pc-choice ${selected ? (cur.answer === "compile" ? "is-correct" : selected === "compile" ? "is-wrong" : "is-dim") : ""}`}
+                onClick={() => choose("compile")}
+                disabled={!!selected}
+              >
+                Compile Time
+              </button>
+              <button
+                type="button"
+                className={`pc-choice ${selected ? (cur.answer === "runtime" ? "is-correct" : selected === "runtime" ? "is-wrong" : "is-dim") : ""}`}
+                onClick={() => choose("runtime")}
+                disabled={!!selected}
+              >
+                Runtime
+              </button>
+            </div>
+
+            {selected && (
+              <div className={`pc-explain ${selected === cur.answer ? "tone-ok" : "tone-bad"}`}>
+                <div className="pc-explain-head">
+                  {selected === cur.answer ? "correct" : "not quite"} · <span className="pc-answer">{cur.answerLabel}</span>
+                </div>
+                <p className="pc-explain-body">{cur.explanation}</p>
+                <button type="button" className="widget-btn pc-next" onClick={next}>
+                  {pos + 1 === total ? "see score →" : "next scenario →"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {finished && (
+        <div className="pc-result">
+          <div className={`pc-score tone-${scoreTone}`}>
+            You got {correct}/{total} correct
+          </div>
+          <p className="pc-score-note">
+            {correct >= 8
+              ? "You can see the line. Compile time and runtime are two different worlds, and you know which is which."
+              : correct >= 5
+                ? "Getting there. The trick: anything that depends on the world (user input, the OS, the network) is runtime."
+                : "The rule of thumb: if the compiler can know it from the source alone, it is compile time. If it needs the running world, it is runtime."}
+          </p>
+          <button type="button" className="widget-btn pc-retry" onClick={retry}>
+            try again (reshuffles)
+          </button>
+        </div>
+      )}
+
+      <p className="widget-caption">
+        ten scenarios, shuffled each round. classify each as compile time or runtime, then read why. the line between the two phases is the most important decision in language design.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -3833,6 +4394,10 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <MemoryExplorerWidget />;
     case "memory-layout":
       return <MemoryLayoutWidget />;
+    case "pointer-visualiser":
+      return <PointerVisualiserWidget />;
+    case "phase-classifier":
+      return <PhaseClassifierWidget />;
     case "big-o-race":
       return <BigORaceWidget />;
     case "process-scheduler":

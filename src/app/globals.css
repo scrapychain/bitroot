@@ -5106,3 +5106,387 @@ a.card,
   color: var(--neon-emerald);
 }
 
+/* ============================================
+   POINTER VISUALISER (pointers page)
+   ============================================ */
+.pv {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .pv {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pv-col-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  margin-bottom: 0.55rem;
+}
+
+.pv-skull.is-active {
+  background: var(--neon-rose);
+  border-color: var(--neon-rose);
+  color: var(--bg-0);
+}
+
+/* ---- left: memory column ---- */
+.pv-mem-body {
+  display: flex;
+  align-items: flex-start;
+}
+.pv-gutter {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.pv-rows {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pv-cell {
+  height: 50px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: left;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 0 5px 5px 0;
+  padding: 0 0.7rem;
+  font-family: var(--font-mono);
+  cursor: default;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.pv-cell.is-clickable {
+  cursor: pointer;
+}
+.pv-cell.is-clickable:hover {
+  background: var(--bg-2);
+}
+.pv-cell:disabled {
+  cursor: default;
+}
+
+.pv-data { border-left-color: var(--neon-amber); }
+.pv-pointer { border-left-color: var(--neon-indigo); }
+.pv-empty { opacity: 0.5; }
+.pv-freed {
+  border-left-color: var(--neon-rose);
+  border-color: var(--neon-rose);
+  background: rgba(255, 92, 138, 0.08);
+}
+
+.pv-cell.is-glow {
+  border-color: var(--neon-emerald);
+  border-left-color: var(--neon-emerald);
+  box-shadow: 0 0 0 1px var(--neon-emerald), 0 0 18px rgba(43, 255, 159, 0.25);
+  background: rgba(43, 255, 159, 0.07);
+}
+
+.pv-addr {
+  font-size: 0.78rem;
+  color: var(--neon-cyan);
+}
+.pv-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--fg);
+  text-align: center;
+}
+.pv-data .pv-val { color: var(--neon-amber); }
+.pv-pointer .pv-val { color: var(--neon-indigo); }
+.pv-freed .pv-val { color: var(--neon-rose); letter-spacing: 0.1em; }
+.pv-name {
+  font-size: 0.68rem;
+  color: var(--fg-mute);
+  white-space: nowrap;
+}
+.pv-freed .pv-name { color: var(--neon-rose); }
+
+/* ---- middle: operations ---- */
+.pv-op-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.pv-op-btns .widget-btn {
+  width: 100%;
+  text-align: center;
+}
+.pv-chain-note {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin: 0 0 0.6rem;
+}
+.pv-readout {
+  margin-top: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  border: 1px solid var(--line);
+  background: var(--bg-0);
+  color: var(--fg-dim);
+}
+.pv-readout.tone-ok { border-left: 3px solid var(--neon-emerald); }
+.pv-readout.tone-warn { border-left: 3px solid var(--neon-amber); }
+.pv-readout.tone-bad {
+  border-left: 3px solid var(--neon-rose);
+  color: var(--neon-rose);
+  background: rgba(255, 92, 138, 0.07);
+}
+
+.pv-danger-detail {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.pv-danger-line {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 4px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+}
+.pv-danger-line.c { border-left: 2px solid var(--neon-rose); color: var(--fg-dim); }
+.pv-danger-line.rust { border-left: 2px solid var(--neon-emerald); color: var(--fg-dim); }
+
+/* ---- right: code ---- */
+.pv-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+.pv-code-head .pv-col-title {
+  margin-bottom: 0;
+}
+.pv-lang-tabs {
+  display: flex;
+  gap: 0.35rem;
+}
+.pv-code-pre {
+  margin: 0;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.7rem 0.85rem;
+  overflow-x: auto;
+}
+.pv-code-pre code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--fg);
+  white-space: pre;
+}
+
+/* ============================================
+   PHASE CLASSIFIER QUIZ (compile-vs-runtime page)
+   ============================================ */
+.pc-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+.pc-progress-label,
+.pc-progress-score {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--fg-mute);
+  white-space: nowrap;
+}
+.pc-progress-score {
+  color: var(--neon-cyan);
+}
+.pc-progress-track {
+  flex: 1;
+  height: 5px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.pc-progress-fill {
+  height: 100%;
+  background: var(--neon-indigo);
+  transition: width 0.3s ease;
+}
+
+.pc-card {
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+}
+.pc-card-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neon-amber);
+  margin-bottom: 0.6rem;
+}
+.pc-code {
+  margin: 0 0 0.7rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--neon-indigo);
+  border-radius: 0 6px 6px 0;
+  padding: 0.7rem 0.85rem;
+  overflow-x: auto;
+}
+.pc-code code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--fg);
+  white-space: pre;
+}
+.pc-desc {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin: 0 0 0.9rem;
+}
+
+.pc-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.pc-choice {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  padding: 0.7rem 0.6rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  color: var(--fg);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.pc-choice:hover:not(:disabled) {
+  border-color: var(--neon-indigo);
+  background: var(--bg-3);
+}
+.pc-choice:disabled {
+  cursor: default;
+}
+.pc-choice.is-correct {
+  border-color: var(--neon-emerald);
+  background: rgba(43, 255, 159, 0.12);
+  color: var(--neon-emerald);
+}
+.pc-choice.is-wrong {
+  border-color: var(--neon-rose);
+  background: rgba(255, 92, 138, 0.12);
+  color: var(--neon-rose);
+}
+.pc-choice.is-dim {
+  opacity: 0.4;
+}
+
+.pc-explain {
+  margin-top: 0.9rem;
+  border-radius: 6px;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  animation: pc-slide 0.28s ease both;
+}
+@keyframes pc-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-explain {
+    animation: none;
+  }
+}
+.pc-explain.tone-ok {
+  border-left: 3px solid var(--neon-emerald);
+  background: rgba(43, 255, 159, 0.05);
+}
+.pc-explain.tone-bad {
+  border-left: 3px solid var(--neon-rose);
+  background: rgba(255, 92, 138, 0.05);
+}
+.pc-explain-head {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg);
+  margin-bottom: 0.4rem;
+}
+.pc-answer {
+  color: var(--neon-cyan);
+}
+.pc-explain-body {
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--fg-dim);
+  margin: 0 0 0.7rem;
+}
+.pc-next,
+.pc-retry {
+  margin-top: 0.2rem;
+}
+
+.pc-result {
+  text-align: center;
+  padding: 1.4rem 1rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.pc-score {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  margin-bottom: 0.6rem;
+}
+.pc-score.tone-cyan {
+  color: var(--neon-cyan);
+}
+.pc-score.tone-amber {
+  color: var(--neon-amber);
+}
+.pc-score.tone-rose {
+  color: var(--neon-rose);
+}
+.pc-score-note {
+  max-width: 48ch;
+  margin: 0 auto 1rem;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--fg-dim);
+}
+
