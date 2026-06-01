@@ -216,6 +216,20 @@ export const linkedList: PageContent = {
     eyebrow: "root.system / 0x0C / structure",
     title: `A chain of <span class="highlight">somewheres.</span>`,
     lede: `An <strong>array</strong> is houses on a numbered street. A <strong>linked list</strong> is a treasure hunt: each node tells you, by address, where the next one lives. You give up the array's cheap indexing and cache locality. In return you get O(1) inserts and deletes anywhere, no resizing, no copying. That tradeoff has been keeping operating systems, schedulers, and lock-free queues alive for fifty years.`,
+    narrativeHtml: `<p>On page eleven, every house sat on one street. Neighbours. Shoulder to shoulder. You found house five by counting from the corner.</p>
+<p>Now scatter them.</p>
+<p>Put one house downtown. One across the river. One in a suburb youve never visited. No order. No street. No way to count your way to anything.</p>
+<p>So how do you find the next house?</p>
+<p>You leave a note on each door. The note says one thing. Heres the address of the next one.</p>
+<p>Thats a linked list. A chain of somewheres. Each node holding a value, and a pointer to wherever the next node happens to live.</p>
+<p>You give something up. You cant jump to node five anymore. You start at the front and follow the notes, one door at a time. The cache locality you loved on page eleven is gone.</p>
+<p>But you get something back. To insert a new house, you rewrite two notes. No shifting. No resizing. No copying a million boxes to make room for one.</p>
+<p>That single tradeoff has kept operating systems and schedulers alive for fifty years.</p>
+<p>And heres the part that should stop you cold.</p>
+<p>The Bitcoin blockchain is a linked list. Each block carries a note pointing back to the block before it. Except the note isnt an address.</p>
+<p>Its a cryptographic hash.</p>
+<p>Change one block and every note behind it breaks.</p>
+<p>Lets follow the chain.</p>`,
   },
   levels: [
     {

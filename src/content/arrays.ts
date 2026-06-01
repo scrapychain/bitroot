@@ -137,6 +137,20 @@ export const arrays: PageContent = {
     eyebrow: "root.system / 0x0B / structure",
     title: `Houses on a<br><span class="highlight">numbered street.</span>`,
     lede: `An <strong>array</strong> is the simplest data structure there is: a row of identical boxes, packed next to each other in memory, addressed by number. From that single shape, every string, every image, every audio buffer, every hash table, every CPU's branch predictor table is built. Once you see how arrays really work, half of computer science gets cheaper to think about.`,
+    narrativeHtml: `<p>Heres a claim that sounds arrogant until you test it.</p>
+<p>Every data structure youll ever use is either an array, or something pretending to be one.</p>
+<p>Hash maps. Stacks. Queues. Heaps. Strings. Image buffers. The little table your CPU uses to predict branches. Underneath the fancy names, almost all of them sit on one humble shape.</p>
+<p>A row of identical boxes. Packed side by side. Numbered from zero.</p>
+<p>Thats an array. Thats the whole idea.</p>
+<p>On page six you learned that memory is just a long sequence of addressed bytes. On page nine you learned that a pointer is a number that means somewhere.</p>
+<p>An array is those two ideas standing right next to each other.</p>
+<p>Because the boxes are identical in size, and because theyre packed with no gaps, you dont need a pointer to each one. You need the address of the first box and a little arithmetic. Box number five is just start, plus five times the size.</p>
+<p>One multiply. One add. Done.</p>
+<p>Thats why <code>arr[1000000]</code> is exactly as fast as <code>arr[0]</code>. The machine doesnt walk the street counting houses. It calculates the address and jumps straight there.</p>
+<p>This is the simplest data structure there is.</p>
+<p>It is also the foundation under almost every other one.</p>
+<p>Start here, and half of computer science suddenly gets cheaper to think about.</p>
+<p>Lets number the street.</p>`,
   },
   levels: [
     {

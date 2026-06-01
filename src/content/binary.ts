@@ -128,6 +128,20 @@ export const binary: PageContent = {
     eyebrow: "root.system / 0x02 / binary",
     title: `Two symbols.<br><span class="highlight">Everything else.</span>`,
     lede: `Every photo, song, message and program on every device you've ever touched is, at the lowest level, a sequence of <code>0</code>s and <code>1</code>s. This page walks you from <em>"what does that even mean"</em> all the way down to two's complement and IEEE 754, which is the machine's actual view of a number.`,
+    narrativeHtml: `<p>On page one you learned that a single number can wear many costumes.</p>
+<p>Binary is the only one the machine actually wears.</p>
+<p>Two symbols. <code>0</code> and <code>1</code>. Thats the entire alphabet. Every photo youve saved, every song youve streamed, every message youve ever sent is spelled with just those two letters.</p>
+<p>The obvious question is why.</p>
+<p>Why two? Why not ten, like your fingers? Why not something richer and more expressive?</p>
+<p>The answer isnt engineering. It isnt convention. Its physics.</p>
+<p>In 1947, three physicists at Bell Labs built the first transistor. A switch with no moving parts. And a switch can do exactly one reliable thing. It can be on, or it can be off.</p>
+<p>Not on-ish. Not seventy percent on. On or off. A voltage above the line, or below it.</p>
+<p>Try to store ten distinct levels in that switch and noise destroys you. The real world smears your values together until you cant tell them apart. But two states? Two states are almost impossible to confuse.</p>
+<p>So the machine doesnt speak binary because someone chose it.</p>
+<p>It speaks binary because thats the only language that survives contact with a noisy electrical world.</p>
+<p>Everything above this page, every number system, every program, every blockchain, is a tower built on these two symbols.</p>
+<p>This is the bedrock.</p>
+<p>Lets learn to read it.</p>`,
   },
   levels: [
     {

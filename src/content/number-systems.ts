@@ -154,6 +154,19 @@ export const numberSystems: PageContent = {
     eyebrow: "root.system / 0x01 / numbers",
     title: `Same number.<br><span class="highlight">Different bases.</span>`,
     lede: `<code>173</code>, <code>0xAD</code>, <code>0o255</code>, <code>0b10101101</code>: four ways of writing the exact same value. Different <strong>bases</strong> are convenient for different jobs. Decimal for humans, binary for circuits, hex for byte dumps, octal for Unix permissions. This page is what every other base actually <em>is</em>, and why programmers move between them so often.`,
+    narrativeHtml: `<p>Look at this number.</p>
+<p><code>173</code></p>
+<p>You know exactly what it means. One hundred and seventy three. Youve known it since you were five years old.</p>
+<p>But you only know one of its costumes.</p>
+<p>The same value can dress as <code>0xAD</code>. As <code>0o255</code>. As <code>0b10101101</code>. Four completely different faces. One identical number underneath.</p>
+<p>And heres the part nobody tells you.</p>
+<p>The costume you grew up in, base ten, is the one outfit your computer never wears. Not once. Not anywhere. You count in tens because you happen to have ten fingers. A machine has no fingers. It has switches.</p>
+<p>This is page one. The bottom of the whole stack.</p>
+<p>Everything else on this site, every byte, every address, every hash, every block, is just numbers wearing different clothes for different readers. Decimal for you. Binary for the circuits. Hex for the byte dumps. Octal for the old Unix hands.</p>
+<p>Before you can read what a machine is saying, you have to learn to see past the costume. To recognise the same value no matter what base it shows up wearing.</p>
+<p>So forget that <code>173</code> is special.</p>
+<p>Its not.</p>
+<p>Its one outfit out of infinitely many. Lets learn the rest.</p>`,
   },
   levels: [
     {

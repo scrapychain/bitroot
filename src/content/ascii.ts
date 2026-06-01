@@ -127,6 +127,23 @@ export const ascii: PageContent = {
     eyebrow: "root.system / 0x03 / encoding",
     title: `Numbers become<br><span class="highlight">language.</span>`,
     lede: `You learned that everything is bits. But how does <code>01000001</code> become the letter <code>A</code>? Through a <strong>convention</strong>: a shared agreement that says "this number means that letter." That agreement is called an <em>encoding</em>, and the most famous one is <strong>ASCII</strong>.`,
+    narrativeHtml: `<p>Press the A key.</p>
+<p>A letter appears on your screen.</p>
+<p>You think you typed a letter.</p>
+<p>You didnt. You typed the number <code>65</code>.</p>
+<p>On page two you learned that everything is bits. The <code>A</code> on your screen is <code>01000001</code>. Eight switches. A single byte. Read it as a number, the way page one taught you, and its just <code>65</code>.</p>
+<p>So where did the letter come from?</p>
+<p>It came from an agreement.</p>
+<p>A long time ago, a group of people sat down and decided, by pure convention, that the number <code>65</code> would mean capital <code>A</code>. That <code>66</code> would mean <code>B</code>. That <code>32</code> would mean a space, and <code>10</code> would mean a new line.</p>
+<p>There is no law of physics behind this. Nothing about the bits <code>01000001</code> is letter-shaped. The machine never sees an <code>A</code>. It sees <code>65</code>, looks it up in a table everyone agreed on, and draws whatever shape the table says.</p>
+<p>This agreement has a name. An encoding.</p>
+<p>And heres what makes it matter.</p>
+<p>Before everyone agreed, every machine kept its own table. Text written on one computer turned to garbage on another. The same byte meant a different character depending on who was reading it.</p>
+<p>ASCII was the treaty that ended that chaos.</p>
+<p>Every message you send. Every line of code you write. Every URL, every filename. All of it rests on a convention that says these numbers mean these letters.</p>
+<p>Meaning isnt in the bits.</p>
+<p>Meaning is in the agreement.</p>
+<p>Lets read the table everyone signed.</p>`,
   },
   levels: [
     {

@@ -150,6 +150,18 @@ export const networking: PageContent = {
     eyebrow: "root.system / 0x0F / system",
     title: `One machine becomes <span class="highlight">many.</span>`,
     lede: `Every previous topic lived inside one machine. Binary, gates, CPU, memory, pointers, arrays, linked lists, hashing, the operating system. One isolated computer. The moment two computers connect, computer science changes completely. Networking is the discipline of making messages survive the trip across copper and fiber, across continents, across machines that do not trust each other. Every previous topic shows up here, in some new disguise.`,
+    narrativeHtml: `<p>Stop reading for one second and notice something.</p>
+<p>Your computer is talking to strangers right now.</p>
+<p>Not one. Thousands. Machines in Tokyo. Servers in warehouses youll never see. Packets crossing fiber optic cable that runs along the floor of the Pacific Ocean, in the dark, under miles of cold water.</p>
+<p>All of it happening while you sit perfectly still.</p>
+<p>Until this page, every topic lived inside one machine. Bits. Gates. The CPU loop. Memory. Pointers. Arrays. One isolated box, thinking to itself.</p>
+<p>A machine alone can only work with what it already holds.</p>
+<p>The moment two machines connect, that changes completely. Now your bits have to leave the building. They cross hardware you dont own, routed by people youll never meet, through cables anyone with a boat could cut.</p>
+<p>And every one of those conversations is still just binary. The same zeros and ones from page two. Sliced into packets. Wrapped in addresses. Thrown into the dark with no promise they arrive.</p>
+<p>Most of them make it. Some dont. The machine has to survive both.</p>
+<p>Page fourteen gave each computer an identity, a node with an address of its own. This page is about what those nodes actually say to each other, and how a message lives long enough to be heard.</p>
+<p>Tokyo is sixty milliseconds away.</p>
+<p>Lets send something there.</p>`,
   },
   levels: [
     {

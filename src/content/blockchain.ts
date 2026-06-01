@@ -238,6 +238,22 @@ export const blockchain: PageContent = {
     eyebrow: "root.system / 0x13 / system",
     title: `From one switch<br><span class="highlight">to a financial network nobody owns.</span>`,
     lede: `Bell Labs, 1947. A small piece of germanium let electricity change direction on command. Two states, one switch. In 2008, nine pages by Satoshi Nakamoto turned that same primitive, scaled by billions, into a network that lets thousands of strangers agree on a shared truth without trusting each other. This page is the bridge between those two events. It's the capstone: every other page on the site shows up here, in order, with nothing missing.`,
+    narrativeHtml: `<p>Seventy seven years ago, a physicist made electricity change direction on command.</p>
+<p>He pressed two thin wires into a sliver of germanium, watched a current flip, and wrote a modest little note about a better amplifier.</p>
+<p>He thought he had improved the radio.</p>
+<p>He had actually started all of this.</p>
+<p>One switch. Two states. On or off. The entire tower youve spent this curriculum climbing rests on that one afternoon in a lab.</p>
+<p>And today that exact switch, copied billions of times onto chips smaller than your fingernail, runs a network that no government owns, no company controls, and no army can switch off.</p>
+<p>How do you get from one to the other?</p>
+<p>You climb. One page at a time. And youve already done the climbing.</p>
+<p>Two states became binary, page two. Binary became logic gates, page four. Gates became a CPU, page five. The CPU got memory, an operating system, variables, pointers. You learned to fold any input into a fingerprint. You learned how machines talk, and how thousands of strangers agree without trusting a soul.</p>
+<p>Every one of those pages was a rung.</p>
+<p>This is the top of the ladder.</p>
+<p>A blockchain isnt a new idea. Its every old idea, stacked in exactly the right order, until something appears that none of them could do alone.</p>
+<p>The transistor never knew it would become money.</p>
+<p>The pages behind you never knew theyd become this.</p>
+<p>Lets put them all together.</p>
+<p>One last climb.</p>`,
   },
   levels: [
     {

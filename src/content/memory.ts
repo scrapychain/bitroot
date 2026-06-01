@@ -178,6 +178,22 @@ export const memory: PageContent = {
     eyebrow: "root.system / 0x06 / memory",
     title: `A wall of switches.<br><span class="highlight">Numbered.</span>`,
     lede: `The CPU on the previous page only works because it has somewhere to <em>put things</em>. That somewhere is <strong>memory</strong>: a long array of bit-cells with a number stamped on each one. Programs are bytes in memory. Variables are bytes in memory. The page you're reading is bytes in memory. This page is about how that array is built, how it's organized, and how programs actually use it.`,
+    narrativeHtml: `<p>The CPU from page five has a problem.</p>
+<p>It can think. It cant remember.</p>
+<p>Every fetch, decode, execute, it works on a few bits, produces an answer, then needs somewhere to put it before the next instruction overwrites everything. A genius with no notebook. Brilliant for one clock tick. Amnesiac on the next.</p>
+<p>So you give it a place to write things down.</p>
+<p>That place is memory.</p>
+<p>And heres what memory actually is. Take the switches from page four. The transistors. On or off, current or no current. Now line up billions of them. Then do the one thing that makes them usable.</p>
+<p>Number them.</p>
+<p>Cell zero. Cell one. Cell two. All the way up into the billions. Each one holding a byte. Each one wearing a number that never changes.</p>
+<p>Thats the whole structure. A wall of switches, numbered.</p>
+<p>That number has a name youll meet again on every page after this one. An address.</p>
+<p>Because once a cell has a number, you can talk about it. You can point at it. You can hand its number to the CPU and say put this here, read that back.</p>
+<p>And heres the part that should rearrange your head.</p>
+<p>There is no special place where your photo lives. No drawer marked code, no shelf marked data. Your program, your variables, the very text on this screen, are all the same substance. Bytes. At numbers.</p>
+<p>The computer doesnt store things somewhere.</p>
+<p>It stores them at an address.</p>
+<p>Lets walk the wall.</p>`,
   },
   levels: [
     {

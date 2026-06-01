@@ -171,6 +171,21 @@ export const distributedSystems: PageContent = {
     eyebrow: "root.system / 0x10 / system",
     title: `No single machine<br><span class="highlight">knows everything.</span>`,
     lede: `A <strong>distributed system</strong> is a set of independent computers that, to anyone using them, appear as one coherent system. There is no boss, no shared clock, no shared memory; nodes can crash, lie, lose messages, or drop off the network entirely. Despite all of that, the system has to keep working and keep agreeing on a single truth. Everything that follows is the techniques humanity has invented to make that possible.`,
+    narrativeHtml: `<p>A computer talking only to itself is just a calculator.</p>
+<p>A fast one. A useful one. But a closed loop. It only ever knows what you already put inside it.</p>
+<p>Now connect a thousand of them.</p>
+<p>Machines that have never met. Spread across the planet. Some slow, some fast, some lying, some asleep, some that will crash in the middle of a sentence and never wake up.</p>
+<p>Give them no boss. No shared clock. No shared memory. No central authority anyone is allowed to trust.</p>
+<p>Then ask them to agree on a single truth.</p>
+<p>Thats the hardest problem in computer science. Not sorting. Not searching. This.</p>
+<p>On page fifteen you learned how two machines hold one conversation across an unreliable network. Messages get lost. Packets arrive out of order. Some never arrive at all.</p>
+<p>Now take that unreliability and scale it to thousands of participants, and demand they reach consensus anyway.</p>
+<p>What happens when half the network sees one version of events and half sees another? When the message you sent never lands? When a node tells you something false on purpose?</p>
+<p>Real systems face all of this every second. Your bank. Your group chat. The DNS that found this page. Every blockchain ever built.</p>
+<p>They all live or die by the answers in this section.</p>
+<p>Theres no boss coming to settle the argument.</p>
+<p>The machines have to settle it themselves.</p>
+<p>Lets see how.</p>`,
   },
   levels: [
     {

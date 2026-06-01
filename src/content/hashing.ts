@@ -241,6 +241,20 @@ export const hashing: PageContent = {
     eyebrow: "root.system / 0x0D / structure",
     title: `A fingerprint for<br><span class="highlight">anything.</span>`,
     lede: `A <strong>hash function</strong> turns arbitrary input (a string, a file, a struct, a gigabyte of transactions) into a small, fixed-size number. From that one idea you get hash maps (the workhorse of every dynamic language), content-addressed storage, password hashing, Merkle trees, and the chain in blockchain. Every layer is the same trick, just applied with more or less paranoia.`,
+    narrativeHtml: `<p>There is a kind of function that does something that should not be possible.</p>
+<p>You feed it a single letter. It hands you back a fixed-size string of digits.</p>
+<p>You feed it an entire novel, every word, megabytes of text. It hands you back a string the exact same size.</p>
+<p>A character or a library. Same length out. Always.</p>
+<p>Thats a hash function, and it has four properties that sound like they cant all be true at once.</p>
+<p>Same input, same output, every single time, forever.</p>
+<p>Different inputs, almost certainly different outputs.</p>
+<p>Change one bit of the input, a single comma, and the result is completely unrecognisable. Not similar. Not close. Scrambled past all recognition.</p>
+<p>And you cant run it backwards. Given the fingerprint, you cannot recover what made it. The door only opens one way.</p>
+<p>On page twelve you saw a linked list chained together by addresses. This is the tool that chains blocks together by content instead. The note on each door isnt where the next block lives. Its a fingerprint of what the last block held.</p>
+<p>Hash maps are built on this. Password storage. Content addressing. Merkle trees. The chain in blockchain.</p>
+<p>This one mathematical trick, applied with more or less paranoia, is most of what keeps the internet secure.</p>
+<p>Youve probably leaned on it ten times today without noticing.</p>
+<p>Lets take its fingerprint.</p>`,
   },
   levels: [
     {

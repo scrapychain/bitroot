@@ -227,6 +227,21 @@ export const cpu: PageContent = {
     eyebrow: "root.system / 0x05 / cpu",
     title: `Bits in a loop.<br><span class="highlight">A machine that runs.</span>`,
     lede: `You have <strong>bits</strong>, you have <strong>encodings</strong>, you have <strong>gates</strong>. Wire them into a circuit that fetches a bit pattern from memory, decides what it means, and acts on it. Then put that whole thing on a clock and let it loop. That's a CPU. This page builds one, conceptually, from the parts you already have.`,
+    narrativeHtml: `<p>Right now, inside your machine, something is running a loop.</p>
+<p>It hasnt stopped since you pressed the power button.</p>
+<p>It wont stop until you shut down.</p>
+<p>Billions of times a second, the same three steps, over and over, no rest and no variation.</p>
+<p>Fetch. Decode. Execute.</p>
+<p>You think your CPU is doing a thousand things at once. Running your browser. Playing music. Checking for updates. It feels like juggling.</p>
+<p>It isnt.</p>
+<p>Your CPU has exactly one job. Grab the next instruction. Work out what it means. Do it. Then grab the next one. The illusion of doing everything comes from doing this one thing fast enough that you cant see the seams.</p>
+<p>On page four you built logic gates out of transistors. AND, OR, NOT, XOR. Tiny circuits that compute.</p>
+<p>A CPU is what happens when you wire those gates into a loop and put them on a clock.</p>
+<p>Thats it. Thats the entire machine.</p>
+<p>The bits from page two are the instructions. The gates from page four do the work. The clock makes it all move forward.</p>
+<p>Everything your computer has ever done, every frame, every keystroke, every transaction it has ever checked, is this one loop, turning.</p>
+<p>It has been turning the whole time youve been reading this.</p>
+<p>Lets watch it turn.</p>`,
   },
   levels: [
     {

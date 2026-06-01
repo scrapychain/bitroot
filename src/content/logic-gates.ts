@@ -100,6 +100,21 @@ export const logicGates: PageContent = {
     eyebrow: "root.system / 0x04 / silicon",
     title: `Where bits become<br><span class="highlight">physical.</span>`,
     lede: `You've seen bits as numbers and bits as letters. Now we go all the way down to the actual <strong>switches</strong> on a chip. A modern CPU has tens of billions of them. They do one thing: let current through, or don't. From that single trick, every program you've ever run is built.`,
+    narrativeHtml: `<p>Until now, bits have been an idea.</p>
+<p>A number on page two. A letter on page three. Something you could write down, reason about, move around in your head.</p>
+<p>This is the page where bits stop being an idea.</p>
+<p>And become electricity.</p>
+<p>Go all the way down, past the number, past the letter, and a bit is a voltage. High or low. Current flowing, or not. A switch that is open, or closed.</p>
+<p>Your CPU has tens of billions of these switches. Theyre called transistors. And each one is breathtakingly stupid. It does exactly one thing. It lets current through, or it doesnt.</p>
+<p>Thats the whole trick. Thats all a single transistor can do.</p>
+<p>So heres the question that should bother you.</p>
+<p>How do you get arithmetic out of a thing that cant count? How do you get logic out of a switch that doesnt know what logic is? How do you get a photo, a song, a running program out of billions of dumb on-off switches?</p>
+<p>You wire them together.</p>
+<p>Connect a few switches the right way and they start to behave like a decision. AND. OR. NOT. Wire those decisions together and they start to add. Wire the adders together and you have arithmetic. Keep going and you have a CPU.</p>
+<p>Nobody made the switches smart.</p>
+<p>You just arranged a lot of stupid ones until something that looks like thinking fell out.</p>
+<p>This is the floor. The point where logic finally touches silicon.</p>
+<p>Lets build it from one switch up.</p>`,
   },
   levels: [
     {

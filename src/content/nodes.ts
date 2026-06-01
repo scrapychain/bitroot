@@ -114,6 +114,20 @@ export const nodes: PageContent = {
     eyebrow: "root.system / 0x0E / structure",
     title: `One word.<br><span class="highlight">Three scales.</span>`,
     lede: `A <strong>node</strong> in a data structure is a small struct on the heap holding a value and a pointer to its neighbour. A <strong>node</strong> on a network is a whole computer with an IP address. A <strong>node</strong> in a blockchain is a computer running protocol software that holds a copy of the chain. Same word, three scales, one essential pattern: a participant with an identity, holding state, connected to others. This page is about that pattern.`,
+    narrativeHtml: `<p>One word shows up three times on this site, at three completely different scales.</p>
+<p>Node.</p>
+<p>A node in a linked list is a tiny struct on the heap. A value, and a pointer to its neighbour. You met it on page twelve.</p>
+<p>A node on a network is a whole computer with an address of its own.</p>
+<p>A node in a blockchain is a machine running software that holds a full copy of the chain.</p>
+<p>Same word. Three sizes. One pattern underneath.</p>
+<p>Heres the part people get wrong about that last one.</p>
+<p>A Bitcoin node is not special. Its not a server in a warehouse. Its not owned by a company. Its not some exotic hardware you could never afford.</p>
+<p>Its a regular computer running a program. The same kind of program youve been taking apart since page one.</p>
+<p>Someone runs one on a laptop. Someone runs one on a Raspberry Pi in a closet. Thousands of them, scattered across the planet, strangers who have never met and never will.</p>
+<p>And thats exactly why the network cant be shut down. Theres no center to attack. No headquarters to raid. Pull the plug on a thousand of them and the rest dont even notice.</p>
+<p>A participant. Holding state. Connected to others. From a struct on the heap to a machine helping secure a financial system.</p>
+<p>Same idea, all the way up.</p>
+<p>Lets scale it.</p>`,
   },
   levels: [
     {
