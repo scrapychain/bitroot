@@ -5490,3 +5490,288 @@ a.card,
   color: var(--fg-dim);
 }
 
+/* ============================================
+   ARRAY MEMORY EXPLORER (arrays page)
+   ============================================ */
+.ame {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.ame-col-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+/* ---- config ---- */
+.ame-config {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem 0.95rem;
+}
+.ame-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.ame-type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.ame-values {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+.ame-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  flex: 0 0 auto;
+}
+.ame-cell-idx {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--neon-amber);
+}
+.ame-cell input {
+  width: 46px;
+  text-align: center;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.35rem 0.2rem;
+  outline: none;
+}
+.ame-cell input:focus {
+  border-color: var(--neon-cyan);
+}
+.ame-base {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.ame-base-prefix {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--neon-cyan);
+}
+.ame-base input {
+  width: 110px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+  outline: none;
+}
+.ame-base input:focus {
+  border-color: var(--neon-cyan);
+}
+
+/* ---- memory layout ---- */
+.ame-mem-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-x: auto;
+}
+.ame-mr {
+  display: grid;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--ame-line, var(--line-strong));
+  border-radius: 0 5px 5px 0;
+  min-width: 440px;
+}
+.ame-mem-grid.with-bin .ame-mr {
+  grid-template-columns: 1.3fr 0.6fr 1fr 2.1fr 0.7fr;
+}
+.ame-mem-grid.no-bin .ame-mr {
+  grid-template-columns: 1.6fr 0.7fr 1.6fr 1fr;
+}
+.ame-mhead {
+  background: transparent;
+  border: none;
+  padding-bottom: 0;
+}
+.ame-mh {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.ame-addr {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--neon-cyan);
+}
+.ame-idx {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--neon-amber);
+}
+.ame-hex {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--neon-violet);
+}
+.ame-bin {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-mute);
+  white-space: nowrap;
+}
+.ame-val {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* ---- index calculator ---- */
+.ame-calc {
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem 0.95rem;
+}
+.ame-calc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.55rem;
+}
+.ame-calc-input {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--fg-dim);
+}
+.ame-calc-input input {
+  width: 56px;
+  text-align: center;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  padding: 0.3rem 0.3rem;
+  outline: none;
+}
+.ame-calc-input input:focus {
+  border-color: var(--neon-cyan);
+}
+.ame-calc-math {
+  margin: 0;
+  background: var(--bg-2);
+  border-left: 3px solid var(--neon-cyan);
+  border-radius: 0 5px 5px 0;
+  padding: 0.6rem 0.75rem;
+  overflow-x: auto;
+}
+.ame-calc-math code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  white-space: pre;
+}
+.ame-calc-result {
+  margin-top: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--neon-emerald);
+}
+.ame-calc-result strong {
+  color: var(--neon-emerald);
+}
+.ame-oob {
+  margin-top: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  padding: 0.55rem 0.7rem;
+  border-radius: 5px;
+  border: 1px solid var(--neon-rose);
+  border-left: 3px solid var(--neon-rose);
+  background: rgba(255, 92, 138, 0.08);
+  color: var(--neon-rose);
+}
+.ame-oob.c {
+  background: rgba(255, 92, 138, 0.16);
+}
+
+/* ---- live code ---- */
+.ame-code {
+  margin: 0;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.7rem 0.85rem;
+  overflow-x: auto;
+}
+.ame-code code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--fg);
+  white-space: pre;
+}
+
+/* ---- cache line ---- */
+.ame-cache {
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem 0.95rem;
+}
+.ame-cache-bar {
+  display: flex;
+  gap: 3px;
+  margin: 0.5rem 0;
+}
+.ame-cache-seg {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--bg-0);
+  padding: 0.45rem 0;
+  border-radius: 3px;
+}
+.ame-cache-note {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--fg-mute);
+  margin: 0;
+}
+.ame-cache-note strong {
+  color: var(--neon-emerald);
+}
+

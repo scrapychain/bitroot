@@ -4364,6 +4364,247 @@ function PhaseClassifierWidget() {
   );
 }
 
+/* =====================================================================
+   20. Array memory explorer: pick a type and base address, edit values,
+   and watch the memory layout, index arithmetic, bounds behaviour, and
+   cache-line coverage update live (arrays page)
+   ===================================================================== */
+type AmeType = "u8" | "i32" | "f64" | "char";
+type AmeLang = "rust" | "c";
+
+const AME_TYPES: Record<AmeType, { stride: number; rust: string; c: string; showBin: boolean }> = {
+  u8: { stride: 1, rust: "u8", c: "uint8_t", showBin: true },
+  i32: { stride: 4, rust: "i32", c: "int", showBin: true },
+  f64: { stride: 8, rust: "f64", c: "double", showBin: false },
+  char: { stride: 4, rust: "char", c: "char32_t", showBin: false },
+};
+
+const AME_DEFAULTS = ["10", "20", "30", "40", "50", "60", "70", "80"];
+const AME_N = 8;
+const AME_LINE = 64;
+const AME_LINE_COLORS = ["var(--neon-emerald)", "var(--neon-cyan)", "var(--neon-violet)", "var(--neon-amber)"];
+
+function ameNum(raw: string, type: AmeType): number {
+  const n = type === "f64" ? parseFloat(raw) : parseInt(raw, 10);
+  return Number.isFinite(n) ? n : 0;
+}
+function ameHexVal(v: number, type: AmeType): string {
+  if (type === "f64") {
+    const buf = new ArrayBuffer(8);
+    new DataView(buf).setFloat64(0, v, false);
+    return "0x" + [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  }
+  if (type === "char") {
+    const cp = Math.max(0, Math.min(0x10ffff, Math.trunc(v)));
+    return "0x" + cp.toString(16).toUpperCase().padStart(8, "0");
+  }
+  const masked = type === "u8" ? v & 0xff : v >>> 0;
+  let hex = masked.toString(16).toUpperCase();
+  if (hex.length % 2) hex = "0" + hex;
+  if (hex.length < 2) hex = hex.padStart(2, "0");
+  return "0x" + hex;
+}
+function ameBinVal(v: number, type: AmeType): string | null {
+  if (type !== "u8" && type !== "i32") return null;
+  const masked = type === "u8" ? v & 0xff : v >>> 0;
+  const bin = masked.toString(2);
+  const width = Math.max(8, Math.ceil(bin.length / 8) * 8);
+  const padded = bin.padStart(width, "0");
+  return width > 8 ? padded.match(/.{1,8}/g)!.join(" ") : padded;
+}
+function ameValDisplay(v: number, type: AmeType): string {
+  if (type === "char") {
+    const cp = Math.max(0, Math.min(0x10ffff, Math.trunc(v)));
+    return cp >= 32 && cp < 127 ? `'${String.fromCodePoint(cp)}'` : "U+" + cp.toString(16).toUpperCase().padStart(4, "0");
+  }
+  if (type === "f64") return Number.isInteger(v) ? v.toFixed(1) : String(v);
+  return String(type === "u8" ? v & 0xff : v | 0);
+}
+function ameAddr(base: number, offsetBytes: number): string {
+  return "0x" + (base + offsetBytes).toString(16).toUpperCase().padStart(4, "0");
+}
+
+function ArrayExplorerWidget() {
+  const [type, setType] = useState<AmeType>("i32");
+  const [lang, setLang] = useState<AmeLang>("rust");
+  const [valuesRaw, setValuesRaw] = useState<string[]>(AME_DEFAULTS);
+  const [baseRaw, setBaseRaw] = useState("1000");
+  const [idxRaw, setIdxRaw] = useState("2");
+
+  const stride = AME_TYPES[type].stride;
+  const base = (() => {
+    const b = parseInt(baseRaw || "0", 16);
+    return Number.isFinite(b) ? b : 0;
+  })();
+  const baseHex = base.toString(16).toUpperCase().padStart(4, "0");
+  const nums = valuesRaw.map((r) => ameNum(r, type));
+  const idx = (() => {
+    const n = parseInt(idxRaw, 10);
+    return Number.isFinite(n) ? n : 0;
+  })();
+  const inBounds = idx >= 0 && idx < AME_N;
+
+  const setValue = (i: number, raw: string) => setValuesRaw((cur) => cur.map((v, j) => (j === i ? raw : v)));
+
+  const elemsPerLine = Math.floor(AME_LINE / stride);
+  const lineOf = (i: number) => Math.floor((i * stride) / AME_LINE);
+  const totalLines = lineOf(AME_N - 1) + 1;
+
+  const offset = idx * stride;
+  const calcAddr = ameAddr(base, offset);
+
+  // live code preview
+  const code = (() => {
+    const list = nums.map((n) => ameValDisplay(n, type)).join(", ");
+    if (lang === "rust") {
+      return [
+        `let arr: [${AME_TYPES[type].rust}; 8] = [${list}];`,
+        `let i = ${idx};`,
+        `println!("{}", arr[i]);  // ${inBounds ? ameValDisplay(nums[idx], type) : "panics: index out of bounds"}`,
+        `// addr: 0x${baseHex} + ${idx} * ${stride} = ${calcAddr}`,
+      ].join("\n");
+    }
+    return [
+      `${AME_TYPES[type].c} arr[8] = { ${list} };`,
+      `int i = ${idx};`,
+      `printf("%d\\n", arr[i]);    // ${inBounds ? ameValDisplay(nums[idx], type) : "UB: out of bounds"}`,
+      `printf("%d\\n", *(arr+i));  // same address: ${calcAddr}`,
+    ].join("\n");
+  })();
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// walk the array yourself"}</span>
+        <div className="widget-controls">
+          <button type="button" className={`widget-btn ${lang === "rust" ? "is-active" : ""}`} onClick={() => setLang("rust")}>
+            Rust
+          </button>
+          <button type="button" className={`widget-btn ${lang === "c" ? "is-active" : ""}`} onClick={() => setLang("c")}>
+            C
+          </button>
+        </div>
+      </div>
+
+      <div className="ame">
+        {/* TOP: configuration */}
+        <div className="ame-config">
+          <div className="ame-row">
+            <span className="ame-col-title">element type</span>
+            <div className="ame-type-tabs">
+              {(Object.keys(AME_TYPES) as AmeType[]).map((t) => (
+                <button key={t} type="button" className={`widget-btn ${type === t ? "is-active" : ""}`} onClick={() => setType(t)}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="ame-row">
+            <span className="ame-col-title">array values (editable)</span>
+            <div className="ame-values">
+              {valuesRaw.map((v, i) => (
+                <label key={i} className="ame-cell">
+                  <span className="ame-cell-idx">[{i}]</span>
+                  <input value={v} inputMode="numeric" onChange={(e) => setValue(i, e.target.value)} />
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="ame-row">
+            <span className="ame-col-title">base address</span>
+            <div className="ame-base">
+              <span className="ame-base-prefix">0x</span>
+              <input value={baseRaw} onChange={(e) => setBaseRaw(e.target.value.replace(/[^0-9a-fA-F]/g, "").slice(0, 8))} aria-label="base address in hex" />
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM: memory layout */}
+        <div className="ame-mem">
+          <div className={`ame-mem-grid ${AME_TYPES[type].showBin ? "with-bin" : "no-bin"}`}>
+            <div className="ame-mr ame-mhead">
+              <span className="ame-mh">address</span>
+              <span className="ame-mh">index</span>
+              <span className="ame-mh">hex</span>
+              {AME_TYPES[type].showBin && <span className="ame-mh">binary</span>}
+              <span className="ame-mh">value</span>
+            </div>
+            {nums.map((n, i) => {
+              const lineColor = AME_LINE_COLORS[lineOf(i) % AME_LINE_COLORS.length];
+              return (
+                <div key={i} className="ame-mr" style={{ ["--ame-line" as string]: lineColor }}>
+                  <span className="ame-addr">{ameAddr(base, i * stride)}</span>
+                  <span className="ame-idx">[{i}]</span>
+                  <span className="ame-hex">{ameHexVal(n, type)}</span>
+                  {AME_TYPES[type].showBin && <span className="ame-bin">{ameBinVal(n, type)}</span>}
+                  <span className="ame-val">{ameValDisplay(n, type)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* index calculator */}
+        <div className="ame-calc">
+          <div className="ame-calc-head">
+            <span className="ame-col-title">calculate arr[i]</span>
+            <label className="ame-calc-input">
+              i =
+              <input value={idxRaw} inputMode="numeric" onChange={(e) => setIdxRaw(e.target.value.replace(/[^0-9-]/g, ""))} />
+            </label>
+          </div>
+          <pre className="ame-calc-math">
+            <code>{`arr[${idx}] = base + (i × stride)
+       = 0x${baseHex} + (${idx} × ${stride})
+       = 0x${baseHex} + ${offset}
+       = ${calcAddr}`}</code>
+          </pre>
+          {inBounds ? (
+            <div className="ame-calc-result">→ value: <strong>{ameValDisplay(nums[idx], type)}</strong></div>
+          ) : lang === "rust" ? (
+            <div className="ame-oob rust">
+              index out of bounds: the len is 8 but the index is {idx}. Rust panics cleanly here, no memory is read.
+            </div>
+          ) : (
+            <div className="ame-oob c">
+              arr[{idx}] reads address {calcAddr}, outside the array. Undefined behaviour in C: could be another variable&apos;s memory, could be garbage, could look correct and corrupt silently.
+            </div>
+          )}
+        </div>
+
+        {/* live code */}
+        <pre className="ame-code">
+          <code>{code}</code>
+        </pre>
+
+        {/* cache line */}
+        <div className="ame-cache">
+          <div className="ame-col-title">64-byte cache line coverage</div>
+          <div className="ame-cache-bar">
+            {nums.map((_, i) => (
+              <span key={i} className="ame-cache-seg" style={{ background: AME_LINE_COLORS[lineOf(i) % AME_LINE_COLORS.length] }}>
+                {i}
+              </span>
+            ))}
+          </div>
+          <p className="ame-cache-note">
+            A 64-byte cache line holds <strong>{elemsPerLine}</strong> {type} values.{" "}
+            {totalLines === 1
+              ? `All 8 of your elements fit in ONE cache line. Reading arr[0] loads every one of them; the next 7 reads cost nothing.`
+              : `Your 8 elements span ${totalLines} cache lines, shown as ${totalLines} colored bands above.`}
+          </p>
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        switch the element type to change the stride and watch every address recompute. edit a value to see its hex and binary. push the index past 7 to see how Rust and C diverge on an out-of-bounds access.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -4398,6 +4639,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <PointerVisualiserWidget />;
     case "phase-classifier":
       return <PhaseClassifierWidget />;
+    case "array-explorer":
+      return <ArrayExplorerWidget />;
     case "big-o-race":
       return <BigORaceWidget />;
     case "process-scheduler":

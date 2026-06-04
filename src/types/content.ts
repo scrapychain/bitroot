@@ -63,6 +63,7 @@ export type WidgetName =
   | "memory-layout"
   | "pointer-visualiser"
   | "phase-classifier"
+  | "array-explorer"
   | "big-o-race"
   | "process-scheduler"
   | "sorting-race";
