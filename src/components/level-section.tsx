@@ -40,7 +40,13 @@ async function RenderBlock({ block }: { block: Block }) {
   }
 }
 
-export async function LevelSection({ content }: { content: LevelContent }) {
+export async function LevelSection({
+  content,
+  accent,
+}: {
+  content: LevelContent;
+  accent?: string;
+}) {
   const levelClass = `level level-${content.level}`;
   const labelMap = {
     beginner: "Beginner",
@@ -49,7 +55,10 @@ export async function LevelSection({ content }: { content: LevelContent }) {
   } as const;
 
   return (
-    <section className={levelClass}>
+    <section
+      className={levelClass}
+      style={accent ? { ["--page-accent" as string]: accent } : undefined}
+    >
       <div className="level-header">
         <span className="level-tag">{labelMap[content.level]}</span>
         <span className="level-num">{`// level ${content.number}`}</span>

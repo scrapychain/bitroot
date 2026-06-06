@@ -923,12 +923,14 @@ code:not(pre code) {
 .card {
   background: var(--bg-1);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg-base);
+  border-left: 3px solid var(--page-accent, var(--neon-cyan));
+  border-radius: 0 var(--radius-lg-base) var(--radius-lg-base) 0;
   padding: 1.2rem;
   transition: all 0.2s ease;
 }
 .card:hover {
   border-color: var(--line-strong);
+  border-left-color: var(--page-accent, var(--neon-cyan));
   transform: translateY(-2px);
 }
 
@@ -3176,6 +3178,7 @@ a.card,
 .grid .card.is-link:hover {
   background: var(--bg-2);
   border-color: var(--neon-indigo);
+  border-left-color: var(--page-accent, var(--neon-cyan));
 }
 .grid .card.is-link:hover .card-link-arrow {
   color: var(--neon-indigo);

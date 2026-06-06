@@ -2,9 +2,14 @@ import { Hero } from "./hero";
 import { LevelSection } from "./level-section";
 import { NextUp } from "./next-up";
 import { TopicPager } from "./topic-pager";
+import { topics } from "@/lib/nav-config";
 import type { PageContent } from "@/types/content";
 
 export async function TopicPage({ content }: { content: PageContent }) {
+  // Each page has a signature accent colour (nav-config). Pass it down so the
+  // in-page card grids pick it up as their left-border highlight.
+  const accent = topics.find((t) => t.href === `/${content.slug}`)?.accent;
+
   return (
     <>
       <TopicPager slug={content.slug} />
@@ -18,7 +23,7 @@ export async function TopicPage({ content }: { content: PageContent }) {
         )}
       </Hero>
       {content.levels.map((level) => (
-        <LevelSection key={level.number} content={level} />
+        <LevelSection key={level.number} content={level} accent={accent} />
       ))}
       {content.nextUp && (
         <NextUp
