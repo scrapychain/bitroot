@@ -64,6 +64,7 @@ export type WidgetName =
   | "pointer-visualiser"
   | "phase-classifier"
   | "array-explorer"
+  | "linked-list-visualiser"
   | "big-o-race"
   | "process-scheduler"
   | "sorting-race";

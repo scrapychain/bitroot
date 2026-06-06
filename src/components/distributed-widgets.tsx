@@ -4605,6 +4605,261 @@ function ArrayExplorerWidget() {
   );
 }
 
+/* =====================================================================
+   21. Linked list visualiser: build a chain with scattered heap addresses,
+   walk it, splice and remove nodes, compare cache behaviour with an array,
+   and watch the per-operation complexity tally (linked-list page)
+   ===================================================================== */
+type LlvLang = "rust" | "c";
+type LlvPos = "front" | "back" | "after";
+interface LlvNode {
+  id: number;
+  value: number;
+  addr: string;
+}
+
+function llvAddr(): string {
+  const hi = (0x5500 + Math.floor(Math.random() * 0x2aff)).toString(16);
+  const mid = Math.floor(Math.random() * 0x10000).toString(16).padStart(4, "0");
+  const lo = (Math.floor(Math.random() * 0x400) * 0x10).toString(16).padStart(4, "0");
+  return "0x" + hi + mid + lo;
+}
+
+const LLV_SEED: LlvNode[] = [
+  { id: 0, value: 10, addr: "0x5591a2b30010" },
+  { id: 1, value: 20, addr: "0x7f3a0000b020" },
+  { id: 2, value: 30, addr: "0x4c20d18a3b80" },
+];
+
+function LinkedListVisualiserWidget() {
+  const [nodes, setNodes] = useState<LlvNode[]>(LLV_SEED);
+  const [lang, setLang] = useState<LlvLang>("rust");
+  const [compare, setCompare] = useState(false);
+  const [addValue, setAddValue] = useState("42");
+  const [pos, setPos] = useState<LlvPos>("front");
+  const [afterIdx, setAfterIdx] = useState("0");
+  const [removeIdx, setRemoveIdx] = useState("0");
+  const [log, setLog] = useState<Array<{ sign: "+" | "-"; text: string; big: string }>>([]);
+  const [counters, setCounters] = useState({ comparisons: 0, derefs: 0 });
+  const [removingId, setRemovingId] = useState<number | null>(null);
+  const [flashIdx, setFlashIdx] = useState<number | null>(null);
+  const [newId, setNewId] = useState<number | null>(null);
+  const idRef = useRef(3);
+
+  const pushLog = (sign: "+" | "-", text: string, big: string) =>
+    setLog((cur) => [{ sign, text, big }, ...cur].slice(0, 6));
+  const bump = (walk: number) =>
+    setCounters((c) => ({ comparisons: c.comparisons + walk, derefs: c.derefs + walk }));
+
+  const addNode = () => {
+    const v = parseInt(addValue, 10);
+    const value = Number.isFinite(v) ? v : 0;
+    const node: LlvNode = { id: idRef.current++, value, addr: llvAddr() };
+    setNewId(node.id);
+    window.setTimeout(() => setNewId(null), 450);
+
+    if (pos === "front") {
+      setNodes((cur) => [node, ...cur]);
+      pushLog("+", `Add ${value} at front`, "O(1) head pointer updated");
+      bump(0);
+    } else if (pos === "back") {
+      const walk = nodes.length;
+      setNodes((cur) => [...cur, node]);
+      pushLog("+", `Add ${value} at back`, `O(n) walked ${walk} node${walk === 1 ? "" : "s"} to the tail`);
+      bump(walk);
+    } else {
+      const i = Math.max(0, Math.min(nodes.length - 1, parseInt(afterIdx, 10) || 0));
+      setNodes((cur) => [...cur.slice(0, i + 1), node, ...cur.slice(i + 1)]);
+      pushLog("+", `Add ${value} after node ${i}`, `O(1) had a pointer to node ${i}`);
+      bump(i);
+    }
+  };
+
+  const removeNode = () => {
+    const i = parseInt(removeIdx, 10);
+    if (!Number.isInteger(i) || i < 0 || i >= nodes.length) {
+      pushLog("-", `No node at index ${removeIdx || "?"}`, "nothing to remove");
+      return;
+    }
+    const target = nodes[i];
+    setRemovingId(target.id);
+    window.setTimeout(() => {
+      setNodes((cur) => cur.filter((n) => n.id !== target.id));
+      setRemovingId(null);
+      if (i > 0) {
+        setFlashIdx(i - 1);
+        window.setTimeout(() => setFlashIdx(null), 600);
+      }
+      pushLog("-", `Remove node ${i}`, i === 0 ? "O(1) head pointer updated" : `O(n) walked ${i} to find predecessor`);
+      bump(i);
+    }, 260);
+  };
+
+  const reset = () => {
+    setNodes(LLV_SEED.map((n) => ({ ...n })));
+    setLog([]);
+    setCounters({ comparisons: 0, derefs: 0 });
+    setRemovingId(null);
+    setFlashIdx(null);
+    idRef.current = 3;
+  };
+
+  const cacheMisses = Math.round(counters.derefs * 0.7);
+  const nullLabel = lang === "rust" ? "None" : "NULL";
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// build and walk the chain"}</span>
+        <div className="widget-controls">
+          <button type="button" className={`widget-btn ${lang === "rust" ? "is-active" : ""}`} onClick={() => setLang("rust")}>
+            Rust
+          </button>
+          <button type="button" className={`widget-btn ${lang === "c" ? "is-active" : ""}`} onClick={() => setLang("c")}>
+            C
+          </button>
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      {/* controls */}
+      <div className="llv-controls">
+        <div className="llv-ctl-row">
+          <span className="llv-ctl-label">add node</span>
+          <input
+            className="llv-num"
+            value={addValue}
+            inputMode="numeric"
+            onChange={(e) => setAddValue(e.target.value.replace(/[^0-9-]/g, ""))}
+            aria-label="value to add"
+          />
+          <div className="llv-seg">
+            <button type="button" className={pos === "front" ? "is-active" : ""} onClick={() => setPos("front")}>
+              at front
+            </button>
+            <button type="button" className={pos === "back" ? "is-active" : ""} onClick={() => setPos("back")}>
+              at back
+            </button>
+            <button type="button" className={pos === "after" ? "is-active" : ""} onClick={() => setPos("after")}>
+              after node
+            </button>
+          </div>
+          {pos === "after" && (
+            <input
+              className="llv-num"
+              value={afterIdx}
+              inputMode="numeric"
+              onChange={(e) => setAfterIdx(e.target.value.replace(/[^0-9]/g, ""))}
+              aria-label="insert after index"
+            />
+          )}
+          <button type="button" className="widget-btn llv-go" onClick={addNode}>
+            + add node
+          </button>
+        </div>
+
+        <div className="llv-ctl-row">
+          <span className="llv-ctl-label">remove node</span>
+          <input
+            className="llv-num"
+            value={removeIdx}
+            inputMode="numeric"
+            onChange={(e) => setRemoveIdx(e.target.value.replace(/[^0-9]/g, ""))}
+            aria-label="index to remove"
+          />
+          <button type="button" className="widget-btn" onClick={removeNode}>
+            &#10005; remove
+          </button>
+          <button type="button" className={`widget-btn ${compare ? "is-active" : ""}`} onClick={() => setCompare((c) => !c)}>
+            compare with array
+          </button>
+        </div>
+      </div>
+
+      {/* array compare view */}
+      {compare && (
+        <div className="llv-compare">
+          <div className="llv-compare-title">same values as an array (contiguous)</div>
+          <div className="llv-arr-row">
+            {nodes.map((n, i) => (
+              <div key={n.id} className="llv-arr-cell">
+                <span className="llv-arr-val">{n.value}</span>
+                <span className="llv-arr-addr">{"0x" + (0x1000 + i * 4).toString(16)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="llv-cacheline llv-cacheline-array">
+            <span className="llv-cl-bar full" />
+            cache line: every element loaded in one 64-byte fetch
+          </div>
+        </div>
+      )}
+
+      {/* linked list visualisation */}
+      <div className="llv-viz">
+        {nodes.length === 0 && <div className="llv-empty">empty list. head points at {nullLabel}.</div>}
+        {nodes.map((n, i) => (
+          <div className="llv-unit" key={n.id}>
+            <div
+              className={`llv-node ${removingId === n.id ? "is-removing" : ""} ${newId === n.id ? "is-new" : ""} ${
+                compare ? (i === 0 ? "hit" : "miss") : ""
+              }`}
+            >
+              <div className="llv-node-val">{n.value}</div>
+              <div className="llv-node-addr">{n.addr}</div>
+              <div className="llv-node-idx">
+                node[{i}]
+                {i === 0 ? <span className="llv-head"> · HEAD</span> : null}
+              </div>
+              {compare && <span className={`llv-cl-badge ${i === 0 ? "hit" : "miss"}`}>{i === 0 ? "L1 hit" : "miss ✕"}</span>}
+            </div>
+            <div className={`llv-arrow ${flashIdx === i ? "is-flash" : ""}`} aria-hidden="true">
+              <span className="llv-arrow-dot" />
+            </div>
+          </div>
+        ))}
+        <div className="llv-null">{nullLabel}</div>
+      </div>
+
+      {/* operation log + counters */}
+      <div className="llv-foot">
+        <div className="llv-logbox">
+          <div className="llv-foot-title">operation log</div>
+          {log.length === 0 && <div className="llv-log-empty">add or remove a node to begin.</div>}
+          {log.map((e, i) => (
+            <div key={i} className={`llv-log-row ${e.sign === "+" ? "add" : "del"}`}>
+              <span className="llv-log-sign">[{e.sign}]</span>
+              <span className="llv-log-text">{e.text}</span>
+              <span className="llv-log-big">{e.big}</span>
+            </div>
+          ))}
+        </div>
+        <div className="llv-counters">
+          <div className="llv-foot-title">cost so far</div>
+          <div className="llv-counter">
+            <span>comparisons</span>
+            <strong>{counters.comparisons}</strong>
+          </div>
+          <div className="llv-counter">
+            <span>pointer dereferences</span>
+            <strong>{counters.derefs}</strong>
+          </div>
+          <div className="llv-counter" title="assuming 70% of pointer chases miss L1 cache on a warm heap">
+            <span>cache misses (est.)</span>
+            <strong className="miss">{cacheMisses}</strong>
+          </div>
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        every node gets a scattered heap address, never sequential like an array. add at front (O(1)), at back (O(n) walk), or after a node you already hold (O(1)). toggle compare with array to see why the linked list misses cache on every step.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -4641,6 +4896,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <PhaseClassifierWidget />;
     case "array-explorer":
       return <ArrayExplorerWidget />;
+    case "linked-list-visualiser":
+      return <LinkedListVisualiserWidget />;
     case "big-o-race":
       return <BigORaceWidget />;
     case "process-scheduler":

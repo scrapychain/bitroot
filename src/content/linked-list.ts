@@ -208,6 +208,148 @@ uint32_t a_alloc(int value, uint32_t after) {
     return id;
 }`;
 
+const cBlockchain = `#include <stdint.h>
+#include <string.h>
+
+/* A Bitcoin block header - 80 bytes.
+ * The linked list node of the blockchain. */
+typedef struct __attribute__((packed)) {
+    uint32_t version;
+    uint8_t  prev_hash[32]; /* the next pointer */
+                            /* except it is a hash */
+                            /* not a memory address */
+    uint8_t  merkle_root[32];
+    uint32_t timestamp;
+    uint32_t bits;
+    uint32_t nonce;
+} BlockHeader;
+
+/* Walk the blockchain backwards from tip to genesis.
+ * Same shape as walking a singly linked list.
+ * Except prev_hash is looked up in a database
+ * not dereferenced as a pointer. */
+void walk_chain(
+    const BlockHeader *tip,
+    BlockHeader *(*find_by_hash)(const uint8_t[32])
+) {
+    const BlockHeader *current = tip;
+    uint8_t genesis[32] = {0}; /* all-zero hash */
+
+    while (current != NULL) {
+        /* process block... */
+        if (memcmp(current->prev_hash,
+                   genesis, 32) == 0) break;
+        /* follow the "pointer" */
+        current = find_by_hash(current->prev_hash);
+        /* in a regular linked list:
+         *   current = current->next;
+         * here:
+         *   current = database_lookup(current->prev_hash);
+         * same shape. different mechanism.
+         * same O(n) to walk the whole chain. */
+    }
+}
+
+/* The linked list property that matters:
+ * change any block -> its hash changes ->
+ * the next block's prev_hash no longer matches ->
+ * the chain is broken from that point onward ->
+ * every node rejects it.
+ *
+ * This is why you cannot rewrite Bitcoin history.
+ * Not because of trust.
+ * Because of linked list pointer integrity.
+ * Enforced by SHA-256 instead of the OS. */`;
+
+const rustBlockchain = `use std::collections::HashMap;
+
+/* Each block is a linked list node. */
+struct Block {
+    header:       BlockHeader,
+    transactions: Vec<Transaction>,
+}
+
+struct BlockHeader {
+    version:     u32,
+    prev_hash:   [u8; 32], // the linked list pointer
+    merkle_root: [u8; 32],
+    timestamp:   u32,
+    bits:        u32,
+    nonce:       u32,
+}
+
+/* The blockchain: a hash map for O(1) lookup
+ * plus a linked list structure via prev_hash. */
+struct Blockchain {
+    blocks: HashMap<[u8; 32], Block>,
+    tip:    [u8; 32],
+}
+
+impl Blockchain {
+    fn walk_backwards(&self) -> Vec<&Block> {
+        let mut chain  = Vec::new();
+        let mut cursor = Some(self.tip);
+        let genesis    = [0u8; 32];
+
+        while let Some(hash) = cursor {
+            // follow the prev_hash pointer,
+            // same as node = node.next in a regular list
+            match self.blocks.get(&hash) {
+                None        => break,
+                Some(block) => {
+                    chain.push(block);
+                    let ph = block.header.prev_hash;
+                    cursor = if ph == genesis {
+                        None           // genesis: end of chain
+                    } else {
+                        Some(ph)       // follow the pointer
+                    };
+                }
+            }
+        }
+        chain
+        // Rust: prev_hash is a [u8; 32] value type,
+        // not a raw pointer. HashMap returns Option:
+        // no null dereference possible, safe to any depth.
+    }
+
+    /* Verify chain integrity: every prev_hash must
+     * resolve to a real block in the map.
+     * This is what every Bitcoin node does on startup. */
+    fn verify_integrity(&self) -> bool {
+        for (_stored_hash, block) in &self.blocks {
+            let ph = &block.header.prev_hash;
+            if *ph == [0u8; 32] { continue; } // genesis
+            match self.blocks.get(ph) {
+                None    => return false, // broken link
+                Some(_) => { /* link valid, continue */ }
+            }
+        }
+        true
+    }
+}
+
+/* The Bitcoin blockchain vs a memory linked list:
+ *
+ *   Regular list:  node->next  = memory address
+ *   Blockchain:    block.prev  = SHA-256d(prev_header)
+ *
+ *   Regular list:  change node -> only breaks if
+ *                  the parent checks pointer validity
+ *   Blockchain:    change block -> hash changes ->
+ *                  every later block's prev_hash
+ *                  fails verification ->
+ *                  the whole network rejects the fork
+ *
+ * The list is singly linked.
+ * You walk it backwards: tip -> ... -> genesis.
+ * Inserts happen only at the tip (mining a block).
+ * Deletes never happen (immutable append-only).
+ *
+ * A linked list, made tamper-evident by replacing
+ * memory addresses with cryptographic hashes.
+ * That is the entire blockchain data structure. */`;
+
 export const linkedList: PageContent = {
   slug: "linked-list",
   hexLabel: "0x0C",
@@ -281,6 +423,12 @@ export const linkedList: PageContent = {
           title: "// connect back to the memory page",
           body: `Every <code>next</code> pointer is a heap address, the kind described in the memory page's stack-vs-heap section. The head pointer lives on the stack (it's a local in <code>main</code>), but the nodes it leads to all live on the heap. That's why building a linked list is allocator-heavy: each <code>malloc</code> / <code>Box::new</code> is a separate trip into the allocator, with the bookkeeping cost the memory page warned about. A <code>Vec</code> pays that price once and re-uses the buffer; a linked list pays it on every push.`,
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Each node lives at a heap address. That address is a hex number. <code>0x5591a2b30010</code> for node one. <code>0x5591a2b30030</code> for node two. Not next to each other. Not even close. The pointer in each node is the only thread connecting them. Eight bytes of binary number, pointing somewhere in the heap. This is the pointers page applied to a data structure. Every next field is a dereference. Every walk is a pointer chase. <a href="/pointers">← see: Pointers</a> · <a href="/memory">Memory</a></p>`,
+        },
+        { kind: "heading", text: "Build and walk the chain" },
+        { kind: "widget", name: "linked-list-visualiser" },
       ],
     },
     {
@@ -371,6 +519,10 @@ export const linkedList: PageContent = {
             ],
           ],
         },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Look at the random access row: O(n). The array page showed <code>arr[i]</code> is O(1) because <code>base + (i × stride)</code> is one instruction. A linked list has no base and no stride. To get node i you start at the head and count i pointer dereferences. The Big O page named this the hidden cost: the same O(n) classification as array iteration, but 5 to 50 times slower in practice. Linked lists are the canonical example of why Big O lies. <a href="/arrays">← see: Arrays</a> · <a href="/big-o">Big O Notation</a></p>`,
+        },
         { kind: "heading", text: "Singly linked vs doubly linked" },
         { kind: "diagram", name: "doubly-linked-list" },
         {
@@ -394,6 +546,10 @@ export const linkedList: PageContent = {
           variant: "warn",
           title: "// why doubly linked lists are awkward in safe Rust",
           body: `Each node has two references to it (from its predecessor and its successor), and they're both mutable. Rust's borrow checker is allergic to that. The escape hatches are <code>Rc&lt;RefCell&lt;...&gt;&gt;</code> with <code>Weak</code> back-pointers, or raw <code>unsafe</code> pointers. In practice, Rust programmers reach for <code>Vec</code> + indices far more often than they reach for a literal doubly linked list. The standard library's <code>LinkedList&lt;T&gt;</code> exists but is rarely the right tool.`,
+        },
+        {
+          kind: "raw",
+          html: `<p class="connection-line">Safe Rust refuses to compile a doubly linked list because each node has two mutable references to it. The borrow checker sees this and says no. This is the compile vs runtime page in action. The bug that would corrupt memory in C at runtime is rejected by Rust at compile time. Doubly linked lists are the most famous example of Rust's ownership system fighting you. The language is not wrong to fight. <a href="/compile-vs-runtime">← see: Compile vs Runtime</a> · <a href="/pointers">Pointers</a></p>`,
         },
       ],
     },
@@ -486,6 +642,28 @@ export const linkedList: PageContent = {
 </ul>
 <p>If none of those are true, a <code>Vec</code> or a <code>VecDeque</code> will beat a linked list on every dimension that matters.</p>`,
         },
+        { kind: "heading", text: "The blockchain is a linked list" },
+        {
+          kind: "prose",
+          html: `<p>The opening of this page said it. The Bitcoin blockchain is a linked list. Lets prove it with code.</p>
+<p>The pointer between nodes is not an address. Its a cryptographic hash. Specifically, the SHA-256 double hash of the previous block header. This single change makes the list unforgeable.</p>
+<p>In a regular linked list: change node B, update block A's next pointer. Nobody knows.</p>
+<p>In the blockchain: change block B and its hash changes. Block A's prev_hash still holds the old hash. They dont match. Every node on the network detects the tamper. Instantly.</p>
+<p>The chain is still a linked list. But the pointer is a content address, not a memory address.</p>`,
+        },
+        {
+          kind: "codepair",
+          pair: {
+            rust: { language: "rust", code: rustBlockchain },
+            c: { language: "c", code: cBlockchain },
+          },
+        },
+        {
+          kind: "callout",
+          variant: "info",
+          title: "// the entire blockchain data structure",
+          body: `A singly linked list you walk backwards: tip, then its parent, then its parent, all the way to genesis. Inserts happen only at the tip (mining a block). Deletes never happen (it is append-only). The one change from a memory linked list: the <code>next</code> pointer is a SHA-256 hash of the node it points at, not its address. That is what makes it tamper-evident. Change any block and every link after it fails verification, so the whole network rejects the fork. Pointer integrity, enforced by cryptography instead of the OS.`,
+        },
         { kind: "heading", text: "Where to dig in next" },
         {
           kind: "prose",
@@ -497,6 +675,113 @@ export const linkedList: PageContent = {
   <li><strong>Linux's <code>list_head</code></strong>. Read <code>include/linux/list.h</code> for the canonical intrusive-list API; the macros are short and beautiful.</li>
   <li><strong>"Learning Rust With Entirely Too Many Linked Lists"</strong>. The single best resource for understanding why linked lists are hard in Rust, and what to do about it.</li>
 </ul>`,
+        },
+        { kind: "heading", text: "Where linked lists appear in ScrapyBytes" },
+        {
+          kind: "prose",
+          html: `<p>A chain of somewheres shows up everywhere once you know its shape. Here is where the pointer chase reaches across the site.</p>`,
+        },
+        {
+          kind: "grid",
+          columns: 4,
+          cards: [
+            {
+              label: "02 / binary",
+              value: "8 bytes per next",
+              desc: "Every next pointer is 8 bytes of binary, a 64-bit address stored in the node. Linked lists are chains of binary numbers pointing through the heap.",
+              href: "/binary",
+            },
+            {
+              label: "01 / number systems",
+              value: "Scattered hex addresses",
+              desc: "Heap addresses are hex numbers: 0x5591a2b30010 for one node, 0x7f3a0000b020 for the next, scattered across the address space. Hex because binary addresses would be unreadable.",
+              href: "/number-systems",
+            },
+            {
+              label: "06 / memory",
+              value: "One malloc per node",
+              desc: "Every node is a separate heap allocation, one malloc or Box::new each. The memory page warned this costs hundreds of cycles. A five-node list is five trips to the allocator; a Vec pays once.",
+              href: "/memory",
+            },
+            {
+              label: "05 / cpu",
+              value: "Unprefetchable chases",
+              desc: "Walking a list is pointer chases. The CPU cannot prefetch the next node; it learns the address only by reading the current one. Every step is a potential 200-300 cycle cache miss.",
+              href: "/cpu",
+            },
+            {
+              label: "07 / operating system",
+              value: "Intrusive kernel lists",
+              desc: "The kernel uses intrusive doubly linked lists for run queues, wait queues, and timer lists. The same list_head embedded in task_struct connects the structs the OS page described.",
+              href: "/operating-system",
+            },
+            {
+              label: "08 / variables",
+              value: "Nodes are structs",
+              desc: "A node is a struct variable: value plus next: *Node in C, or value plus next: Option<Box<Node>> in Rust. A linked list is those structs scattered across the heap, joined by their pointer fields.",
+              href: "/variables",
+            },
+            {
+              label: "09 / pointers",
+              value: "Pointers, applied",
+              desc: "The next field is a pointer; walking is dereferencing; inserting writes two pointers; deleting writes one. The whole structure is the pointer page made into a chain.",
+              href: "/pointers",
+            },
+            {
+              label: "10 / compile vs runtime",
+              value: "Rejected at compile time",
+              desc: "A doubly linked list is the famous case of Rust refusing code C compiles silently: two mutable references to one node. Rust says no at compile time; C corrupts at runtime.",
+              href: "/compile-vs-runtime",
+            },
+            {
+              label: "11 / arrays",
+              value: "The opposite",
+              desc: "Arrays and linked lists are opposites: contiguous vs scattered, O(1) vs O(n) access, cache-friendly vs cache-hostile. The arrays page is the other side of the fundamental tradeoff.",
+              href: "/arrays",
+            },
+            {
+              label: "20 / recursion",
+              value: "A recursive structure",
+              desc: "A list is either empty or a node followed by a list. The natural traversal is recursive; the safe one is iterative when the list is long. The blockchain is 800,000 nodes deep.",
+              href: "/recursion",
+            },
+            {
+              label: "13 / hashing",
+              value: "Buckets are chains",
+              desc: "Hash maps resolve collisions with linked lists: each bucket is the head of a chain, and colliding keys hang off one array slot. This page is the prerequisite for the next one.",
+              href: "/hashing",
+            },
+            {
+              label: "21 / big o",
+              value: "Why Big O lies",
+              desc: "O(n) access is the price you pay for O(1) inserts: same classification as array iteration, but 5 to 50 times slower. Cache behaviour is not in the notation; linked lists are the proof.",
+              href: "/big-o",
+            },
+            {
+              label: "15 / networking",
+              value: "sk_buff chains",
+              desc: "The Linux kernel often implements socket send and receive buffers as linked lists of sk_buff structs. Each buffer is a node; the packets in flight from the networking page live in them.",
+              href: "/networking",
+            },
+            {
+              label: "16 / distributed systems",
+              value: "Append-only logs",
+              desc: "Event logs are append-only linked lists where each event points to the previous, the same shape as the blockchain. The same tamper-evidence argument applies once the pointer is a hash.",
+              href: "/distributed-systems",
+            },
+            {
+              label: "19 / blockchain",
+              value: "Hash-linked nodes",
+              desc: "The Bitcoin blockchain is a singly linked list whose next pointer is a SHA-256 double hash. Change any block, its hash changes, the next block's pointer no longer matches, the chain breaks.",
+              href: "/blockchain",
+            },
+            {
+              label: "22 / sorting",
+              value: "Painful to sort",
+              desc: "Merge sort works on lists by splitting via pointers, but quicksort needs random access, and the cache cost of any sort is far higher than on an array. The sorting page chose arrays deliberately.",
+              href: "/sorting",
+            },
+          ],
         },
       ],
     },
