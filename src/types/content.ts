@@ -67,7 +67,8 @@ export type WidgetName =
   | "linked-list-visualiser"
   | "big-o-race"
   | "process-scheduler"
-  | "sorting-race";
+  | "sorting-race"
+  | "hash-visualiser";
 
 export type Block =
   | { kind: "prose"; html: string }

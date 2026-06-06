@@ -4860,6 +4860,321 @@ function LinkedListVisualiserWidget() {
   );
 }
 
+/* =====================================================================
+   22. Hash visualiser: type any input, watch its fingerprint change, the
+   avalanche of flipped bits when one character moves, and where the key
+   lands in a hash map. FNV-1a is computed in pure JS; SHA-256 runs through
+   the browser's SubtleCrypto. (hashing page)
+   ===================================================================== */
+type HvMode = "fnv" | "sha";
+
+// FNV-1a, 64-bit, returned as 8 big-endian bytes so the rest of the widget
+// can treat FNV and SHA digests identically (just different lengths).
+function hvFnv1aBytes(input: string): number[] {
+  const data = new TextEncoder().encode(input);
+  let h = 0xcbf29ce484222325n;
+  const prime = 0x100000001b3n;
+  const mask = (1n << 64n) - 1n;
+  for (const b of data) {
+    h ^= BigInt(b);
+    h = (h * prime) & mask;
+  }
+  const out: number[] = new Array(8);
+  for (let i = 0; i < 8; i++) out[i] = Number((h >> BigInt((7 - i) * 8)) & 0xffn);
+  return out;
+}
+
+async function hvSha256Bytes(input: string): Promise<number[]> {
+  const data = new TextEncoder().encode(input);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buf));
+}
+
+const hvHex = (b: number) => b.toString(16).padStart(2, "0");
+const hvBytesHex = (bytes: number[]) => bytes.map(hvHex).join("");
+
+// Reduce a big-endian byte string modulo the capacity. Capacities here are
+// all <= 256, so r * 256 + b never overflows a JS safe integer.
+function hvBucket(bytes: number[], cap: number): number {
+  let r = 0;
+  for (const b of bytes) r = (r * 256 + b) % cap;
+  return r;
+}
+
+// Which output bits flipped between two digests (XOR, expanded to bits).
+function hvFlips(a: number[], b: number[]): boolean[] {
+  const bits: boolean[] = [];
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    const x = a[i] ^ b[i];
+    for (let k = 7; k >= 0; k--) bits.push(((x >> k) & 1) === 1);
+  }
+  return bits;
+}
+
+// The "one character changed" twin: bump the last character by one code point.
+function hvSibling(input: string): string {
+  if (input.length === 0) return "";
+  const last = input.charCodeAt(input.length - 1);
+  return input.slice(0, -1) + String.fromCharCode(last + 1);
+}
+
+const HV_CAPS = [8, 16, 64, 256];
+const HV_SEED = ["alice", "bob", "carol"];
+
+function HashVisualiserWidget() {
+  const [mode, setMode] = useState<HvMode>("fnv");
+  const [input, setInput] = useState("alice");
+  const [capacity, setCapacity] = useState(8);
+  const [inserted, setInserted] = useState<string[]>(HV_SEED);
+  const [subtleOk, setSubtleOk] = useState(true);
+
+  const sib = hvSibling(input);
+
+  // Every string whose digest we need this render.
+  const needed = useMemo(() => {
+    const s = new Set<string>();
+    if (input) {
+      s.add(input);
+      s.add(sib);
+    }
+    for (const k of inserted) s.add(k);
+    return Array.from(s);
+  }, [input, sib, inserted]);
+
+  // Digests live in state because SHA-256 is async. Lazy-initialised with the
+  // default FNV view so the first paint already shows a real fingerprint.
+  const [digests, setDigests] = useState<Record<string, number[]>>(() => {
+    const o: Record<string, number[]> = {};
+    for (const k of ["alice", "alicf", "bob", "carol"]) o[k] = hvFnv1aBytes(k);
+    return o;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      const out: Record<string, number[]> = {};
+      if (mode === "fnv") {
+        for (const k of needed) out[k] = hvFnv1aBytes(k);
+        if (!cancelled) {
+          setDigests(out);
+          setSubtleOk(true);
+        }
+        return;
+      }
+      if (typeof crypto === "undefined" || !crypto.subtle) {
+        if (!cancelled) setSubtleOk(false);
+        return;
+      }
+      try {
+        for (const k of needed) out[k] = await hvSha256Bytes(k);
+        if (!cancelled) {
+          setDigests(out);
+          setSubtleOk(true);
+        }
+      } catch {
+        if (!cancelled) setSubtleOk(false);
+      }
+    }
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, needed]);
+
+  const cur = digests[input];
+  const sibDig = digests[sib];
+
+  const bits = cur && sibDig ? hvFlips(cur, sibDig) : [];
+  const flips = bits.filter(Boolean).length;
+  const pct = bits.length ? Math.round((flips / bits.length) * 100) : 0;
+
+  // Where every inserted key lands at the current capacity.
+  const placement = useMemo(() => {
+    const map: Record<number, string[]> = {};
+    for (const k of inserted) {
+      const d = digests[k];
+      if (!d) continue;
+      const idx = hvBucket(d, capacity);
+      (map[idx] ||= []).push(k);
+    }
+    return map;
+  }, [inserted, digests, capacity]);
+
+  const liveBucket = cur ? hvBucket(cur, capacity) : -1;
+  const collidesWith =
+    liveBucket >= 0 ? (placement[liveBucket] || []).filter((k) => k !== input) : [];
+
+  const curHex = cur ? hvBytesHex(cur) : "";
+  const shownHex = mode === "fnv" ? curHex : curHex.slice(0, 16) + (curHex ? "..." : "");
+  const compact = capacity > 16;
+
+  const drop = () => {
+    if (!input) return;
+    setInserted((prev) => (prev.includes(input) ? prev : [...prev, input]));
+  };
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// see the fingerprint change"}</span>
+        <div className="widget-controls">
+          <button type="button" className={`widget-btn ${mode === "fnv" ? "is-active" : ""}`} onClick={() => setMode("fnv")}>
+            Non-crypto (FNV-1a)
+          </button>
+          <button type="button" className={`widget-btn ${mode === "sha" ? "is-active" : ""}`} onClick={() => setMode("sha")}>
+            SHA-256
+          </button>
+        </div>
+      </div>
+
+      <div className="hv">
+        {/* TOP: input */}
+        <div className="hv-panel">
+          <span className="hv-panel-title">input</span>
+          <input
+            className="hv-input"
+            value={input}
+            placeholder="Type anything here..."
+            onChange={(e) => setInput(e.target.value)}
+            spellCheck={false}
+            aria-label="hash input"
+          />
+        </div>
+
+        {/* MIDDLE: hash output */}
+        <div className="hv-panel">
+          <span className="hv-panel-title">{mode === "fnv" ? "fnv-1a output" : "sha-256 output"}</span>
+          {!cur ? (
+            mode === "sha" && !subtleOk ? (
+              <p className="hv-note">SubtleCrypto is unavailable in this browser, so SHA-256 cannot be computed here. Switch to FNV-1a above.</p>
+            ) : (
+              <p className="hv-note">{input ? "computing fingerprint..." : "type something above to take its fingerprint."}</p>
+            )
+          ) : mode === "fnv" ? (
+            <div className="hv-fnv">
+              <div className="hv-fnv-hash">
+                FNV-1a hash: <span className="hv-hex">0x{curHex}</span>
+              </div>
+              <div className="hv-fnv-rows">
+                <div>Bucket index (capacity 8): <strong>{hvBucket(cur, 8)}</strong></div>
+                <div>Bucket index (capacity 16): <strong>{hvBucket(cur, 16)}</strong></div>
+                <div>Bucket index (capacity 256): <strong>{hvBucket(cur, 256)}</strong></div>
+              </div>
+            </div>
+          ) : (
+            <div className="hv-sha">
+              <div className="hv-sha-label">SHA-256:</div>
+              <div className="hv-bytes">
+                {cur.map((b, i) => (
+                  <span key={i} className="hv-byte">{hvHex(b)}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* AVALANCHE */}
+        <div className="hv-panel">
+          <span className="hv-panel-title">avalanche: one character changed</span>
+          {cur && sibDig && input ? (
+            <>
+              <div className="hv-ava-rows">
+                <div className="hv-ava-row">
+                  <span className="hv-ava-label">input 1</span>
+                  <span className="hv-ava-key">&quot;{input}&quot;</span>
+                  <span className="hv-ava-mini">{hvBytesHex(cur).slice(0, 16)}...</span>
+                </div>
+                <div className="hv-ava-row">
+                  <span className="hv-ava-label">input 2</span>
+                  <span className="hv-ava-key">&quot;{sib}&quot;</span>
+                  <span className="hv-ava-mini">{hvBytesHex(sibDig).slice(0, 16)}...</span>
+                </div>
+              </div>
+              <div className={`hv-bits ${mode}`}>
+                {bits.map((f, i) => (
+                  <span key={i} className={`hv-bit ${f ? "flip" : ""}`} />
+                ))}
+              </div>
+              <div className="hv-ava-count">
+                <strong>{flips}</strong> / {bits.length} bits changed ({pct}%)
+              </div>
+            </>
+          ) : (
+            <p className="hv-note">type at least one character to see the avalanche.</p>
+          )}
+        </div>
+
+        {/* BOTTOM: hash map simulator */}
+        <div className="hv-panel">
+          <span className="hv-panel-title">see it land in a hash map</span>
+          <div className="hv-cap-row">
+            <span className="hv-cap-label">capacity</span>
+            <div className="hv-cap-tabs">
+              {HV_CAPS.map((c) => (
+                <button key={c} type="button" className={`widget-btn ${capacity === c ? "is-active" : ""}`} onClick={() => setCapacity(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {cur && (
+            <pre className="hv-math">
+              <code>{`hash("${input}") = 0x${shownHex}
+0x${shownHex} % ${capacity} = ${liveBucket}
+lands in bucket ${liveBucket}`}</code>
+            </pre>
+          )}
+
+          {collidesWith.length > 0 && (
+            <div className="hv-collision">
+              Collision! &quot;{input}&quot; and &quot;{collidesWith[0]}&quot; both land in bucket {liveBucket}
+            </div>
+          )}
+
+          <div className={`hv-buckets ${compact ? "is-compact" : ""}`}>
+            {Array.from({ length: capacity }, (_, i) => {
+              const keys = placement[i] || [];
+              const isLive = i === liveBucket;
+              const isCollision = keys.length > 1 || (isLive && keys.some((k) => k !== input));
+              return (
+                <div
+                  key={i}
+                  className={`hv-bucket ${isLive ? "is-live" : ""} ${isCollision ? "is-collision" : ""} ${keys.length ? "is-filled" : ""}`}
+                  title={keys.join(", ")}
+                >
+                  <span className="hv-bucket-idx">{i}</span>
+                  {!compact && keys.length > 0 && <span className="hv-bucket-keys">{keys.join(", ")}</span>}
+                  {compact && keys.length > 0 && <span className="hv-bucket-dot" />}
+                  {isCollision && <span className="hv-chain" aria-hidden="true">⛓</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hv-sim-controls">
+            <button type="button" className="widget-btn" onClick={drop} disabled={!input}>
+              drop &quot;{input || "..."}&quot; into map
+            </button>
+            <button type="button" className="widget-btn" onClick={() => setInserted([])}>
+              clear map
+            </button>
+            <button type="button" className="widget-btn" onClick={() => setInserted(HV_SEED)}>
+              reset
+            </button>
+            <span className="hv-sim-count">{inserted.length} keys in map</span>
+          </div>
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        type to watch the fingerprint recompute on every keystroke. FNV-1a is a fast non-cryptographic hash computed in JavaScript; SHA-256 runs in your browser via SubtleCrypto. The avalanche grid shows which output bits flip when a single input character moves. Drop keys into the map and shrink the capacity to force a collision.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -4904,6 +5219,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <ProcessSchedulerWidget />;
     case "sorting-race":
       return <SortingRaceWidget />;
+    case "hash-visualiser":
+      return <HashVisualiserWidget />;
     default:
       return null;
   }

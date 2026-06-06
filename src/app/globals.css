@@ -6141,3 +6141,364 @@ a.card,
   color: var(--neon-rose);
 }
 
+/* ============================================
+   HASH VISUALISER WIDGET (hashing page)
+   ============================================ */
+.hv {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.hv-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.95rem 1.05rem;
+}
+
+.hv-panel-title {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.hv-input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.hv-input::placeholder {
+  color: var(--fg-mute);
+}
+.hv-input:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 1px var(--neon-cyan), 0 0 14px rgba(0, 240, 255, 0.18);
+}
+
+.hv-note {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-mute);
+}
+
+/* FNV output */
+.hv-fnv {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.hv-fnv-hash {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  color: var(--fg-dim);
+}
+.hv-hex {
+  color: var(--neon-cyan);
+  word-break: break-all;
+}
+.hv-fnv-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+}
+.hv-fnv-rows strong {
+  color: var(--neon-cyan);
+}
+
+/* SHA byte grid */
+.hv-sha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.hv-sha-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+}
+.hv-bytes {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 0.3rem;
+  max-width: 520px;
+}
+.hv-byte {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-align: center;
+  color: var(--neon-cyan);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.18rem 0;
+}
+
+/* Avalanche */
+.hv-ava-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.hv-ava-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+.hv-ava-label {
+  color: var(--fg-mute);
+  min-width: 3.6rem;
+}
+.hv-ava-key {
+  color: var(--fg);
+  min-width: 5rem;
+}
+.hv-ava-mini {
+  color: var(--neon-cyan);
+  word-break: break-all;
+}
+.hv-bits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 0.2rem 0;
+}
+.hv-bit {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--bg-3);
+  transition: background 0.18s ease;
+}
+.hv-bit.flip {
+  background: var(--neon-amber);
+  box-shadow: 0 0 5px rgba(255, 182, 39, 0.55);
+}
+.hv-ava-count {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--fg-dim);
+}
+.hv-ava-count strong {
+  color: var(--neon-amber);
+  font-size: 0.95rem;
+}
+
+/* Hash map simulator */
+.hv-cap-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.hv-cap-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.hv-cap-tabs {
+  display: flex;
+  gap: 0.4rem;
+}
+.hv-math {
+  margin: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.7rem 0.85rem;
+  overflow-x: auto;
+}
+.hv-math code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--neon-cyan);
+  white-space: pre;
+}
+.hv-collision {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--neon-amber);
+  background: rgba(255, 182, 39, 0.08);
+  border: 1px solid rgba(255, 182, 39, 0.4);
+  border-left: 3px solid var(--neon-amber);
+  border-radius: 0 6px 6px 0;
+  padding: 0.55rem 0.8rem;
+}
+.hv-buckets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.hv-bucket {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  min-width: 3.1rem;
+  min-height: 3.1rem;
+  padding: 0.35rem 0.4rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.hv-bucket.is-filled {
+  border-color: var(--neon-emerald);
+}
+.hv-bucket.is-live {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 1px var(--neon-cyan), 0 0 12px rgba(0, 240, 255, 0.25);
+}
+.hv-bucket.is-collision {
+  border-color: var(--neon-amber);
+  background: rgba(255, 182, 39, 0.08);
+  box-shadow: 0 0 12px rgba(255, 182, 39, 0.28);
+}
+.hv-bucket-idx {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--fg-mute);
+}
+.hv-bucket.is-filled .hv-bucket-idx {
+  color: var(--neon-emerald);
+}
+.hv-bucket.is-collision .hv-bucket-idx {
+  color: var(--neon-amber);
+}
+.hv-bucket-keys {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--fg-dim);
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-all;
+}
+.hv-bucket-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-emerald);
+}
+.hv-bucket.is-collision .hv-bucket-dot {
+  background: var(--neon-amber);
+}
+.hv-chain {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: 0.62rem;
+  line-height: 1;
+}
+.hv-buckets.is-compact .hv-bucket {
+  min-width: 1.7rem;
+  min-height: 1.7rem;
+  padding: 0.2rem;
+}
+.hv-buckets.is-compact .hv-bucket-idx {
+  font-size: 0.54rem;
+}
+.hv-sim-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.hv-sim-count {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-mute);
+  margin-left: auto;
+}
+
+@media (max-width: 560px) {
+  .hv-bytes {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* ============================================
+   HASHING CONNECTIONS GRID (where hashing appears)
+   ============================================ */
+.hconn {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 0.9rem;
+  margin: 1.4rem 0 0.5rem;
+}
+.hconn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--c, var(--neon-cyan));
+  border-radius: 0 8px 8px 0;
+  padding: 0.95rem 1.05rem;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.hconn-card:hover {
+  background: var(--bg-2);
+  border-color: var(--line-strong);
+  border-left-color: var(--c, var(--neon-cyan));
+  transform: translateY(-2px);
+}
+.hconn-badge {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c, var(--neon-cyan));
+  background: var(--bg-2);
+  border: 1px solid var(--c, var(--neon-cyan));
+  border-radius: 4px;
+  padding: 0.22rem 0.5rem;
+}
+.hconn-text {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.79rem;
+  line-height: 1.6;
+  color: var(--fg-dim);
+}
+.hconn-text code {
+  color: var(--c, var(--neon-cyan));
+  word-break: break-all;
+}
+.hconn-link {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  letter-spacing: 0.03em;
+  color: var(--fg-mute);
+  transition: color 0.18s ease;
+}
+.hconn-card:hover .hconn-link {
+  color: var(--c, var(--neon-cyan));
+}
+

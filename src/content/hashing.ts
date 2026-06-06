@@ -233,6 +233,225 @@ fn merkle_root(leaves: &[&[u8]]) -> Vec<u8> {
 // That single 32-byte root is enough to prove the integrity of
 // gigabytes of transactions underneath it.`;
 
+const cOpenAddressing = `#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+
+// Open addressing in C: one flat array, no per-entry malloc, no pointers.
+// When a slot is taken, linear-probe forward until an empty one turns up.
+// This is the layout Rust's HashMap and the Swiss tables use, because the
+// whole table is one contiguous block the cache prefetcher can devour.
+#define CAP 16                  // power of two, so & (CAP-1) replaces % CAP
+
+typedef struct {
+    const char *key;            // NULL key means the slot is empty
+    int         value;
+} Slot;
+
+static Slot table[CAP];         // zero-initialised: every slot starts empty
+
+uint64_t fnv1a(const char *s);  // the small string hash from earlier
+
+void put(const char *key, int value) {
+    size_t i = fnv1a(key) & (CAP - 1);
+    for (size_t probe = 0; probe < CAP; probe++) {
+        if (table[i].key == NULL) {             // empty slot: claim it
+            table[i].key   = key;
+            table[i].value = value;
+            return;
+        }
+        if (strcmp(table[i].key, key) == 0) {   // same key: overwrite
+            table[i].value = value;
+            return;
+        }
+        i = (i + 1) & (CAP - 1);                // taken: probe the next slot
+    }
+    /* table full: a production map would resize and rehash here */
+}
+
+int get(const char *key, int *out) {
+    size_t i = fnv1a(key) & (CAP - 1);
+    for (size_t probe = 0; probe < CAP; probe++) {
+        if (table[i].key == NULL) return 0;         // empty slot: key absent
+        if (strcmp(table[i].key, key) == 0) {       // found the key
+            *out = table[i].value;
+            return 1;
+        }
+        i = (i + 1) & (CAP - 1);                    // keep probing forward
+    }
+    return 0;
+}
+
+int main(void) {
+    put("alice", 27);
+    put("bob",   31);
+    put("carol", 42);
+
+    int age;
+    if (get("alice", &age))
+        printf("alice -> %d\\n", age);
+    return 0;
+}`;
+
+const cCryptoHash = `/*
+ * Cryptographic hash with OpenSSL.
+ * Properties that HashMap hashes dont need
+ * but blockchains require:
+ *
+ * 1. Pre-image resistance:
+ *    given H(x), cannot find x
+ *    would require 2^256 attempts for SHA-256
+ *
+ * 2. Collision resistance:
+ *    cannot find x, y such that H(x) == H(y)
+ *    would require 2^128 attempts
+ *
+ * 3. Avalanche:
+ *    flip one input bit, ~half output bits flip
+ *    chaotically and unpredictably
+ *
+ * The price is speed:
+ * SHA-256: ~10 ns per byte
+ * FNV-1a:  fractions of a nanosecond per byte
+ * Never use SHA-256 in a HashMap.
+ */
+#include <stdio.h>
+#include <string.h>
+#include <openssl/sha.h>
+
+void sha256_hex(const uint8_t *data,
+                size_t len,
+                char out[65]) {
+    uint8_t digest[SHA256_DIGEST_LENGTH];
+    SHA256(data, len, digest);
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+        sprintf(out + i*2, "%02x", digest[i]);
+    out[64] = '\\0';
+}
+
+int main(void) {
+    const char *block = "prev_hash || merkle_root || nonce=42";
+    char hex[65];
+    sha256_hex((const uint8_t*)block,
+               strlen(block), hex);
+    printf("%s\\n", hex);
+    /* 32 bytes (256 bits) regardless of input length */
+
+    /*
+     * Bitcoin mining loop in C:
+     *
+     * uint32_t nonce = 0;
+     * uint8_t  header[80];
+     * uint8_t  hash[32];
+     *
+     * for (;;) {
+     *     memcpy(header + 76, &nonce, 4);
+     *     sha256d(header, 80, hash);
+     *     if (leading_zeros(hash) >= target) break;
+     *     nonce++;
+     * }
+     *
+     * sha256d = SHA256(SHA256(data)). Bitcoin double-hashes.
+     * The loop is the ENTIRE proof-of-work algorithm.
+     * ASICs run this at ~100 terahashes per second.
+     */
+    return 0;
+}
+
+/*
+ * Avalanche demo:
+ * sha256("alice") = 2bd806c97f0e00af1a1fc3328fa763a9269723c8db8fac4f93af71db186d6e90
+ * sha256("alicf") = 9ebbbe3e0f1875e0a0a1764ea42e6ae0c4e55d25e0b5af9f8a86c0fae68a3286
+ * one character different, output unrecognisable
+ */`;
+
+const cMerkleRoot = `/*
+ * A Merkle root computed in C using OpenSSL.
+ * Each leaf is SHA-256 hashed.
+ * Pairs of hashes are concatenated and re-hashed.
+ * Repeat until one hash remains: the Merkle root.
+ *
+ * Bitcoin uses double SHA-256: SHA256(SHA256(data)).
+ * This implementation uses single SHA-256 for clarity.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <openssl/sha.h>
+
+#define HASH_LEN SHA256_DIGEST_LENGTH  /* 32 bytes */
+
+typedef uint8_t Hash[HASH_LEN];
+
+void sha256(const uint8_t *data, size_t len, Hash out) {
+    SHA256(data, len, out);
+}
+
+void merkle_root(const uint8_t **leaves,
+                 size_t        *lens,
+                 size_t         n,
+                 Hash           out)
+{
+    if (n == 0) { memset(out, 0, HASH_LEN); return; }
+
+    /* hash all leaves into a working layer */
+    Hash *layer = malloc(n * sizeof(Hash));
+    for (size_t i = 0; i < n; i++)
+        sha256(leaves[i], lens[i], layer[i]);
+
+    /* combine pairs until one hash remains */
+    while (n > 1) {
+        size_t next_n = (n + 1) / 2;
+        Hash *next = malloc(next_n * sizeof(Hash));
+
+        for (size_t i = 0; i < next_n; i++) {
+            size_t l = 2 * i;
+            size_t r = (2*i+1 < n) ? 2*i+1 : 2*i;
+            /* duplicate last node if odd (Bitcoins rule) */
+
+            uint8_t pair[2 * HASH_LEN];
+            memcpy(pair,            layer[l], HASH_LEN);
+            memcpy(pair + HASH_LEN, layer[r], HASH_LEN);
+            sha256(pair, 2 * HASH_LEN, next[i]);
+        }
+
+        free(layer);
+        layer = next;
+        n = next_n;
+    }
+
+    memcpy(out, layer[0], HASH_LEN);
+    free(layer);
+    /*
+     * Change any leaf by one bit and its hash changes.
+     * Every hash on the path to the root changes.
+     * The root becomes unrecognisable.
+     * That 32-byte root proves the integrity of
+     * gigabytes of transactions underneath it.
+     */
+}
+
+int main(void) {
+    const char *txns[] = { "tx1", "tx2", "tx3", "tx4" };
+    const uint8_t *leaves[4];
+    size_t lens[4];
+
+    for (int i = 0; i < 4; i++) {
+        leaves[i] = (const uint8_t *)txns[i];
+        lens[i]   = strlen(txns[i]);
+    }
+
+    Hash root;
+    merkle_root(leaves, lens, 4, root);
+
+    printf("Merkle root: ");
+    for (int i = 0; i < HASH_LEN; i++)
+        printf("%02x", root[i]);
+    printf("\\n");
+    return 0;
+}`;
+
 export const hashing: PageContent = {
   slug: "hashing",
   hexLabel: "0x0D",
@@ -286,6 +505,10 @@ export const hashing: PageContent = {
           title: "// connect back to the arrays page",
           body: `A hash map starts with the array from the arrays page: a contiguous block of <em>buckets</em>, addressable by index. Hashing is the trick that turns a key like <code>"alice"</code> into a bucket index. From there it's the same O(1) indexed access an array always gave you.`,
         },
+        {
+          kind: "prose",
+          html: `<p class="connection-line">The bucket array is the arrays page. The hash function is what gives each key its index without searching. <code>hash(key) % capacity</code> is one multiply, one modulo, one array lookup. O(1). Just like <code>arr[i]</code>. But <code>arr[i]</code> needs you to know <code>i</code>. The hash function computes <code>i</code> from the key. Same O(1) result. Different path to get there. <a href="/arrays">← see: Arrays</a></p>`,
+        },
         { kind: "heading", text: "A hash map: hash → index → array slot" },
         { kind: "diagram", name: "hash-table-basic" },
         {
@@ -306,6 +529,8 @@ export const hashing: PageContent = {
             c: { language: "c", code: cHashMapBasic },
           },
         },
+        { kind: "heading", text: "See the fingerprint change" },
+        { kind: "widget", name: "hash-visualiser" },
         {
           kind: "callout",
           variant: "info",
@@ -346,6 +571,10 @@ export const hashing: PageContent = {
             c: { language: "c", code: cChaining },
           },
         },
+        {
+          kind: "prose",
+          html: `<p class="connection-line">The chain at each bucket is a linked list. The same singly linked list from page twelve. A chain map is literally an array of linked lists. The array gives you O(1) bucket lookup. The linked list gives you O(1) splicing. Both data structures doing what they're best at. The reason separate chaining works at all is that pages eleven and twelve are complementary by design. <a href="/arrays">← see: Arrays</a> · <a href="/linked-list">Linked List</a></p>`,
+        },
         { kind: "heading", text: "Strategy 2: Open addressing" },
         {
           kind: "prose",
@@ -356,7 +585,7 @@ export const hashing: PageContent = {
           kind: "codepair",
           pair: {
             rust: { language: "rust", code: rustOpenAddressing },
-            c: { language: "c", code: rustOpenAddressing },
+            c: { language: "c", code: cOpenAddressing },
           },
         },
         { kind: "heading", text: "Chaining vs open addressing, in one table" },
@@ -398,6 +627,10 @@ export const hashing: PageContent = {
 <p>The standard trick: once the load factor passes some threshold (typically 0.7 to 0.9), <strong>resize</strong>. Allocate a new bucket array, usually twice as big, and re-hash every entry into it. The resize is O(n), but it happens rarely enough that the average insert is still amortised O(1), exactly the same argument as <code>Vec::push</code> from the arrays page.</p>`,
         },
         {
+          kind: "prose",
+          html: `<p class="connection-line">Resizing a hash map doubles the bucket array and rehashes every entry. The arrays page showed <code>Vec::push</code> does the same: double capacity, copy all elements, amortised O(1). A hash map resize is Vec growth applied to a more complex data structure. Same analysis. Same conclusion. Occasional O(n) cost spread across enough inserts that the average stays constant. <a href="/arrays">← see: Arrays</a> · <a href="/big-o">Big O Notation</a></p>`,
+        },
+        {
           kind: "callout",
           variant: "warn",
           title: "// the worst case is still O(n)",
@@ -426,7 +659,7 @@ export const hashing: PageContent = {
           kind: "codepair",
           pair: {
             rust: { language: "rust", code: rustCryptoHash },
-            c: { language: "rust", code: rustCryptoHash },
+            c: { language: "c", code: cCryptoHash },
           },
         },
         {
@@ -434,6 +667,10 @@ export const hashing: PageContent = {
           variant: "info",
           title: "// content-addressed storage",
           body: `Git, IPFS, Docker image layers, Nix package store: every one of these stores its objects under the hash of their contents. Two files with the same contents have the same hash, which means they're <em>literally the same file</em> in the store. Tampering with a file changes its hash, which means tampering is instantly detectable. The whole architecture rests on one assumption: nobody can find two inputs with the same hash. So far, for SHA-256, nobody has.`,
+        },
+        {
+          kind: "prose",
+          html: `<p class="connection-line">Git stores every commit, file, and tree by its SHA-256 hash. Two identical files have the same hash. They are literally the same object in the store. This is the compile vs runtime page from a different angle: the hash is computed at write time (compile time). Integrity is verified at read time (runtime). The check costs almost nothing. The guarantee is absolute. <a href="/compile-vs-runtime">← see: Compile vs Runtime</a></p>`,
         },
         { kind: "heading", text: "Merkle trees: hashing, but recursive" },
         {
@@ -454,7 +691,7 @@ export const hashing: PageContent = {
           kind: "codepair",
           pair: {
             rust: { language: "rust", code: rustMerkleRoot },
-            c: { language: "rust", code: rustMerkleRoot },
+            c: { language: "c", code: cMerkleRoot },
           },
         },
         { kind: "heading", text: "The chain in blockchain" },
@@ -524,6 +761,32 @@ export const hashing: PageContent = {
   <li><strong>Zero-knowledge proofs (SNARKs, STARKs)</strong>. Cryptographic hashes are at the core of every modern zk system: Merkle trees of computation traces, hashed into proofs you can verify in milliseconds.</li>
   <li><strong>Robin Hood and Hopscotch hashing</strong>. Open-addressing variants that bound the worst-case probe distance, used in some of the fastest production hash maps.</li>
 </ul>`,
+        },
+        { kind: "heading", text: "Where hashing appears in ScrapyBytes" },
+        {
+          kind: "prose",
+          html: `<p>Hashing is not a corner of the curriculum. It is a thread running through almost every other page. Here is where it surfaces, and how to follow it.</p>`,
+        },
+        {
+          kind: "raw",
+          html: `<div class="hconn">
+  <a class="hconn-card" style="--c:var(--neon-emerald)" href="https://scrapybytes.vercel.app/number-systems"><span class="hconn-badge">number systems</span><p class="hconn-text">A SHA-256 hash is 256 bits. Written as 64 hex characters. <code>0xa65a284e7026f71356...</code> Hex because 256 binary bits would be unreadable. The number systems page is why hashes are always displayed in hex.</p><span class="hconn-link">scrapybytes.vercel.app/number-systems →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-lime)" href="https://scrapybytes.vercel.app/binary"><span class="hconn-badge">binary</span><p class="hconn-text">Every hash input is bytes. Every hash output is bits. SHA-256 produces exactly 256 bits. The avalanche property means flipping one input bit flips roughly half of those output bits. Hashing is binary arithmetic at its most intense.</p><span class="hconn-link">scrapybytes.vercel.app/binary →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-magenta)" href="https://scrapybytes.vercel.app/logic-gates"><span class="hconn-badge">logic gates</span><p class="hconn-text">SHA-256 is 64 rounds of operations. AND, XOR, NOT, bit rotations, bit shifts. All logic gates. The same gates from page four. Bitcoin mining is those gates firing on silicon at 100 trillion times per second on purpose-built ASICs.</p><span class="hconn-link">scrapybytes.vercel.app/logic-gates →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-violet)" href="https://scrapybytes.vercel.app/cpu"><span class="hconn-badge">cpu</span><p class="hconn-text">Hashing is CPU-intensive by design. SHA-256 uses the ALU on every round. Modern CPUs have dedicated SHA instructions (SHA-NI on x86, ARMv8 Crypto Extensions) that run single rounds in one clock cycle. The CPU page showed fetch-decode-execute. Each SHA round is one trip through that loop.</p><span class="hconn-link">scrapybytes.vercel.app/cpu →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-amber)" href="https://scrapybytes.vercel.app/memory"><span class="hconn-badge">memory</span><p class="hconn-text">A hash map is an array in memory. The array from page eleven. Hash maps store their bucket array as one contiguous heap allocation. Resizing doubles that allocation. The load factor controls how full that memory gets.</p><span class="hconn-link">scrapybytes.vercel.app/memory →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-azure)" href="https://scrapybytes.vercel.app/operating-system"><span class="hconn-badge">operating system</span><p class="hconn-text">The OS uses hashing everywhere. The page table is a hash map of virtual to physical addresses. File system directories use hash trees. Package managers hash every downloaded file. The OS you learned about on page seven is built on the structures this page describes.</p><span class="hconn-link">scrapybytes.vercel.app/operating-system →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-rose)" href="https://scrapybytes.vercel.app/variables"><span class="hconn-badge">variables</span><p class="hconn-text">A HashMap variable in Rust is a struct with three fields on the stack: a pointer to the heap bucket array, a length, and a capacity. 24 bytes on the stack. Megabytes on the heap. The variables page described this split for <code>Vec</code>. HashMap has the same shape.</p><span class="hconn-link">scrapybytes.vercel.app/variables →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-mint)" href="https://scrapybytes.vercel.app/pointers"><span class="hconn-badge">pointers</span><p class="hconn-text">The bucket array in a chained hash map is an array of pointers. Each pointer is the head of a linked list. Following the chain is following pointers. The pointer page showed that cost. Open addressing removes the pointers entirely. That's why modern hash maps prefer open addressing.</p><span class="hconn-link">scrapybytes.vercel.app/pointers →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-saffron)" href="https://scrapybytes.vercel.app/arrays"><span class="hconn-badge">arrays</span><p class="hconn-text">A hash map is an array of buckets. The hash function computes the array index. Without the array there is no hash map. Without the hash there is no array access. The two pages work together: arrays give O(1) indexed access, hashing makes keys into indices.</p><span class="hconn-link">scrapybytes.vercel.app/arrays →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-iris)" href="https://scrapybytes.vercel.app/linked-list"><span class="hconn-badge">linked lists</span><p class="hconn-text">Separate chaining is an array of linked lists. The linked list page showed singly linked nodes. Each bucket in a chained hash map is the head of one of those lists. Open addressing eliminates the linked lists. Modern hash maps made that tradeoff because of the cache cost the linked list page described.</p><span class="hconn-link">scrapybytes.vercel.app/linked-list →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-violet)" href="https://scrapybytes.vercel.app/recursion"><span class="hconn-badge">recursion</span><p class="hconn-text">A Merkle tree is a recursive structure. Hash the leaves. Hash pairs of hashes. Hash pairs of hashes of hashes. Repeat until one hash remains. The recursion page showed this pattern: a problem solved by solving a smaller version. The Merkle tree is recursion applied to hashing.</p><span class="hconn-link">scrapybytes.vercel.app/recursion →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-sky)" href="https://scrapybytes.vercel.app/networking"><span class="hconn-badge">networking</span><p class="hconn-text">Every HTTPS connection is verified with hashing. TLS uses SHA-256 in the handshake. Your browser verifies the server certificate by checking a hash chain. Every packet your browser receives has its integrity verified by a hash. The networking page showed those packets. Hashing is what makes them trustworthy.</p><span class="hconn-link">scrapybytes.vercel.app/networking →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-indigo)" href="https://scrapybytes.vercel.app/distributed-systems"><span class="hconn-badge">distributed systems</span><p class="hconn-text">Consistent hashing is how distributed systems route requests to nodes. Ring-based consistent hashing ensures adding or removing a node only remaps a fraction of the keys. The distributed systems page showed the problem. Consistent hashing is one answer to it.</p><span class="hconn-link">scrapybytes.vercel.app/distributed-systems →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-cyan)" href="https://scrapybytes.vercel.app/sorting"><span class="hconn-badge">sorting</span><p class="hconn-text">Sorting and hashing both solve data retrieval. Sorted array plus binary search: O(log n). Hash map: O(1) average. Sort once, search forever at O(log n). Hash once, look up forever at O(1). The sorting page is the alternative. Choose based on whether you need ordering.</p><span class="hconn-link">scrapybytes.vercel.app/sorting →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-emerald)" href="https://scrapybytes.vercel.app/big-o"><span class="hconn-badge">big o</span><p class="hconn-text">Hash map lookup is O(1) average. O(n) worst case when every key collides. The Big O page named this the hidden caveat: same notation, wildly different constants. Hash flooding attacks exploit the gap. SipHash in Rust randomises the seed. O(1) is the guarantee. The seed is the defence.</p><span class="hconn-link">scrapybytes.vercel.app/big-o →</span></a>
+  <a class="hconn-card" style="--c:var(--neon-bitcoin)" href="https://scrapybytes.vercel.app/blockchain"><span class="hconn-badge">blockchain</span><p class="hconn-text">The blockchain is a hash-linked list. The linked list page showed the structure. This page showed the pointer: a SHA-256 hash. Change any block, its hash changes, the next block's prev-hash breaks, the chain is invalid. Tamper-evidence through hashing. This is the whole blockchain security argument.</p><span class="hconn-link">scrapybytes.vercel.app/blockchain →</span></a>
+</div>`,
         },
       ],
     },
