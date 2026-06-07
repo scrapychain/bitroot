@@ -268,6 +268,17 @@ export const bigO: PageContent = {
     eyebrow: "root.system / 0x15 / big-o",
     title: `Same answer.<br><span class="highlight">317 years apart.</span>`,
     lede: `Two programs. Both correct. Both return the right result. One finishes in a second. One finishes after the sun has died. The difference is not the hardware, not the language. It is the shape of the algorithm. Big O is how you describe that shape, and once you can read it you see the skeleton of every system ever built.`,
+    narrativeHtml: `<p>Two programmers solve the same problem.</p>
+<p>Both are correct. Both return the exact same answer.</p>
+<p>One finishes before you blink. The other is still running when the sun burns out.</p>
+<p>Same answer. The difference is not the language, not the laptop, not how clever the code looks.</p>
+<p>Its the shape.</p>
+<p>Every algorithm has a shape: how the work grows as the input grows. Double the data. Does the cost stay flat? Double? Square? Explode?</p>
+<p>Big O is the language for that shape. Not seconds. Not megahertz. Growth.</p>
+<p>And once you can read it, you start seeing it everywhere youve already been.</p>
+<p>The array that hands you element ten million as fast as element zero, that was <code>O(1)</code>, page eleven. The search that throws away half the haystack with every guess, <code>O(log n)</code>. The hash that finds a key without scanning the rest, <code>O(1)</code> again, page thirteen.</p>
+<p>You were doing Big O the whole time. You just didnt have the word for it.</p>
+<p>Heres the word.</p>`,
   },
   levels: [
     {

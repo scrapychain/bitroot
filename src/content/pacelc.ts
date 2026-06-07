@@ -289,6 +289,15 @@ export const pacelc: PageContent = {
     eyebrow: "root.system / 0x12 / pacelc",
     title: `CAP told you what breaks.<br><span class="highlight">PACELC tells you what you choose every second.</span>`,
     lede: `The CAP theorem only applies during a disaster. Partitions happen maybe twelve times a year. PACELC covers the other 525,948 minutes: the tradeoff that never stops, even when everything is working perfectly.`,
+    narrativeHtml: `<p>CAP has a secret it doesnt advertise.</p>
+<p>It only matters during a disaster.</p>
+<p>A network partition, the cut wire from page seventeen, happens rarely. Maybe a dozen times a year, if your system is busy. The rest of the time everything is healthy, every machine can reach every other machine, and CAP has nothing to say.</p>
+<p>But your database is still making a tradeoff in those healthy moments. On every single request. Right now.</p>
+<p>Because even with a perfect network, keeping two copies of your data in perfect agreement takes time. You can wait for every replica to confirm before you answer, slow but correct. Or you can answer from the nearest copy at once, fast but maybe slightly stale.</p>
+<p>Latency, or consistency. That choice never stops.</p>
+<p>That is PACELC. If there is a Partition, choose A or C, the old CAP question. Else, in normal life, choose L or C. The else clause is where your system actually lives, 525,948 minutes a year.</p>
+<p>CAP told you what breaks when the network fails. PACELC tells you what you are trading away when it doesnt.</p>
+<p>Lets read the whole sentence.</p>`,
   },
   levels: [
     {

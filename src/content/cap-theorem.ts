@@ -223,6 +223,17 @@ export const capTheorem: PageContent = {
     eyebrow: "root.system / 0x11 / cap-theorem",
     title: `You can only<br><span class="highlight">guarantee two.</span>`,
     lede: `In 2000 a computer scientist proved that every distributed system makes a silent tradeoff. <strong>Consistency</strong>. <strong>Availability</strong>. <strong>Partition tolerance</strong>. Pick any two. This page is why that choice is unavoidable, and what every system you use quietly chose without telling you.`,
+    narrativeHtml: `<p>You build a database. You run it on two machines instead of one, so that if a server dies the other keeps going.</p>
+<p>Smart. Safe. Until the wire between them is cut.</p>
+<p>Now you have two machines that cannot talk, and a customer standing in front of one of them asking for their balance.</p>
+<p>You have exactly two choices, and both of them are bad.</p>
+<p>Answer with the number you have, and risk it being wrong, the other machine may hold newer data you cant see.</p>
+<p>Or refuse to answer until the wire is fixed, and leave the customer staring at a spinner.</p>
+<p>Wrong, or unavailable. Pick one. There is no third door.</p>
+<p>In 2000 a computer scientist named Eric Brewer proved this is not a bug you can engineer away. Its a law. Every distributed system youve ever used makes this exact tradeoff the moment the network splits.</p>
+<p>Consistency. Availability. Partition tolerance. You can promise two. Never three.</p>
+<p>On page sixteen you learned that no single machine knows everything. This is the price of that.</p>
+<p>Lets meet the three promises.</p>`,
   },
   levels: [
     {

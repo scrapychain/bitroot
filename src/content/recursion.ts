@@ -343,6 +343,15 @@ export const recursion: PageContent = {
     eyebrow: "root.system / 0x14 / recursion",
     title: `A function that calls itself.<br><span class="highlight">Until it doesn't.</span>`,
     lede: `Recursion is the most elegant idea in programming. It is also the fastest way to destroy a program. One missing line of code, the stack overflows, the process dies. This page is about that line, and why it is the only thing standing between beautiful code and a crashed server.`,
+    narrativeHtml: `<p>A function can call itself.</p>
+<p>That sentence sounds harmless. It is one of the most dangerous things in this entire curriculum.</p>
+<p>Heres the elegant version. To compute a factorial you say: this number, times the factorial of the number below it. The function calls itself with a smaller problem, and smaller, and smaller, until it hits a number so small the answer is obvious. One. Then it climbs back up.</p>
+<p>That stopping point has a name. The base case. And it is the only thing keeping you alive.</p>
+<p>Remove it, or get it slightly wrong, and the function calls itself. Which calls itself. Which calls itself. Forever.</p>
+<p>Each call needs a little memory, a frame on the stack from page six, to remember where it was. The stack is not infinite. A few thousand frames deep and it runs out.</p>
+<p>Stack overflow. The process doesnt slow down. It dies. Instantly.</p>
+<p>So recursion is two ideas wearing one coat. A beautiful way to describe a problem in terms of a smaller version of itself, and a single line standing between that beauty and a crashed server.</p>
+<p>Lets find that line.</p>`,
   },
   levels: [
     {
