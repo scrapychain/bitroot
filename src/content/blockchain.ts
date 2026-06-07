@@ -653,6 +653,42 @@ export const blockchain: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "hashing",
+        text: `A block points to the previous one by its SHA-256 hash, and a Merkle root fingerprints every transaction. The blockchain is the hashing page assembled into a ledger.`,
+      },
+      {
+        slug: "linked-list",
+        text: `A blockchain is a linked list whose <code>next</code> pointer is a hash of the previous block. The linked-list page is the skeleton; hashing is the glue.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `A blockchain is a distributed system among strangers who trust no one. The distributed-systems page is the field this page plays its hardest game on.`,
+      },
+      {
+        slug: "cap-theorem",
+        text: `Bitcoin answers CAP by choosing consistency over availability and paying in confirmation time. The cap-theorem page is the law behind the ten-minute wait.`,
+      },
+      {
+        slug: "pacelc",
+        text: `In PACELC terms Bitcoin is PC/EC: consistent during partitions and consistent normally, latency be damned. The pacelc page explains why it is slow on purpose.`,
+      },
+      {
+        slug: "cpu",
+        text: `Mining is the CPU page at industrial scale: hash, check, bump the nonce, repeat, on purpose-built ASICs at a hundred trillion hashes a second.`,
+      },
+      {
+        slug: "networking",
+        text: `Blocks and transactions flood the network by gossip, peer to peer. The networking page is how a new block reaches the whole world in seconds.`,
+      },
+      {
+        slug: "nodes",
+        text: `A full node stores and validates the entire chain and trusts no one to do it for them. The nodes page is the word; this page is its most demanding form.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "end of root.system",
     title: "Start over from the transistor.",

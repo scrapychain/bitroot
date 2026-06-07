@@ -603,6 +603,38 @@ export const recursion: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "linked-list",
+        text: `A linked list is recursive by nature: a node followed by a smaller list. Walking it is the textbook recursive function. The linked-list page is recursion's simplest data structure.`,
+      },
+      {
+        slug: "sorting",
+        text: `Merge sort and quicksort are recursion in action: split the array, sort the halves, combine. The sorting page is where recursion earns its keep.`,
+      },
+      {
+        slug: "memory",
+        text: `Each recursive call pushes a stack frame, and too many overflow the stack. The memory page is where the call stack lives and where recursion can crash.`,
+      },
+      {
+        slug: "hashing",
+        text: `A Merkle tree is hashing applied recursively: hash the leaves, hash pairs of hashes, repeat to the root. The hashing page is recursion with a cryptographic payload.`,
+      },
+      {
+        slug: "nodes",
+        text: `Trees are nodes pointing at child nodes, and trees are walked recursively. The nodes page is the structure; recursion is the way through it.`,
+      },
+      {
+        slug: "big-o",
+        text: `Recursion's cost is a recurrence, and solving it gives the Big O. Merge sort's T(n) = 2T(n/2) + n becomes O(n log n). The big-o page does that math.`,
+      },
+      {
+        slug: "cpu",
+        text: `Every call is the CPU pushing a frame, jumping, and later returning. The CPU page is the fetch-decode-execute loop that recursion folds back on itself.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x15",
     title: "Same answer, 317 years apart. How to measure the shape of an algorithm.",

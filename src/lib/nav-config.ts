@@ -195,6 +195,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/searching",
+    label: "Searching Algorithms",
+    num: "24",
+    accent: "var(--neon-azure)",
+    desc: "Find it fast, or wait forever. Linear vs binary search, the overflow bug, interpolation and exponential search, and why Bitcoin uses hashing and sorting together.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     num: "23",

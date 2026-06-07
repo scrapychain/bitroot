@@ -412,6 +412,42 @@ export const networking: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "operating-system",
+        text: `A socket is an OS file descriptor, and every packet leaves through a syscall into the kernel. The networking page rides entirely on the OS page's plumbing.`,
+      },
+      {
+        slug: "binary",
+        text: `A packet is binary on a wire: headers, addresses, and payload all bits. The binary page is what is actually moving between machines.`,
+      },
+      {
+        slug: "ascii",
+        text: `HTTP is plain ASCII wrapped in TCP. <code>GET / HTTP/1.1</code> is the ASCII page sent across the world. The protocol is human-readable on purpose.`,
+      },
+      {
+        slug: "number-systems",
+        text: `An IPv4 address is four base-ten numbers, IPv6 is base sixteen, a MAC address is hex. Addresses on this page are the number systems page on the wire.`,
+      },
+      {
+        slug: "nodes",
+        text: `Every machine on a network is a node with an address. The nodes page is the same word at data-structure scale; here the nodes are whole computers.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `The moment two computers talk you have a distributed system and all its problems: partitions, latency, disagreement. The distributed-systems page is where this page gets hard.`,
+      },
+      {
+        slug: "hashing",
+        text: `TLS verifies every HTTPS connection with SHA-256, and each packet's integrity is checked with a hash. The hashing page is what makes the traffic on this page trustworthy.`,
+      },
+      {
+        slug: "cpu",
+        text: `Sending data means interrupts, DMA, and the CPU handing buffers to the network card. The CPU page is the machine doing the work behind every packet.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x10",
     title: "No single machine knows everything. Many machines, no boss, eventual agreement.",

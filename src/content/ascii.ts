@@ -398,6 +398,38 @@ export const ascii: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "binary",
+        text: `ASCII is binary with an agreement bolted on. The letter A is the bits <code>0100 0001</code>. Without the binary page there are no bits to assign meaning to.`,
+      },
+      {
+        slug: "number-systems",
+        text: `Every ASCII code is a number. A is 65, space is 32. Reading those in decimal, hex, or binary is the number systems page in action.`,
+      },
+      {
+        slug: "memory",
+        text: `A string is ASCII or UTF-8 bytes sitting in memory at consecutive addresses. The text you type lives in RAM as the codes on this page.`,
+      },
+      {
+        slug: "networking",
+        text: `HTTP headers are plain ASCII. <code>GET /index.html HTTP/1.1</code> travels the wire as the byte codes on this page wrapped in a packet.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The terminal is a stream of ASCII with escape codes as its control channel. <code>\\x1b[31m</code> turns text red. Your shell is the OS speaking ASCII.`,
+      },
+      {
+        slug: "variables",
+        text: `A <code>char</code> in C is a one-byte integer holding an ASCII code. The character and the number are the same value. That is this page living inside a variable.`,
+      },
+      {
+        slug: "hashing",
+        text: `Hashing a string hashes its ASCII or UTF-8 bytes. The encoding on this page is the raw material every hash function chews on.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x04",
     title: "Bits become physical: transistors & logic gates",

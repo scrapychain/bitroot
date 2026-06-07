@@ -513,6 +513,42 @@ All hiding the same binary underneath.</em></p>
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "binary",
+        text: `Binary is base two, the one base hardware actually uses. This page is the general theory; binary is the special case with two symbols, because a transistor has two states.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `Logic gates do binary arithmetic in hardware. The adder sums base-two numbers one bit at a time. Number bases are where that math starts.`,
+      },
+      {
+        slug: "ascii",
+        text: `ASCII maps numbers to characters. The letter A is just 65. Once you can read a number in any base, a character is a number wearing a costume.`,
+      },
+      {
+        slug: "memory",
+        text: `Every memory address is a number, almost always printed in hexadecimal. <code>0x7fffd8</code> is base sixteen. This page is why addresses look the way they do.`,
+      },
+      {
+        slug: "pointers",
+        text: `A pointer is a number that names an address, and addresses are written in hex. Hex is the base the entire pointers page lives in.`,
+      },
+      {
+        slug: "cpu",
+        text: `The CPU computes in binary but reports its registers and addresses in hex. Base conversion is the translation layer between silicon and the human reading it.`,
+      },
+      {
+        slug: "hashing",
+        text: `A SHA-256 hash is a 256-bit number shown as 64 hex digits. Hex exists because reading 256 raw bits is impossible. Number bases are why every hash is written in hex.`,
+      },
+      {
+        slug: "networking",
+        text: `An IPv4 address is four base-ten numbers, IPv6 is eight base-sixteen groups, a MAC address is hex. Networking is number bases printed on the wire.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x02",
     title: "Down to the wire: binary, bitwise tricks, and IEEE 754",

@@ -786,6 +786,42 @@ export const linkedList: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "pointers",
+        text: `A linked list is pointers given a shape. Each node carries a <code>next</code> pointer to the following node. The pointers page is the single idea this whole page is built from.`,
+      },
+      {
+        slug: "arrays",
+        text: `The array is this page's rival: contiguous and cache-friendly, but expensive to insert into the middle. Arrays and linked lists are one tradeoff seen from two sides.`,
+      },
+      {
+        slug: "memory",
+        text: `Linked-list nodes are scattered across the heap, not lined up like an array. The cache penalty on this page is a memory-layout fact from the memory page.`,
+      },
+      {
+        slug: "nodes",
+        text: `A node is the atom of a linked list: a value plus a pointer to the next. The nodes page follows that same word up to networks and blockchains.`,
+      },
+      {
+        slug: "hashing",
+        text: `Separate chaining makes each hash bucket the head of a linked list. A chained hash map is literally an array of the lists on this page.`,
+      },
+      {
+        slug: "recursion",
+        text: `A linked list is recursive: a node, then a smaller list. Traversing it is naturally recursive. The recursion page is this page expressed as a function.`,
+      },
+      {
+        slug: "big-o",
+        text: `Insert at the front is O(1); find by value is O(n). The list trades the array's O(1) indexing for O(1) splicing. The big-o page is where that trade is measured.`,
+      },
+      {
+        slug: "blockchain",
+        text: `A blockchain is a linked list whose <code>next</code> pointer is a cryptographic hash of the previous block. The structure on this page is the chain in blockchain.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x0D",
     title: "Turn anything into a fingerprint. Hash maps, Merkle trees, blockchain.",

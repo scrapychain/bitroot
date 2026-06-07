@@ -466,6 +466,38 @@ export const distributedSystems: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "networking",
+        text: `A distributed system is what you get once nodes talk over a network. The networking page is the wire; this page is the chaos that follows once messages can be lost or delayed.`,
+      },
+      {
+        slug: "nodes",
+        text: `Every participant here is a node, but now no node trusts a clock or another node fully. The nodes page is the same word at its most adversarial.`,
+      },
+      {
+        slug: "cap-theorem",
+        text: `CAP is the formal limit on this page: during a partition you cannot have both consistency and availability. The cap-theorem page is the proof behind the tradeoffs here.`,
+      },
+      {
+        slug: "pacelc",
+        text: `PACELC extends CAP: even with a healthy network you trade latency against consistency on every request. The pacelc page is the everyday version of this page's dilemma.`,
+      },
+      {
+        slug: "blockchain",
+        text: `A blockchain is a distributed system among mutually distrusting strangers. The blockchain page is this page taken to its most extreme threat model.`,
+      },
+      {
+        slug: "hashing",
+        text: `Consistent hashing routes keys to nodes so adding or removing one only remaps a fraction of them. The hashing page is the tool that makes this page's resharding bearable.`,
+      },
+      {
+        slug: "operating-system",
+        text: `Scheduling, locking, and message passing are OS problems scaled across machines instead of processes. The OS page is the single-machine rehearsal.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x11",
     title: "You can only guarantee two. The silent tradeoff every system makes.",

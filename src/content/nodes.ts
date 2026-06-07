@@ -321,6 +321,38 @@ export const nodes: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "linked-list",
+        text: `In a data structure a node is a value plus a pointer to the next one. The linked-list page is where this word first means something concrete.`,
+      },
+      {
+        slug: "pointers",
+        text: `A node points at other nodes. Without pointers there is nothing to connect and the word node has no teeth. The pointers page is the mechanism.`,
+      },
+      {
+        slug: "networking",
+        text: `On a network a node is a machine with an address. Same word, bigger scale: an IP address links them instead of a heap pointer. The networking page is nodes made of computers.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `A distributed system is many nodes with no central authority, gossiping toward agreement. The distributed-systems page is the hardest version of the node idea.`,
+      },
+      {
+        slug: "blockchain",
+        text: `A blockchain node is a full copy of the ledger that validates and relays blocks. The blockchain page is nodes that refuse to trust each other.`,
+      },
+      {
+        slug: "recursion",
+        text: `Trees are nodes pointing at child nodes, and trees are walked recursively. The recursion page is how you move through a structure made of nodes.`,
+      },
+      {
+        slug: "hashing",
+        text: `A Merkle tree is nodes whose links are hashes, not pointers. The hashing page is the node idea secured by cryptography.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x0F",
     title: "One machine becomes many. Networking is where every previous topic shows up.",

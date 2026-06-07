@@ -565,6 +565,42 @@ export const cpu: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "logic-gates",
+        text: `The CPU is millions of logic gates wired into a machine. The ALU is the adder from the gates page. Every instruction is gates switching.`,
+      },
+      {
+        slug: "binary",
+        text: `Instructions, addresses, and data are all binary, and decoding an instruction is bit shifts and masks. The CPU runs on the binary page, clocked billions of times a second.`,
+      },
+      {
+        slug: "memory",
+        text: `The CPU does nothing without memory. It fetches instructions and data by address, and caches hide the latency. Stack and heap from the memory page are where it reads and writes.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The OS decides which program gets the CPU and when. Kernel mode, interrupts, and context switches all sit on top of the fetch-decode-execute loop on this page.`,
+      },
+      {
+        slug: "pointers",
+        text: `The program counter is a pointer: a number naming the next instruction's address. The CPU spends its life following pointers through memory.`,
+      },
+      {
+        slug: "compile-vs-runtime",
+        text: `The compiler turns your code into the exact instructions this page executes. Compile time produces them; the CPU is runtime. The boundary on that page is this CPU's front door.`,
+      },
+      {
+        slug: "variables",
+        text: `A variable in a register is the fastest variable there is. The CPU page is where <code>let x = 42</code> finally becomes a value the silicon holds.`,
+      },
+      {
+        slug: "hashing",
+        text: `SHA-256 is so common that CPUs ship dedicated instructions for it (SHA-NI, ARMv8 Crypto). Each round is one trip through the fetch-decode-execute loop on this page.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x06",
     title: "Where state lives between cycles: memory",

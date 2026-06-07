@@ -393,6 +393,34 @@ export const logicGates: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "binary",
+        text: `A gate's whole job is to combine bits. AND, OR, XOR take bits in and push a bit out. Logic gates are the hardware that makes the binary page physical.`,
+      },
+      {
+        slug: "cpu",
+        text: `Wire millions of gates together and you get a CPU. The ALU that adds your numbers is gates. The CPU page is this page scaled up a billion times.`,
+      },
+      {
+        slug: "number-systems",
+        text: `Gates implement arithmetic in base two. The full adder sums binary digits one place at a time. Number bases are the math the gates carry out.`,
+      },
+      {
+        slug: "memory",
+        text: `Two cross-coupled gates make a latch that remembers one bit. Stack billions of them and you have RAM. Memory is gates that hold still.`,
+      },
+      {
+        slug: "hashing",
+        text: `SHA-256 is 64 rounds of AND, XOR, NOT, and bit shifts. Bitcoin mining is those exact gates firing on silicon trillions of times a second. Hashing is gates doing cryptography.`,
+      },
+      {
+        slug: "ascii",
+        text: `A gate cannot read an A, only the bits <code>0100 0001</code>. The character meaning lives one layer up. Gates move the bits; ASCII decides what they spell.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x05",
     title: "Wire the gates into a machine that runs: how a CPU works",

@@ -489,6 +489,34 @@ export const capTheorem: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "distributed-systems",
+        text: `CAP is the headline theorem of distributed systems. The distributed-systems page is the world; this page is the law that world obeys.`,
+      },
+      {
+        slug: "pacelc",
+        text: `PACELC starts where CAP stops. CAP covers the partition; PACELC adds the latency-versus-consistency choice you make even when the network is fine. The pacelc page is the sequel.`,
+      },
+      {
+        slug: "networking",
+        text: `CAP only bites because networks partition. Packets get lost, links go down. The networking page is why the P in CAP is not optional.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin answers CAP by choosing consistency and paying for it with ten-minute waits. The blockchain page is CAP turned into a design decision.`,
+      },
+      {
+        slug: "nodes",
+        text: `CAP is about agreement among nodes that cannot all reach each other. The nodes page is who is trying to agree.`,
+      },
+      {
+        slug: "hashing",
+        text: `Distributed databases use consistent hashing to spread data across nodes, and CAP decides what happens to that data during a partition. The hashing page places the keys; this page is what breaks when the network does.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x12",
     title: "CAP told you what breaks. PACELC tells you what you choose every second.",

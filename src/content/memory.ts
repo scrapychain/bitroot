@@ -591,6 +591,42 @@ export const memory: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "pointers",
+        text: `A pointer is a memory address. The pointers page is this page from the other end: here are the houses, there are the slips of paper with house numbers on them.`,
+      },
+      {
+        slug: "variables",
+        text: `Every variable lives in memory, on the stack if its size is known, on the heap if it is not. The variables page is this split applied to <code>let x</code>.`,
+      },
+      {
+        slug: "arrays",
+        text: `An array is one contiguous block of memory, indexed by base address plus offset. Arrays are the memory page with a name and a stride.`,
+      },
+      {
+        slug: "cpu",
+        text: `The CPU reads and writes memory by address on every instruction, and caches exist to hide how slow that is. The CPU page is the customer this page serves.`,
+      },
+      {
+        slug: "operating-system",
+        text: `Virtual memory is an OS trick. Every process thinks it owns all of RAM; the kernel and MMU map that lie onto real pages. The OS page runs the memory on this one.`,
+      },
+      {
+        slug: "linked-list",
+        text: `A linked list scatters its nodes across the heap and stitches them with pointers. The cache penalty on the linked-list page is a memory-layout penalty from this page.`,
+      },
+      {
+        slug: "binary",
+        text: `Memory is addressable binary. Every byte is eight bits at a numbered slot. The binary page is what is actually stored here.`,
+      },
+      {
+        slug: "hashing",
+        text: `A hash map is one contiguous heap allocation of buckets, and resizing doubles it. The load factor on the hashing page is a question about how full this memory gets.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x07",
     title: "One CPU, many programs: how an operating system makes that work",

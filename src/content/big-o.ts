@@ -625,6 +625,42 @@ export const bigO: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "arrays",
+        text: `Array indexing is O(1), searching an unsorted array is O(n), and <code>push</code> is amortised O(1). The arrays page is full of the costs this page names.`,
+      },
+      {
+        slug: "linked-list",
+        text: `A linked list trades the array's O(1) indexing for O(1) front inserts and O(n) search. The linked-list page is one row in this page's table.`,
+      },
+      {
+        slug: "hashing",
+        text: `Hash map lookup is O(1) average and O(n) worst case when every key collides. The hashing page is where the hidden caveat in Big O bites hardest.`,
+      },
+      {
+        slug: "sorting",
+        text: `Bubble sort is O(n squared), merge sort is O(n log n), and that gap is the whole point of this page. The sorting page is Big O made visible.`,
+      },
+      {
+        slug: "recursion",
+        text: `A recursive algorithm's cost is a recurrence you solve to get its Big O. The recursion page supplies the algorithms; this page measures them.`,
+      },
+      {
+        slug: "memory",
+        text: `Big O counts operations, but cache misses and allocations have costs too. The memory page is why two O(n) algorithms can run at very different speeds.`,
+      },
+      {
+        slug: "cpu",
+        text: `Big O ignores constant factors, but the CPU does not. The CPU page is the reason a cache-friendly O(n) can beat a cache-hostile O(n).`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin's security is a Big O argument: forging the chain is exponential work, 2 to the N hash attempts. The blockchain page is Big O used as a weapon.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x16",
     title: "The ceiling proven in code: sorting algorithms.",

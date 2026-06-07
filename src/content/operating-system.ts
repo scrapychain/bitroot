@@ -666,6 +666,38 @@ export const operatingSystem: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "cpu",
+        text: `The OS exists to share one CPU among many programs. The scheduler, interrupts, and context switches all wrap the fetch-decode-execute loop from the CPU page.`,
+      },
+      {
+        slug: "memory",
+        text: `Virtual memory is the OS's biggest illusion. Each process believes it owns all of RAM; the kernel maps that onto real pages. The memory page is the resource this one manages.`,
+      },
+      {
+        slug: "compile-vs-runtime",
+        text: `Linking and loading are the OS doing runtime work. Static linking is compile time; dynamic linking resolves addresses as the program starts. The compile-vs-runtime page is the loader's job.`,
+      },
+      {
+        slug: "networking",
+        text: `A socket is an OS file descriptor, and every packet goes through a syscall into the kernel's network stack. The networking page rides on this page's plumbing.`,
+      },
+      {
+        slug: "pointers",
+        text: `Syscalls pass pointers across the kernel boundary. A buffer you hand to <code>read()</code> is an address the kernel writes into. The pointers page is the contract at that boundary.`,
+      },
+      {
+        slug: "variables",
+        text: `An environment variable, a process's stack, a file handle: all OS-managed state. The variables page is what your program sees; this page is who actually allocates it.`,
+      },
+      {
+        slug: "hashing",
+        text: `The page table is a hash map from virtual to physical addresses. Filesystems hash directory entries; package managers hash downloads. The OS is built on structures from the hashing page.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x08",
     title: "Trace one variable end-to-end: where `let x = 42` actually goes",

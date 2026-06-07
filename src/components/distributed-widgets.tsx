@@ -5175,6 +5175,328 @@ lands in bucket ${liveBucket}`}</code>
   );
 }
 
+/* =====================================================================
+   23. Search race: linear vs binary search on the same array. Animates
+   both at once, counts real comparisons, gates binary on sorted data, and
+   demonstrates the (lo + hi) integer overflow bug. (searching page)
+   ===================================================================== */
+type SrMode = "race" | "step";
+
+interface SrStep {
+  lo: number;
+  hi: number;
+  mid: number;
+}
+
+function srBinarySteps(n: number, target: number): SrStep[] {
+  const steps: SrStep[] = [];
+  let lo = 0;
+  let hi = n - 1;
+  while (lo <= hi) {
+    const mid = lo + Math.floor((hi - lo) / 2);
+    steps.push({ lo, hi, mid });
+    if (mid === target) break;
+    else if (mid < target) lo = mid + 1;
+    else hi = mid - 1;
+  }
+  return steps;
+}
+
+// Simulate 32-bit signed wraparound for the overflow demo.
+function srWrap32(v: number): number {
+  let x = v % 4294967296;
+  if (x > 2147483647) x -= 4294967296;
+  else if (x < -2147483648) x += 4294967296;
+  return x;
+}
+
+const srFmt = (n: number) => n.toLocaleString("en-US");
+
+function SearchRaceWidget() {
+  const [exp, setExp] = useState(6); // n = 10^exp
+  const n = Math.max(2, Math.round(10 ** exp));
+  const [sorted, setSorted] = useState(true);
+  const [mode, setMode] = useState<SrMode>("race");
+  const [targetRaw, setTargetRaw] = useState("847293");
+  const [showOverflow, setShowOverflow] = useState(false);
+
+  const [binIdx, setBinIdx] = useState(0);
+  const [linCount, setLinCount] = useState(0);
+  const [phase, setPhase] = useState<"idle" | "running" | "done">("idle");
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef(0);
+
+  const target = (() => {
+    const t = parseInt(targetRaw, 10);
+    return Number.isFinite(t) ? t : 0;
+  })();
+
+  const found = target >= 0 && target < n;
+  // Sorted: value == index. Unsorted: a deterministic shuffled position.
+  const linearPos = found ? (sorted ? target : (Math.abs(target) * 2654435761) % n) : -1;
+  const finalLinear = found ? linearPos + 1 : n;
+
+  const steps = useMemo(() => (sorted ? srBinarySteps(n, target) : []), [sorted, n, target]);
+  const finalBinary = steps.length;
+
+  const reset = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    setBinIdx(0);
+    setLinCount(0);
+    setPhase("idle");
+  }, []);
+
+  // Reset whenever the configuration changes.
+  useEffect(() => {
+    reset();
+  }, [exp, sorted, targetRaw, reset]);
+
+  // Cancel any animation on unmount.
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+
+  const runRace = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setPhase("running");
+    const stepMs = 240;
+    const binDur = Math.max(1, finalBinary) * stepMs;
+    const linDur = Math.min(5200, Math.max(1600, binDur * 3));
+    startRef.current = performance.now();
+    const tick = (now: number) => {
+      const el = now - startRef.current;
+      const bi = sorted ? Math.min(Math.floor(el / stepMs), finalBinary) : 0;
+      const lp = Math.min(el / linDur, 1);
+      setBinIdx(bi);
+      setLinCount(Math.round(lp * finalLinear));
+      const binDone = !sorted || bi >= finalBinary;
+      const linDone = lp >= 1;
+      if (binDone && linDone) {
+        setBinIdx(finalBinary);
+        setLinCount(finalLinear);
+        setPhase("done");
+        rafRef.current = null;
+        return;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  }, [finalBinary, finalLinear, sorted]);
+
+  const stepOnce = useCallback(() => {
+    setPhase((p) => (p === "done" ? p : "running"));
+    setBinIdx((b) => (sorted ? Math.min(b + 1, finalBinary) : b));
+    setLinCount((c) => Math.min(c + 1, finalLinear));
+  }, [sorted, finalBinary, finalLinear]);
+
+  // Step-mode completion: the race is decided once binary finishes.
+  useEffect(() => {
+    if (phase !== "running") return;
+    const binDone = sorted && binIdx >= finalBinary && finalBinary > 0;
+    const linDone = linCount >= finalLinear;
+    if ((mode === "step" && binDone) || linDone) setPhase("done");
+  }, [phase, mode, sorted, binIdx, finalBinary, linCount, finalLinear]);
+
+  const binStepShown = Math.min(binIdx, steps.length);
+  const curWin = binStepShown > 0 ? steps[binStepShown - 1] : { lo: 0, hi: n - 1, mid: -1 };
+  const loFrac = curWin.lo / n;
+  const hiFrac = (curWin.hi + 1) / n;
+  const midFrac = curWin.mid >= 0 ? (curWin.mid + 0.5) / n : -1;
+
+  const linEndFrac = found ? (linearPos + 1) / n : 1;
+  const linMarkerFrac = (finalLinear > 0 ? linCount / finalLinear : 0) * linEndFrac;
+
+  const ratio = finalBinary > 0 ? Math.max(1, Math.round(finalLinear / finalBinary)) : 0;
+  const pct = (x: number) => `${(x * 100).toFixed(4)}%`;
+
+  // Overflow demo numbers.
+  const oLo = 1500000000;
+  const oHi = 2000000000;
+  const oBad = Math.trunc(srWrap32(oLo + oHi) / 2);
+  const oGood = oLo + Math.trunc((oHi - oLo) / 2);
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// watch them search"}</span>
+        <div className="widget-controls">
+          <button type="button" className={`widget-btn ${mode === "race" ? "is-active" : ""}`} onClick={() => setMode("race")}>
+            Race
+          </button>
+          <button type="button" className={`widget-btn ${mode === "step" ? "is-active" : ""}`} onClick={() => setMode("step")}>
+            Step
+          </button>
+        </div>
+      </div>
+
+      <div className="sr">
+        {/* CONFIG */}
+        <div className="sr-config">
+          <label className="sr-field sr-field-wide">
+            <span className="sr-field-label">array size&nbsp;&nbsp;n = {srFmt(n)}</span>
+            <input
+              type="range"
+              min={1}
+              max={6}
+              step={0.05}
+              value={exp}
+              onChange={(e) => setExp(parseFloat(e.target.value))}
+              className="sr-slider"
+              aria-label="array size"
+            />
+          </label>
+          <label className="sr-field">
+            <span className="sr-field-label">target value</span>
+            <div className="sr-target">
+              <input
+                value={targetRaw}
+                inputMode="numeric"
+                onChange={(e) => setTargetRaw(e.target.value.replace(/[^0-9]/g, "").slice(0, 12))}
+                aria-label="target value"
+              />
+              <button type="button" className="widget-btn" onClick={() => setTargetRaw(String(Math.floor(Math.random() * n)))}>
+                random
+              </button>
+            </div>
+          </label>
+          <label className="sr-field">
+            <span className="sr-field-label">data</span>
+            <div className="sr-data-tabs">
+              <button type="button" className={`widget-btn ${sorted ? "is-active" : ""}`} onClick={() => setSorted(true)}>
+                Sorted
+              </button>
+              <button type="button" className={`widget-btn ${!sorted ? "is-active" : ""}`} onClick={() => setSorted(false)}>
+                Unsorted
+              </button>
+            </div>
+          </label>
+        </div>
+
+        {/* LINEAR ROW */}
+        <div className="sr-row">
+          <div className="sr-row-head">
+            <span className="sr-row-name sr-linear">linear search</span>
+            <span className="sr-row-stat">
+              comparisons: <strong>{srFmt(linCount)}</strong>
+            </span>
+          </div>
+          <div className="sr-track">
+            <div className="sr-lin-fill" style={{ width: pct(linMarkerFrac) }} />
+            <div className={`sr-marker sr-lin-marker ${phase === "done" && found ? "is-found" : ""}`} style={{ left: pct(linMarkerFrac) }} />
+          </div>
+        </div>
+
+        {/* BINARY ROW */}
+        <div className={`sr-row ${!sorted ? "is-disabled" : ""}`}>
+          <div className="sr-row-head">
+            <span className="sr-row-name sr-binary">binary search</span>
+            <span className="sr-row-stat">
+              {sorted ? (
+                <>comparisons: <strong>{srFmt(binStepShown)}</strong></>
+              ) : (
+                <span className="sr-needs-sorted" title="Binary search requires sorted data">requires sorted data</span>
+              )}
+            </span>
+          </div>
+          <div className="sr-track">
+            {sorted ? (
+              <>
+                <div className="sr-bin-elim" style={{ left: 0, width: pct(loFrac) }} />
+                <div className="sr-bin-active" style={{ left: pct(loFrac), width: pct(Math.max(0, hiFrac - loFrac)) }} />
+                <div className="sr-bin-elim" style={{ left: pct(hiFrac), width: pct(Math.max(0, 1 - hiFrac)) }} />
+                {midFrac >= 0 && (
+                  <div className={`sr-marker sr-bin-marker ${phase === "done" && found ? "is-found" : ""}`} style={{ left: pct(midFrac) }} />
+                )}
+              </>
+            ) : (
+              <div className="sr-track-disabled">binary search needs sorted data</div>
+            )}
+          </div>
+        </div>
+
+        {/* CONTROLS */}
+        <div className="sr-controls">
+          {mode === "race" ? (
+            <button type="button" className="widget-btn is-go" onClick={runRace} disabled={phase === "running"}>
+              {phase === "done" ? "race again" : "race"}
+            </button>
+          ) : (
+            <button type="button" className="widget-btn is-go" onClick={stepOnce} disabled={phase === "done"}>
+              step
+            </button>
+          )}
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+          <span className="sr-status">
+            {found ? (
+              <>target lands at index <strong>{srFmt(linearPos)}</strong></>
+            ) : (
+              <>target {srFmt(target)} is not in the array</>
+            )}
+          </span>
+        </div>
+
+        {/* RESULTS */}
+        {phase === "done" && (
+          <div className="sr-results">
+            <div className="sr-result-rows">
+              <div className="sr-result-row">
+                <span className="sr-result-name sr-linear">linear</span>
+                <span className="sr-result-val">{srFmt(finalLinear)} comparisons</span>
+              </div>
+              <div className="sr-result-row">
+                <span className="sr-result-name sr-binary">binary</span>
+                <span className="sr-result-val">{sorted ? `${srFmt(finalBinary)} comparisons` : "disabled (unsorted)"}</span>
+              </div>
+              {sorted && ratio > 1 && (
+                <div className="sr-ratio">{srFmt(ratio)}x fewer</div>
+              )}
+            </div>
+            {sorted && (
+              <>
+                <div className="sr-chart">
+                  <div className="sr-chart-row">
+                    <span className="sr-chart-label sr-linear">linear</span>
+                    <div className="sr-chart-bar sr-linear-bar" style={{ width: "100%" }} />
+                  </div>
+                  <div className="sr-chart-row">
+                    <span className="sr-chart-label sr-binary">binary</span>
+                    <div className="sr-chart-bar sr-binary-bar" style={{ width: pct(Math.max(0.015, finalBinary / finalLinear)) }} />
+                  </div>
+                </div>
+                <p className="sr-results-note">Binary search eliminated 50% of the remaining candidates on every step.</p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* OVERFLOW DEMO */}
+        <div className="sr-overflow">
+          <button type="button" className="widget-btn" onClick={() => setShowOverflow((v) => !v)}>
+            {showOverflow ? "hide the overflow bug" : "show the overflow bug"}
+          </button>
+          {showOverflow && (
+            <pre className="sr-overflow-body">
+              <code>{`lo = ${srFmt(oLo)}    hi = ${srFmt(oHi)}
+
+lo + hi          = ${srFmt(oLo + oHi)}   (exceeds INT_MAX 2,147,483,647)
+(lo + hi) / 2    = ${srFmt(oBad)}   <- wraps negative, out of bounds
+lo + (hi-lo) / 2 = ${srFmt(oGood)}   <- correct
+
+This one line shipped in Java's binary search in 1998 and
+went unnoticed until 2006. Nine years in production.`}</code>
+            </pre>
+          )}
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        drag the size up to one billion and watch the comparison counts diverge. linear scans element by element; binary throws away half the array on every step. switch to unsorted to see binary search lock out, because it has no order to exploit. the comparison counts are the real worst-case numbers for the size you pick, computed live.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -5221,6 +5543,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <SortingRaceWidget />;
     case "hash-visualiser":
       return <HashVisualiserWidget />;
+    case "search-race":
+      return <SearchRaceWidget />;
     default:
       return null;
   }

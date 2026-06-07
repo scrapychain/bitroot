@@ -68,7 +68,8 @@ export type WidgetName =
   | "big-o-race"
   | "process-scheduler"
   | "sorting-race"
-  | "hash-visualiser";
+  | "hash-visualiser"
+  | "search-race";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -117,7 +118,8 @@ export interface PageContent {
     | "blockchain"
     | "recursion"
     | "big-o"
-    | "sorting";
+    | "sorting"
+    | "searching";
   hexLabel: string;
   category: string;
   hero: {
@@ -127,6 +129,16 @@ export interface PageContent {
     narrativeHtml?: string;
   };
   levels: [LevelContent, LevelContent, LevelContent];
+  /**
+   * Optional "where this topic connects across ScrapyBytes" grid, rendered
+   * after the levels. Each item links to another page by slug; its badge
+   * label and accent colour are derived from nav-config automatically.
+   */
+  connections?: {
+    title?: string;
+    introHtml?: string;
+    items: { slug: string; text: string }[];
+  };
   nextUp?: {
     eyebrow: string;
     title: string;

@@ -406,6 +406,38 @@ export const binary: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "logic-gates",
+        text: `Every bit is a voltage held by a transistor, and logic gates are the switches that store and combine those bits. Binary is the language; gates are the hardware that speaks it.`,
+      },
+      {
+        slug: "number-systems",
+        text: `Binary is base two. The number systems page covers every base; binary is the one with two symbols, the only base the hardware understands natively.`,
+      },
+      {
+        slug: "ascii",
+        text: `ASCII is binary with a meaning attached. <code>0100 0001</code> is the bits; A is what we agree they spell. Encoding is binary plus a convention.`,
+      },
+      {
+        slug: "cpu",
+        text: `The CPU is binary in motion: registers hold bits, the ALU adds them, instructions are bit patterns. Everything on the CPU page is the binary on this one, clocked.`,
+      },
+      {
+        slug: "memory",
+        text: `Memory is addressable binary. Every byte is eight bits at a numbered location. The memory page is where the bits from this page actually live.`,
+      },
+      {
+        slug: "variables",
+        text: `The type decides how a variable's bits are read. The same 32 bits are an <code>i32</code> or an <code>f32</code>. Two's complement and IEEE 754 from this page are why.`,
+      },
+      {
+        slug: "hashing",
+        text: `SHA-256 turns bytes into exactly 256 bits, and flipping one input bit flips about half the output bits. Hashing is binary arithmetic at its most violent.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x03",
     title: "Bytes become letters: ASCII & Unicode",

@@ -616,6 +616,42 @@ export const arrays: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "memory",
+        text: `An array is one contiguous run of memory. The memory page is the street of numbered houses; an array is a block of them with a name and a fixed stride.`,
+      },
+      {
+        slug: "pointers",
+        text: `<code>arr[i]</code> is base address plus i times element size, which is pointer arithmetic. The pointers page is the machinery under the bracket syntax.`,
+      },
+      {
+        slug: "linked-list",
+        text: `The linked list is the array's opposite: cheap inserts, no contiguous block, worse cache behaviour. The two pages are a single tradeoff seen from both sides.`,
+      },
+      {
+        slug: "big-o",
+        text: `Indexing an array is O(1), searching an unsorted one is O(n), and <code>push</code> is amortised O(1). The big-o page is the vocabulary for every array operation here.`,
+      },
+      {
+        slug: "hashing",
+        text: `A hash map is an array of buckets with a function that computes the index. The hashing page is this page plus a way to turn keys into subscripts.`,
+      },
+      {
+        slug: "variables",
+        text: `A <code>Vec</code> is a three-field handle (pointer, length, capacity) on the stack pointing at a heap array. The variables page is where that handle lives.`,
+      },
+      {
+        slug: "sorting",
+        text: `Every sorting algorithm rearranges an array, in place or into a new one. Merge sort and quicksort all operate on the structure this page builds.`,
+      },
+      {
+        slug: "cpu",
+        text: `Contiguous memory is what the CPU cache loves. Reading <code>arr[0]</code> pulls the next several elements in for free. The CPU page is why arrays are fast in practice.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x0C",
     title: "Same idea, no neighbours. Linked lists trade locality for cheap inserts.",

@@ -688,6 +688,38 @@ export const compileVsRuntime: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "cpu",
+        text: `Compile time produces machine instructions; the CPU is runtime, executing them. The boundary on this page is the boundary at the CPU's front door.`,
+      },
+      {
+        slug: "variables",
+        text: `A stack variable's offset is fixed at compile time; a heap allocation's address is only known at runtime. The variables page is the cleanest example of this split.`,
+      },
+      {
+        slug: "memory",
+        text: `Stack layout is decided by the compiler; heap allocation happens while the program runs. The memory page's two regions map onto this page's two phases.`,
+      },
+      {
+        slug: "pointers",
+        text: `Rust moves whole classes of pointer bugs from runtime crashes to compile-time errors. The pointers page is full of mistakes this page decides when to catch.`,
+      },
+      {
+        slug: "operating-system",
+        text: `Static linking is compile time; the dynamic linker resolves addresses at startup. The OS page's loader is this page's split running inside the operating system.`,
+      },
+      {
+        slug: "binary",
+        text: `A compiler turns source text into a binary of machine code. No compile, no binary, no bits for the CPU to run. The binary page is this page's output.`,
+      },
+      {
+        slug: "big-o",
+        text: `Some costs are paid once at compile time, others on every run. Knowing which is a Big O question about where the work lives. The big-o page is the lens.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x0B",
     title: "Houses on a numbered street: arrays from first principles.",

@@ -607,6 +607,42 @@ export const pointers: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "memory",
+        text: `A pointer is a memory address, nothing more. The memory page is the street; a pointer is a house number on a slip of paper. This page only makes sense on top of that one.`,
+      },
+      {
+        slug: "variables",
+        text: `A pointer variable holds an address instead of a value. The variables page is where the name lives; this page is where the name points somewhere else.`,
+      },
+      {
+        slug: "arrays",
+        text: `<code>arr[i]</code> is pointer arithmetic in disguise: base address plus i times the element size. The arrays page is the friendly face of the pointer math here.`,
+      },
+      {
+        slug: "linked-list",
+        text: `A linked list is pointers made into a structure. Each node holds a <code>next</code> pointer to the following node. The linked-list page is this page chained together.`,
+      },
+      {
+        slug: "cpu",
+        text: `The program counter is a pointer to the next instruction. The CPU spends every cycle following pointers through memory. The CPU page runs on this page.`,
+      },
+      {
+        slug: "hashing",
+        text: `A chained hash map is an array of pointers, each the head of a linked list. The cost of following them is exactly what this page describes, which is why open addressing drops them.`,
+      },
+      {
+        slug: "compile-vs-runtime",
+        text: `A null dereference is a runtime crash; Rust's borrow checker turns many pointer bugs into compile-time errors. The compile-vs-runtime page is early catch versus production catch.`,
+      },
+      {
+        slug: "operating-system",
+        text: `Crossing the kernel boundary means handing the OS a pointer to your buffer. A bad pointer there is a segfault. The OS page is the strictest user of this one.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x0A",
     title: "When does each piece happen? Compile time vs runtime.",

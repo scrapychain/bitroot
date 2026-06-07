@@ -600,6 +600,34 @@ export const pacelc: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "cap-theorem",
+        text: `PACELC is CAP plus the part CAP ignored. CAP only describes the partition; PACELC adds the else case: latency versus consistency when the network is healthy. Read the cap-theorem page first.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Every distributed system makes the PACELC choice on every request, usually without telling you. The distributed-systems page is the setting; this page is the dial.`,
+      },
+      {
+        slug: "networking",
+        text: `The latency in PACELC is network latency: the speed of light and the round trips from the networking page. Geography is why consistency costs time.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin is PC/EC: consistency during partitions and consistency in normal operation, paid for in latency. The blockchain page is PACELC taken to the strict extreme.`,
+      },
+      {
+        slug: "nodes",
+        text: `The tradeoff is between nodes that must agree and the time their messages take to travel. The nodes page is who sits on each side of the round trip.`,
+      },
+      {
+        slug: "big-o",
+        text: `Latency is a constant factor, not a Big O class, yet it dominates real distributed performance. The big-o page measures growth; this page is a reminder that constants still decide who wins.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x13",
     title: "The system that chose PC/EC above everything: how Bitcoin actually works.",

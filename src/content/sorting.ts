@@ -739,6 +739,38 @@ export const sorting: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "arrays",
+        text: `Sorting rearranges an array, in place or into a new one. Every algorithm on this page operates on the contiguous block from the arrays page.`,
+      },
+      {
+        slug: "big-o",
+        text: `The whole reason to prefer merge sort over bubble sort is O(n log n) versus O(n squared). The big-o page is the scoreboard this page competes on.`,
+      },
+      {
+        slug: "recursion",
+        text: `Merge sort and quicksort are recursion: divide the array, sort the parts, combine. The recursion page is the technique behind the fastest sorts here.`,
+      },
+      {
+        slug: "hashing",
+        text: `Sorting and hashing are rival answers to retrieval. Sort once and binary-search at O(log n), or hash and look up at O(1). The hashing page is the alternative; choose by whether you need order.`,
+      },
+      {
+        slug: "linked-list",
+        text: `Merge sort is the natural choice for linked lists because it needs no random access. The linked-list page is a structure that changes which sort you reach for.`,
+      },
+      {
+        slug: "memory",
+        text: `Quicksort wins in practice partly because it is cache-friendly and sorts in place. The memory page is why theoretically tied algorithms are not tied at all.`,
+      },
+      {
+        slug: "cpu",
+        text: `Branch prediction and cache behaviour decide real sorting speed as much as Big O does. The CPU page is the hardware your sort actually runs on.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x17",
     title: "Data that branches: binary trees and why the filesystem is one",

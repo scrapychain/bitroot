@@ -653,6 +653,38 @@ export const variables: PageContent = {
       ],
     },
   ],
+  connections: {
+    items: [
+      {
+        slug: "memory",
+        text: `A variable is a named, typed slot in memory. Fixed-size values go on the stack, growable ones on the heap. The memory page is the ground this page builds a name on.`,
+      },
+      {
+        slug: "pointers",
+        text: `A reference or a <code>Box</code> is a variable whose value is an address. The pointers page is what happens when a variable points at another.`,
+      },
+      {
+        slug: "binary",
+        text: `The type decides how a variable's bits are read. The same 32 bits are an <code>i32</code> or an <code>f32</code> depending on the type. The binary page is the raw value under the name.`,
+      },
+      {
+        slug: "compile-vs-runtime",
+        text: `The compiler fixes a stack variable's offset at compile time and a heap allocation's address at runtime. The variables page is the clearest place to see that split.`,
+      },
+      {
+        slug: "arrays",
+        text: `An array variable is a fixed-size block; a <code>Vec</code> is a three-field handle on the stack pointing at the heap. The arrays page is this page made plural.`,
+      },
+      {
+        slug: "cpu",
+        text: `The fastest variable lives in a register. The CPU page is where <code>let x = 42</code> stops being a name and becomes silicon holding a value.`,
+      },
+      {
+        slug: "hashing",
+        text: `A <code>HashMap</code> variable is a small struct on the stack (pointer, length, capacity) pointing at megabytes on the heap. Same shape as <code>Vec</code>. The hashing page reuses this layout.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x09",
     title: "A number that means somewhere: pointers, in C and Rust.",

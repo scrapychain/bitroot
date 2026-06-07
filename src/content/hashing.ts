@@ -762,35 +762,78 @@ export const hashing: PageContent = {
   <li><strong>Robin Hood and Hopscotch hashing</strong>. Open-addressing variants that bound the worst-case probe distance, used in some of the fastest production hash maps.</li>
 </ul>`,
         },
-        { kind: "heading", text: "Where hashing appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>Hashing is not a corner of the curriculum. It is a thread running through almost every other page. Here is where it surfaces, and how to follow it.</p>`,
-        },
-        {
-          kind: "raw",
-          html: `<div class="hconn">
-  <a class="hconn-card" style="--c:var(--neon-emerald)" href="https://scrapybytes.vercel.app/number-systems"><span class="hconn-badge">number systems</span><p class="hconn-text">A SHA-256 hash is 256 bits. Written as 64 hex characters. <code>0xa65a284e7026f71356...</code> Hex because 256 binary bits would be unreadable. The number systems page is why hashes are always displayed in hex.</p><span class="hconn-link">scrapybytes.vercel.app/number-systems →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-lime)" href="https://scrapybytes.vercel.app/binary"><span class="hconn-badge">binary</span><p class="hconn-text">Every hash input is bytes. Every hash output is bits. SHA-256 produces exactly 256 bits. The avalanche property means flipping one input bit flips roughly half of those output bits. Hashing is binary arithmetic at its most intense.</p><span class="hconn-link">scrapybytes.vercel.app/binary →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-magenta)" href="https://scrapybytes.vercel.app/logic-gates"><span class="hconn-badge">logic gates</span><p class="hconn-text">SHA-256 is 64 rounds of operations. AND, XOR, NOT, bit rotations, bit shifts. All logic gates. The same gates from page four. Bitcoin mining is those gates firing on silicon at 100 trillion times per second on purpose-built ASICs.</p><span class="hconn-link">scrapybytes.vercel.app/logic-gates →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-violet)" href="https://scrapybytes.vercel.app/cpu"><span class="hconn-badge">cpu</span><p class="hconn-text">Hashing is CPU-intensive by design. SHA-256 uses the ALU on every round. Modern CPUs have dedicated SHA instructions (SHA-NI on x86, ARMv8 Crypto Extensions) that run single rounds in one clock cycle. The CPU page showed fetch-decode-execute. Each SHA round is one trip through that loop.</p><span class="hconn-link">scrapybytes.vercel.app/cpu →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-amber)" href="https://scrapybytes.vercel.app/memory"><span class="hconn-badge">memory</span><p class="hconn-text">A hash map is an array in memory. The array from page eleven. Hash maps store their bucket array as one contiguous heap allocation. Resizing doubles that allocation. The load factor controls how full that memory gets.</p><span class="hconn-link">scrapybytes.vercel.app/memory →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-azure)" href="https://scrapybytes.vercel.app/operating-system"><span class="hconn-badge">operating system</span><p class="hconn-text">The OS uses hashing everywhere. The page table is a hash map of virtual to physical addresses. File system directories use hash trees. Package managers hash every downloaded file. The OS you learned about on page seven is built on the structures this page describes.</p><span class="hconn-link">scrapybytes.vercel.app/operating-system →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-rose)" href="https://scrapybytes.vercel.app/variables"><span class="hconn-badge">variables</span><p class="hconn-text">A HashMap variable in Rust is a struct with three fields on the stack: a pointer to the heap bucket array, a length, and a capacity. 24 bytes on the stack. Megabytes on the heap. The variables page described this split for <code>Vec</code>. HashMap has the same shape.</p><span class="hconn-link">scrapybytes.vercel.app/variables →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-mint)" href="https://scrapybytes.vercel.app/pointers"><span class="hconn-badge">pointers</span><p class="hconn-text">The bucket array in a chained hash map is an array of pointers. Each pointer is the head of a linked list. Following the chain is following pointers. The pointer page showed that cost. Open addressing removes the pointers entirely. That's why modern hash maps prefer open addressing.</p><span class="hconn-link">scrapybytes.vercel.app/pointers →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-saffron)" href="https://scrapybytes.vercel.app/arrays"><span class="hconn-badge">arrays</span><p class="hconn-text">A hash map is an array of buckets. The hash function computes the array index. Without the array there is no hash map. Without the hash there is no array access. The two pages work together: arrays give O(1) indexed access, hashing makes keys into indices.</p><span class="hconn-link">scrapybytes.vercel.app/arrays →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-iris)" href="https://scrapybytes.vercel.app/linked-list"><span class="hconn-badge">linked lists</span><p class="hconn-text">Separate chaining is an array of linked lists. The linked list page showed singly linked nodes. Each bucket in a chained hash map is the head of one of those lists. Open addressing eliminates the linked lists. Modern hash maps made that tradeoff because of the cache cost the linked list page described.</p><span class="hconn-link">scrapybytes.vercel.app/linked-list →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-violet)" href="https://scrapybytes.vercel.app/recursion"><span class="hconn-badge">recursion</span><p class="hconn-text">A Merkle tree is a recursive structure. Hash the leaves. Hash pairs of hashes. Hash pairs of hashes of hashes. Repeat until one hash remains. The recursion page showed this pattern: a problem solved by solving a smaller version. The Merkle tree is recursion applied to hashing.</p><span class="hconn-link">scrapybytes.vercel.app/recursion →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-sky)" href="https://scrapybytes.vercel.app/networking"><span class="hconn-badge">networking</span><p class="hconn-text">Every HTTPS connection is verified with hashing. TLS uses SHA-256 in the handshake. Your browser verifies the server certificate by checking a hash chain. Every packet your browser receives has its integrity verified by a hash. The networking page showed those packets. Hashing is what makes them trustworthy.</p><span class="hconn-link">scrapybytes.vercel.app/networking →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-indigo)" href="https://scrapybytes.vercel.app/distributed-systems"><span class="hconn-badge">distributed systems</span><p class="hconn-text">Consistent hashing is how distributed systems route requests to nodes. Ring-based consistent hashing ensures adding or removing a node only remaps a fraction of the keys. The distributed systems page showed the problem. Consistent hashing is one answer to it.</p><span class="hconn-link">scrapybytes.vercel.app/distributed-systems →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-cyan)" href="https://scrapybytes.vercel.app/sorting"><span class="hconn-badge">sorting</span><p class="hconn-text">Sorting and hashing both solve data retrieval. Sorted array plus binary search: O(log n). Hash map: O(1) average. Sort once, search forever at O(log n). Hash once, look up forever at O(1). The sorting page is the alternative. Choose based on whether you need ordering.</p><span class="hconn-link">scrapybytes.vercel.app/sorting →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-emerald)" href="https://scrapybytes.vercel.app/big-o"><span class="hconn-badge">big o</span><p class="hconn-text">Hash map lookup is O(1) average. O(n) worst case when every key collides. The Big O page named this the hidden caveat: same notation, wildly different constants. Hash flooding attacks exploit the gap. SipHash in Rust randomises the seed. O(1) is the guarantee. The seed is the defence.</p><span class="hconn-link">scrapybytes.vercel.app/big-o →</span></a>
-  <a class="hconn-card" style="--c:var(--neon-bitcoin)" href="https://scrapybytes.vercel.app/blockchain"><span class="hconn-badge">blockchain</span><p class="hconn-text">The blockchain is a hash-linked list. The linked list page showed the structure. This page showed the pointer: a SHA-256 hash. Change any block, its hash changes, the next block's prev-hash breaks, the chain is invalid. Tamper-evidence through hashing. This is the whole blockchain security argument.</p><span class="hconn-link">scrapybytes.vercel.app/blockchain →</span></a>
-</div>`,
-        },
       ],
     },
   ],
+  connections: {
+    introHtml: `<p>Hashing is not a corner of the curriculum. It is a thread running through almost every other page. Here is where it surfaces, and how to follow it.</p>`,
+    items: [
+      {
+        slug: "number-systems",
+        text: `A SHA-256 hash is 256 bits. Written as 64 hex characters. <code>0xa65a284e7026f71356...</code> Hex because 256 binary bits would be unreadable. The number systems page is why hashes are always displayed in hex.`,
+      },
+      {
+        slug: "binary",
+        text: `Every hash input is bytes. Every hash output is bits. SHA-256 produces exactly 256 bits. The avalanche property means flipping one input bit flips roughly half of those output bits. Hashing is binary arithmetic at its most intense.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `SHA-256 is 64 rounds of operations. AND, XOR, NOT, bit rotations, bit shifts. All logic gates. The same gates from page four. Bitcoin mining is those gates firing on silicon at 100 trillion times per second on purpose-built ASICs.`,
+      },
+      {
+        slug: "cpu",
+        text: `Hashing is CPU-intensive by design. SHA-256 uses the ALU on every round. Modern CPUs have dedicated SHA instructions (SHA-NI on x86, ARMv8 Crypto Extensions) that run single rounds in one clock cycle. The CPU page showed fetch-decode-execute. Each SHA round is one trip through that loop.`,
+      },
+      {
+        slug: "memory",
+        text: `A hash map is an array in memory. The array from page eleven. Hash maps store their bucket array as one contiguous heap allocation. Resizing doubles that allocation. The load factor controls how full that memory gets.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The OS uses hashing everywhere. The page table is a hash map of virtual to physical addresses. File system directories use hash trees. Package managers hash every downloaded file. The OS you learned about on page seven is built on the structures this page describes.`,
+      },
+      {
+        slug: "variables",
+        text: `A HashMap variable in Rust is a struct with three fields on the stack: a pointer to the heap bucket array, a length, and a capacity. 24 bytes on the stack. Megabytes on the heap. The variables page described this split for <code>Vec</code>. HashMap has the same shape.`,
+      },
+      {
+        slug: "pointers",
+        text: `The bucket array in a chained hash map is an array of pointers. Each pointer is the head of a linked list. Following the chain is following pointers. The pointer page showed that cost. Open addressing removes the pointers entirely. That's why modern hash maps prefer open addressing.`,
+      },
+      {
+        slug: "arrays",
+        text: `A hash map is an array of buckets. The hash function computes the array index. Without the array there is no hash map. Without the hash there is no array access. The two pages work together: arrays give O(1) indexed access, hashing makes keys into indices.`,
+      },
+      {
+        slug: "linked-list",
+        text: `Separate chaining is an array of linked lists. The linked list page showed singly linked nodes. Each bucket in a chained hash map is the head of one of those lists. Open addressing eliminates the linked lists. Modern hash maps made that tradeoff because of the cache cost the linked list page described.`,
+      },
+      {
+        slug: "recursion",
+        text: `A Merkle tree is a recursive structure. Hash the leaves. Hash pairs of hashes. Hash pairs of hashes of hashes. Repeat until one hash remains. The recursion page showed this pattern: a problem solved by solving a smaller version. The Merkle tree is recursion applied to hashing.`,
+      },
+      {
+        slug: "networking",
+        text: `Every HTTPS connection is verified with hashing. TLS uses SHA-256 in the handshake. Your browser verifies the server certificate by checking a hash chain. Every packet your browser receives has its integrity verified by a hash. The networking page showed those packets. Hashing is what makes them trustworthy.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Consistent hashing is how distributed systems route requests to nodes. Ring-based consistent hashing ensures adding or removing a node only remaps a fraction of the keys. The distributed systems page showed the problem. Consistent hashing is one answer to it.`,
+      },
+      {
+        slug: "sorting",
+        text: `Sorting and hashing both solve data retrieval. Sorted array plus binary search: O(log n). Hash map: O(1) average. Sort once, search forever at O(log n). Hash once, look up forever at O(1). The sorting page is the alternative. Choose based on whether you need ordering.`,
+      },
+      {
+        slug: "big-o",
+        text: `Hash map lookup is O(1) average. O(n) worst case when every key collides. The Big O page named this the hidden caveat: same notation, wildly different constants. Hash flooding attacks exploit the gap. SipHash in Rust randomises the seed. O(1) is the guarantee. The seed is the defence.`,
+      },
+      {
+        slug: "blockchain",
+        text: `The blockchain is a hash-linked list. The linked list page showed the structure. This page showed the pointer: a SHA-256 hash. Change any block, its hash changes, the next block's prev-hash breaks, the chain is invalid. Tamper-evidence through hashing. This is the whole blockchain security argument.`,
+      },
+    ],
+  },
   nextUp: {
     eyebrow: "next up / 0x0E",
     title: "One word, three scales. What 'node' means in data structures, networking, and blockchain.",
