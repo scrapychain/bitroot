@@ -493,101 +493,6 @@ export const memory: PageContent = {
 </ul>
 <p>And with that, the loop closes. You started at the bit. You've now seen everything between the bit and the program: the encodings on top of it, the gates beneath it, the CPU that orchestrates it, and the memory that holds all of it together.</p>`,
         },
-        { kind: "heading", text: "Where memory appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>Memory is where every other topic comes to rest. The shortest path from each, back into this wall of switches:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x02 / binary",
-              value: "Every cell is a bit",
-              desc: "Every bit in every memory cell is a binary value: 0 or 1, charged or uncharged. Memory is just binary given an address and a wire to the CPU.",
-              href: "/binary",
-            },
-            {
-              label: "0x01 / number systems",
-              value: "Addresses are hex",
-              desc: "Every memory address is a number written in hex, like 0x7fff5fbff8a4, because binary addresses are unreadable to humans. The number systems page explains why 16 is the perfect shorthand.",
-              href: "/number-systems",
-            },
-            {
-              label: "0x04 / logic gates",
-              value: "Cells are gates",
-              desc: "A DRAM cell is one transistor and one capacitor; an SRAM cell is six transistors in a flip-flop. The logic gates page built both. Memory is gates configured to remember.",
-              href: "/logic-gates",
-            },
-            {
-              label: "0x05 / cpu",
-              value: "Inseparable",
-              desc: "The CPU reads instructions from memory on every clock cycle. The fetch in fetch-decode-execute is a memory read. Every register write, every stack push, is memory.",
-              href: "/cpu",
-            },
-            {
-              label: "0x07 / operating system",
-              value: "Owns the address space",
-              desc: "The OS creates the virtual address space (stack, heap, data, text), enforces isolation between processes, and handles page faults when virtual pages are not yet in RAM.",
-              href: "/operating-system",
-            },
-            {
-              label: "0x08 / variables",
-              value: "A name for an address",
-              desc: "A variable is a name the compiler gives to a memory address. int x = 42 means: at address 0x7fff..., store 0x0000002A. The name vanishes at compile time; only the address remains.",
-              href: "/variables",
-            },
-            {
-              label: "0x09 / pointers",
-              value: "An address as a value",
-              desc: "A pointer is a variable that holds a memory address as its value. Dereferencing follows the address: the CPU follows the number and reads what lives there. Pointers make memory navigable.",
-              href: "/pointers",
-            },
-            {
-              label: "0x14 / recursion",
-              value: "The stack has a limit",
-              desc: "Every recursive call pushes a stack frame. The stack lives in memory, ~8MB on Linux. Without a base case it grows until it hits the OS limit: segmentation fault. Memory kills the process.",
-              href: "/recursion",
-            },
-            {
-              label: "0x0B / arrays",
-              value: "Contiguous blocks",
-              desc: "An array is a contiguous block of identically-typed values. arr[2] is base_address + 2 × element_size: the CPU adds, follows the address, reads the value. Cache-friendly because contiguous.",
-              href: "/arrays",
-            },
-            {
-              label: "0x0C / linked lists",
-              value: "Scattered, pointer-linked",
-              desc: "A linked list is scattered memory connected by pointers. Each node lives at a different address; traversal follows addresses across the heap. Cache-unfriendly, flexible, dynamic.",
-              href: "/linked-list",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "The UTXO set in RAM",
-              desc: "Bitcoin's UTXO set is a hash map in RAM, roughly 8 to 10 gigabytes on a full node. Every transaction validation is a RAM lookup, O(1), because of hashing.",
-              href: "/hashing",
-            },
-            {
-              label: "0x0F / networking",
-              value: "Packets buffered in RAM",
-              desc: "Packets are buffered in RAM while the OS processes them; the network stack lives in kernel memory. When packets arrive faster than processing they queue. Network performance is often a memory-bandwidth problem.",
-              href: "/networking",
-            },
-            {
-              label: "0x10 / distributed systems",
-              value: "No shared memory",
-              desc: "Every distributed system stores its state in memory. CAP is partly a memory problem: two machines, each with their own RAM, can hold different values. There is no shared memory across machines, only messages.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "0x13 / blockchain",
-              value: "Where Bitcoin lives at runtime",
-              desc: "A full node holds the UTXO set (~8GB), the mempool (~50-100MB), and the block index in RAM. Memory is where Bitcoin's state lives while it validates. The blockchain page shows every memory concept in production.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -624,6 +529,30 @@ export const memory: PageContent = {
       {
         slug: "hashing",
         text: `A hash map is one contiguous heap allocation of buckets, and resizing doubles it. The load factor on the hashing page is a question about how full this memory gets.`,
+      },
+      {
+        slug: "number-systems",
+        text: `Every address is a hex number like <code>0x7fff5fbff8a4</code>, because binary addresses are unreadable. The number systems page is why 16 is the right shorthand.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `A DRAM cell is one transistor and a capacitor; SRAM is six transistors in a flip-flop. The logic gates page is memory configured to remember.`,
+      },
+      {
+        slug: "recursion",
+        text: `Every recursive call pushes a frame onto the ~8MB stack in memory; with no base case it grows until segfault. The recursion page is this page killing a process.`,
+      },
+      {
+        slug: "networking",
+        text: `Packets are buffered in RAM and the network stack lives in kernel memory, so throughput is often a memory-bandwidth problem. The networking page leans on this one.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Two machines each have their own RAM and can hold different values; there is no shared memory, only messages. The distributed systems page is CAP as a memory problem.`,
+      },
+      {
+        slug: "blockchain",
+        text: `A full node holds the UTXO set (~8GB), mempool, and block index in RAM. The blockchain page is where every memory concept here runs in production.`,
       },
     ],
   },

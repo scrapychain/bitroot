@@ -538,77 +538,6 @@ export const recursion: PageContent = {
           title: "// the wisdom recursion teaches",
           body: `The concept can be recursive. The code must be safe. The blockchain page showed the chain as a linked list of hash-linked blocks; this is why that list is always walked with a loop, never a recursive descent. A trustless network cannot let an attacker choose how deep your stack goes.`,
         },
-        { kind: "heading", text: "Where recursion touches ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>Recursion is a technique, not a layer, so it reaches into nearly every page below it:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x06 / memory",
-              value: "The stack has a limit",
-              desc: "Every recursive call pushes a frame onto the stack, a region of memory with a hard ~8MB limit. Recursion without a base case exhausts it and kills the process.",
-              href: "/memory",
-            },
-            {
-              label: "0x05 / cpu",
-              value: "The stack pointer",
-              desc: "The CPU's stack pointer decrements on every call and increments on every return. Cross the stack boundary and the OS sends SIGSEGV. Recursion is the CPU updating one register and writing memory.",
-              href: "/cpu",
-            },
-            {
-              label: "0x07 / operating system",
-              value: "The OS sets the limit",
-              desc: "8MB on Linux and macOS, 1MB on Windows by default. You can raise it with ulimit, but you cannot make it infinite. The OS enforces the physical boundary.",
-              href: "/operating-system",
-            },
-            {
-              label: "0x09 / pointers",
-              value: "Return addresses",
-              desc: "The return address on each frame is a pointer to the instruction to run after the function returns. Deep stacks mean many of them, and buffer-overflow and ROP attacks target exactly these.",
-              href: "/pointers",
-            },
-            {
-              label: "0x0B / arrays",
-              value: "Divide and conquer",
-              desc: "Binary search, merge sort, and quicksort are recursive in concept, each with a careful base case that prevents infinite descent. The foundation of algorithms.",
-              href: "/arrays",
-            },
-            {
-              label: "0x0C / linked lists",
-              value: "A recursive structure",
-              desc: "Each node contains a next pointer, so traversal is naturally recursive and dangerously so: ten million nodes need ten million frames recursively, one frame iteratively.",
-              href: "/linked-list",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "Constant depth on purpose",
-              desc: "SHA-256 uses the same stack depth regardless of input. Cryptographic functions avoid recursion because variable, attacker-influenced depth is a vulnerability.",
-              href: "/hashing",
-            },
-            {
-              label: "0x0A / compile vs runtime",
-              value: "A runtime failure",
-              desc: "Rust warns about infinite recursion at compile time when it can detect it, but most recursive bugs surface at runtime: the overflow happens when the program runs, not when it compiles.",
-              href: "/compile-vs-runtime",
-            },
-            {
-              label: "0x13 / blockchain",
-              value: "Validated with a loop",
-              desc: "Bitcoin validates 800,000+ blocks iteratively. The chain is conceptually recursive (this block is valid because the previous is) but the implementation is a while loop, because recursion at that depth would overflow every node.",
-              href: "/blockchain",
-            },
-            {
-              label: "0x10 / distributed systems",
-              value: "A DoS surface",
-              desc: "Recursive algorithms on data from untrusted peers are dangerous: a malicious peer can craft a structure that maximises recursive depth and triggers a stack overflow. Iterative validation defends against it.",
-              href: "/distributed-systems",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -641,6 +570,30 @@ export const recursion: PageContent = {
       {
         slug: "cpu",
         text: `Every call is the CPU pushing a frame, jumping, and later returning. The CPU page is the fetch-decode-execute loop that recursion folds back on itself.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The OS sets the stack limit (8MB on Linux, 1MB on Windows); you can raise it but never make it infinite. The operating system page enforces recursion's ceiling.`,
+      },
+      {
+        slug: "pointers",
+        text: `Each frame stores a return-address pointer, and deep stacks are exactly what buffer-overflow and ROP attacks target. The pointers page is what a blown stack corrupts.`,
+      },
+      {
+        slug: "arrays",
+        text: `Divide-and-conquer algorithms, binary search and the fast sorts, recurse over an array with a careful base case. The arrays page is the structure recursion divides.`,
+      },
+      {
+        slug: "compile-vs-runtime",
+        text: `Rust can flag some infinite recursion at compile time, but most stack overflows surface only at runtime when the program runs. The compile vs runtime page is that divide.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin's chain is conceptually recursive (a block is valid because the previous one is) but validated with a loop, because recursion 800,000 deep would overflow every node. The blockchain page is recursion made safe.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Recursing on data from untrusted peers is a DoS surface: a crafted structure can maximise depth and overflow the stack. The distributed systems page is why validation stays iterative.`,
       },
     ],
   },

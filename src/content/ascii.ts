@@ -325,71 +325,6 @@ export const ascii: PageContent = {
           html: `<p>And the checksum in that header? SHA-256, applied twice. The same hash function built from AND gates and XOR gates that you will see on the hashing page.</p>
 <p>ASCII named the commands. Binary carries the bytes. SHA-256 verifies the integrity. TCP/IP delivers the packet. All four concepts. One message header.</p>`,
         },
-        { kind: "heading", text: "Where ASCII appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>ASCII is the most quoted page on the site. Every later topic uses it for something.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x02 / binary",
-              value: "Letters as bit patterns",
-              desc: "ASCII codes are binary numbers. 'A' = 65 = 01000001. Seven bits that carry the weight of an entire alphabet.",
-              href: "/binary",
-            },
-            {
-              label: "0x01 / number systems",
-              value: "Three masks, one number",
-              desc: "ASCII codes are decimal (65), hex (0x41), and binary (01000001). The same number in three masks.",
-              href: "/number-systems",
-            },
-            {
-              label: "0x04 / logic gates",
-              value: "Case toggle is one XOR",
-              desc: "Uppercase to lowercase is one XOR operation. 'A' ^ 0x20 = 'a'. XOR is a logic gate. A logic gate is transistors. The alphabet runs on silicon.",
-              href: "/logic-gates",
-            },
-            {
-              label: "0x06 / memory",
-              value: "Strings live in RAM",
-              desc: "A string is a sequence of bytes at consecutive memory addresses. 'Hello' is five bytes starting at one address, ending five addresses later.",
-              href: "/memory",
-            },
-            {
-              label: "0x09 / pointers",
-              value: "char* is just an address",
-              desc: "In C a string is a pointer. char* str = \"Hello\" makes str the address of the H. The string only exists because the pointer knows where it starts.",
-              href: "/pointers",
-            },
-            {
-              label: "0x0B / arrays",
-              value: "char arrays + NUL",
-              desc: "A string is a char array. Each element one ASCII byte. C strings end with NUL (0x00), the first control code, still working after sixty years.",
-              href: "/arrays",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "Bytes in, hash out",
-              desc: "SHA-256 hashes strings as bytes. 'Hello' becomes its ASCII bytes (72 101 108 108 111) then gets hashed to 256 bits. The input is always ASCII or UTF-8 bytes.",
-              href: "/hashing",
-            },
-            {
-              label: "0x0F / networking",
-              value: "HTTP is ASCII text",
-              desc: "HTTP headers are ASCII text. 'GET / HTTP/1.1' is ASCII. Every web request you have ever made started as ASCII characters converted to binary wrapped in a TCP packet.",
-              href: "/networking",
-            },
-            {
-              label: "0x11 / blockchain",
-              value: "12-byte ASCII commands",
-              desc: "Bitcoin network commands are 12-byte ASCII strings. 'version', 'tx', 'block', NUL-padded to fill the field. ASCII is inside the protocol that moves every Bitcoin transaction.",
-              href: "/blockchain",
-            },
-          ],
-        },
         { kind: "heading", text: "Connecting back to bits" },
         {
           kind: "prose",
@@ -427,6 +362,22 @@ export const ascii: PageContent = {
       {
         slug: "hashing",
         text: `Hashing a string hashes its ASCII or UTF-8 bytes. The encoding on this page is the raw material every hash function chews on.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `Flipping case is one XOR: <code>'A' ^ 0x20 = 'a'</code>. XOR is a logic gate, a gate is transistors, so the alphabet runs on silicon. That is the logic gates page.`,
+      },
+      {
+        slug: "pointers",
+        text: `In C a string is a pointer: <code>char* str = "Hello"</code> holds the address of the H. The pointers page is why a string is really just where it starts.`,
+      },
+      {
+        slug: "arrays",
+        text: `A string is a char array, one ASCII byte per element, terminated by NUL (<code>0x00</code>), the first control code on this page. The arrays page is the structure underneath.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin network commands are 12-byte ASCII strings: <code>version</code>, <code>tx</code>, <code>block</code>, NUL-padded. The blockchain page runs ASCII inside its wire protocol.`,
       },
     ],
   },

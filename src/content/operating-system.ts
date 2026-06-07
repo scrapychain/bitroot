@@ -579,90 +579,6 @@ export const operatingSystem: PageContent = {
 </ul>`,
         },
 
-        /* ── Connections grid ── */
-        { kind: "heading", text: "Where the OS appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>The operating system is not an isolated topic. It sits on top of everything below it and beneath everything above it.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 4,
-          cards: [
-            {
-              label: "01 / binary",
-              value: "The kernel is binary",
-              desc: "The OS kernel is binary machine code. The kernel mode bit is a binary flag in a CPU control register. Every syscall is a binary trap instruction.",
-              href: "/binary",
-            },
-            {
-              label: "04 / logic gates",
-              value: "Privilege in silicon",
-              desc: "The CPU's privilege levels are implemented in logic gates. Gates check the mode bit before executing privileged instructions. The protection is hardware-enforced.",
-              href: "/logic-gates",
-            },
-            {
-              label: "05 / cpu",
-              value: "The OS owns the CPU",
-              desc: "The scheduler controls which process runs on which core. Context switches save and restore the entire CPU register state. The fetch-decode-execute loop serves the OS's will.",
-              href: "/cpu",
-            },
-            {
-              label: "06 / memory",
-              value: "Every page table",
-              desc: "The OS manages every page table, every virtual address space, every allocation. The stack and heap exist because the OS created them. Virtual memory is an OS abstraction over physical RAM.",
-              href: "/memory",
-            },
-            {
-              label: "09 / pointers",
-              value: "File descriptors",
-              desc: "File descriptors are OS-level pointers to kernel objects. Socket fd 5 points to a TCP connection. File fd 3 points to an open file. The kernel is a linked list of these objects internally.",
-              href: "/pointers",
-            },
-            {
-              label: "0A / compile vs runtime",
-              value: "The runtime boundary",
-              desc: "Syscalls are the runtime boundary. Your compiled binary contains the syscall instruction statically. The OS decides at runtime whether to grant the request.",
-              href: "/compile-vs-runtime",
-            },
-            {
-              label: "0F / networking",
-              value: "The OS owns TCP",
-              desc: "TCP/IP is implemented in the kernel. Your program calls send() and recv(). The kernel does packet assembly, routing, and checksums. Every network packet travels through the kernel.",
-              href: "/networking",
-            },
-            {
-              label: "0D / hashing",
-              value: "Hash tables inside",
-              desc: "The OS uses hashing internally. The page table is a hash map of virtual to physical addresses. File system inodes are found via hash. The OS is one of the largest users of hashing.",
-              href: "/hashing",
-            },
-            {
-              label: "14 / recursion",
-              value: "Stack overflow = SIGSEGV",
-              desc: "A stack overflow is a page fault at the stack guard page. The OS detects it and sends SIGSEGV. The kernel enforces the boundary in the page table.",
-              href: "/recursion",
-            },
-            {
-              label: "10 / distributed systems",
-              value: "Processes on a network",
-              desc: "Every node in a distributed system is a process managed by an OS. The OS provides the sockets. The scheduler determines when each node's logic runs.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "13 / blockchain",
-              value: "Bitcoin runs inside the OS",
-              desc: "Bitcoin Core is a user-space process. Its 125 peer connections are sockets managed by the kernel. The UTXO set is memory-mapped via mmap(). The mempool is protected by OS mutexes.",
-              href: "/blockchain",
-            },
-            {
-              label: "15 / big o",
-              value: "Context switch is O(1)",
-              desc: "Saving and restoring registers is a fixed number of operations - O(1). But the real cost is cache invalidation and TLB flushes. Big O explains the algorithm. Cache explains the reality.",
-              href: "/big-o",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -695,6 +611,30 @@ export const operatingSystem: PageContent = {
       {
         slug: "hashing",
         text: `The page table is a hash map from virtual to physical addresses. Filesystems hash directory entries; package managers hash downloads. The OS is built on structures from the hashing page.`,
+      },
+      {
+        slug: "binary",
+        text: `The kernel is binary machine code and the kernel-mode bit is a single binary flag in a control register. The binary page is what the OS is built from.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `Privilege levels are enforced in logic gates that check the mode bit before running a privileged instruction. The logic gates page is where the OS's protection is physically wired.`,
+      },
+      {
+        slug: "recursion",
+        text: `A stack overflow is a page fault at the guard page, which the OS turns into a SIGSEGV. The recursion page is the runaway this page kills.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Every node in a distributed system is a process the OS schedules and hands sockets to. The distributed systems page is many copies of this page talking.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin Core is a user-space process: its peers are kernel sockets, the UTXO set is <code>mmap()</code>ed, the mempool sits behind OS mutexes. The blockchain page runs inside this one.`,
+      },
+      {
+        slug: "big-o",
+        text: `A context switch is O(1) register saves, but TLB flushes and cache invalidation are the real cost. The big-o page counts operations; this page is where cache decides reality.`,
       },
     ],
   },

@@ -5497,6 +5497,284 @@ went unnoticed until 2006. Nine years in production.`}</code>
   );
 }
 
+/* =====================================================================
+   TCP three-way handshake: step SYN / SYN-ACK / ACK, then send data
+   ===================================================================== */
+const TCP_STEPS: Array<{
+  dir: "cs" | "sc";
+  label: string;
+  color: string;
+  client: string;
+  server: string;
+  note: string;
+}> = [
+  {
+    dir: "cs",
+    label: "",
+    color: "var(--fg-mute)",
+    client: "CLOSED",
+    server: "LISTEN",
+    note: "The server is listening. The client has not reached out yet.",
+  },
+  {
+    dir: "cs",
+    label: "SYN  seq=100",
+    color: "var(--neon-cyan)",
+    client: "SYN-SENT",
+    server: "LISTEN",
+    note: "1 — Client sends SYN with its starting sequence number (100).",
+  },
+  {
+    dir: "sc",
+    label: "SYN-ACK  seq=300 ack=101",
+    color: "var(--neon-magenta)",
+    client: "SYN-SENT",
+    server: "SYN-RCVD",
+    note: "2 — Server replies SYN-ACK: its own seq (300), and acknowledges 101.",
+  },
+  {
+    dir: "cs",
+    label: "ACK  ack=301",
+    color: "var(--neon-lime)",
+    client: "ESTABLISHED",
+    server: "ESTABLISHED",
+    note: "3 — Client acknowledges 301. Both ends agree; the connection is open.",
+  },
+  {
+    dir: "cs",
+    label: 'DATA  "GET /"',
+    color: "var(--neon-cyan)",
+    client: "ESTABLISHED",
+    server: "ESTABLISHED",
+    note: "Established — now bytes flow as one ordered stream.",
+  },
+];
+
+function TcpHandshakeWidget() {
+  const [step, setStep] = useState(0);
+  const cur = TCP_STEPS[step];
+  const clientX = 95;
+  const serverX = 385;
+  const msgY = 205;
+  const hasMsg = step > 0;
+  const fromX = cur.dir === "cs" ? clientX : serverX;
+  const toX = cur.dir === "cs" ? serverX : clientX;
+  const established = step >= 3;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// TCP three-way handshake"}</span>
+        <div className="widget-controls">
+          <button
+            type="button"
+            className="widget-btn"
+            onClick={() => setStep((s) => Math.min(TCP_STEPS.length - 1, s + 1))}
+            disabled={step >= TCP_STEPS.length - 1}
+          >
+            step →
+          </button>
+          <button type="button" className="widget-btn" onClick={() => setStep(0)}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      <svg
+        className="widget-canvas"
+        viewBox="0 0 480 300"
+        role="img"
+        aria-label="A TCP three-way handshake between a client and a server, advanced step by step: SYN, then SYN-ACK, then ACK, then data."
+      >
+        {([
+          { x: clientX, label: "CLIENT", state: cur.client },
+          { x: serverX, label: "SERVER", state: cur.server },
+        ] as const).map((ep) => (
+          <g key={ep.label}>
+            <rect
+              x={ep.x - 60}
+              y={26}
+              width={120}
+              height={48}
+              rx={8}
+              fill="var(--bg-2)"
+              stroke={established ? "var(--neon-lime)" : "var(--fg-mute)"}
+              strokeWidth="2"
+            />
+            <text x={ep.x} y={46} textAnchor="middle" fill="var(--fg)" fontFamily="var(--font-mono)" fontSize="13" fontWeight="600">
+              {ep.label}
+            </text>
+            <text
+              x={ep.x}
+              y={64}
+              textAnchor="middle"
+              fill={established ? "var(--neon-lime)" : "var(--fg-mute)"}
+              fontFamily="var(--font-mono)"
+              fontSize="11"
+            >
+              {ep.state}
+            </text>
+            <line x1={ep.x} y1={74} x2={ep.x} y2={282} stroke="var(--line-strong)" strokeWidth="1" strokeDasharray="2 4" />
+          </g>
+        ))}
+
+        {hasMsg && (
+          <g key={step}>
+            <text x={240} y={msgY - 16} textAnchor="middle" fill={cur.color} fontFamily="var(--font-mono)" fontSize="12" fontWeight="600">
+              {cur.label}
+            </text>
+            <line x1={fromX} y1={msgY} x2={toX} y2={msgY} stroke={cur.color} strokeWidth="1.5" opacity={0.5} />
+            <circle cx={toX} cy={msgY} r="4" fill={cur.color} />
+            <circle r="7" cy={msgY} fill={cur.color} className="widget-message">
+              <animate attributeName="cx" from={fromX} to={toX} dur="0.7s" fill="freeze" />
+            </circle>
+          </g>
+        )}
+      </svg>
+
+      <p className="widget-caption" style={{ color: cur.color }}>
+        {cur.note}
+      </p>
+      <p className="widget-caption">
+        the kernel runs all of this before <code>connect()</code> ever returns: three messages to agree on sequence numbers and confirm both ends can hear each other. closing repeats the shape in reverse with FIN/ACK.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
+   Node at three scales: the same pattern from heap to blockchain
+   ===================================================================== */
+type NodeScale = "struct" | "network" | "chain";
+
+const NODE_SCALES: Record<
+  NodeScale,
+  {
+    btn: string;
+    title: string;
+    color: string;
+    identity: string;
+    state: string;
+    neighbours: string;
+    center: string;
+    peer: string;
+    caption: string;
+  }
+> = {
+  struct: {
+    btn: "data structure",
+    title: "linked-list node",
+    color: "var(--neon-cyan)",
+    identity: "a heap pointer",
+    state: "value: 42",
+    neighbours: "next → 1 node",
+    center: "{ 42, next }",
+    peer: "node",
+    caption: "~16 bytes on the heap. Addressed by a pointer, holds a value, points at its neighbour.",
+  },
+  network: {
+    btn: "network",
+    title: "network node",
+    color: "var(--neon-indigo)",
+    identity: "IP 192.168.1.42",
+    state: "OS + sockets",
+    neighbours: "TCP peers",
+    center: "a computer",
+    peer: "host",
+    caption: "A whole computer. Addressed by an IP address, runs an OS, connected to peers over TCP.",
+  },
+  chain: {
+    btn: "blockchain",
+    title: "blockchain node",
+    color: "var(--neon-amber)",
+    identity: "a public-key hash",
+    state: "full chain copy",
+    neighbours: "~125 gossip peers",
+    center: "node + chain",
+    peer: "peer",
+    caption: "A computer running protocol software. Holds a full copy of the chain, gossips with ~125 peers.",
+  },
+};
+
+function NodeScalesWidget() {
+  const [scale, setScale] = useState<NodeScale>("struct");
+  const d = NODE_SCALES[scale];
+  const cx = 240;
+  const cy = 95;
+  const peers = [
+    { x: 80, y: 70 },
+    { x: 400, y: 70 },
+    { x: 240, y: 170 },
+  ];
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// one word, three scales"}</span>
+        <div className="widget-controls">
+          {(Object.keys(NODE_SCALES) as NodeScale[]).map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={`widget-btn ${scale === s ? "is-active" : ""}`}
+              onClick={() => setScale(s)}
+            >
+              {NODE_SCALES[s].btn}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <svg
+        className="widget-canvas"
+        viewBox="0 0 480 320"
+        role="img"
+        aria-label="A node and its neighbours at the selected scale, with its identity, state, and neighbours labelled."
+      >
+        {peers.map((p, i) => (
+          <line key={`e-${i}`} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={d.color} strokeWidth="1.5" strokeDasharray="3 4" opacity={0.55} />
+        ))}
+        {peers.map((p, i) => (
+          <g key={`p-${i}`}>
+            <circle cx={p.x} cy={p.y} r={20} fill="var(--bg-2)" stroke="var(--fg-mute)" strokeWidth="1.5" />
+            <text x={p.x} y={p.y + 4} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="10">
+              {d.peer}
+            </text>
+          </g>
+        ))}
+
+        <rect x={cx - 78} y={cy - 30} width={156} height={60} rx={10} fill="var(--bg-2)" stroke={d.color} strokeWidth="2.5" />
+        <text x={cx} y={cy - 6} textAnchor="middle" fill={d.color} fontFamily="var(--font-mono)" fontSize="13" fontWeight="600">
+          {d.title}
+        </text>
+        <text x={cx} y={cy + 16} textAnchor="middle" fill="var(--fg)" fontFamily="var(--font-mono)" fontSize="12">
+          {d.center}
+        </text>
+
+        <line x1={30} y1={218} x2={450} y2={218} stroke="var(--line-strong)" strokeWidth="1" />
+        {([
+          { label: "identity", value: d.identity, x: 95 },
+          { label: "state", value: d.state, x: 240 },
+          { label: "neighbours", value: d.neighbours, x: 385 },
+        ] as const).map((col) => (
+          <g key={col.label}>
+            <text x={col.x} y={250} textAnchor="middle" fill={d.color} fontFamily="var(--font-mono)" fontSize="11" fontWeight="600">
+              {col.label}
+            </text>
+            <text x={col.x} y={273} textAnchor="middle" fill="var(--fg)" fontFamily="var(--font-mono)" fontSize="11">
+              {col.value}
+            </text>
+          </g>
+        ))}
+      </svg>
+
+      <p className="widget-caption">
+        <strong style={{ color: d.color }}>{d.title}</strong>: {d.caption} Same three properties every time — <strong>identity</strong>, <strong>state</strong>, <strong>neighbours</strong> — at wildly different scales.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -5545,6 +5823,10 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <HashVisualiserWidget />;
     case "search-race":
       return <SearchRaceWidget />;
+    case "tcp-handshake-sim":
+      return <TcpHandshakeWidget />;
+    case "node-scales":
+      return <NodeScalesWidget />;
     default:
       return null;
   }

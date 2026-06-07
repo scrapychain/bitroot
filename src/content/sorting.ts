@@ -665,77 +665,6 @@ export const sorting: PageContent = {
           kind: "raw",
           html: `<p class="connection-line">Bitcoin Core's mempool sort is the same qsort/sort_unstable pattern as any other array sort. The hashing page showed how transactions get unique IDs. The networking page showed how they propagate across the network. The OS page showed how the sort runs as a user-space process. All of those pages converge at this one array sort. <a href="/blockchain">← see: Blockchain</a> &nbsp; <a href="/hashing">← see: Hashing</a></p>`,
         },
-        { kind: "heading", text: "Where sorting touches ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>Sorting does not exist in isolation. It runs on top of everything below it and feeds everything above it.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 4,
-          cards: [
-            {
-              label: "02 / binary",
-              value: "Every comparison is binary",
-              desc: "arr[j] > arr[j+1] compiles to a SUB instruction. The CPU checks the sign bit. Sorting is binary arithmetic at billions of operations per second.",
-              href: "/binary",
-            },
-            {
-              label: "11 / arrays",
-              value: "The required structure",
-              desc: "Sorting only makes sense on arrays. O(1) index access lets merge sort read arr[mid] instantly. On a linked list that would be O(n). Contiguous memory is what makes comparison sorts practical.",
-              href: "/arrays",
-            },
-            {
-              label: "06 / memory",
-              value: "In-place vs extra space",
-              desc: "Bubble sort: O(1) extra memory. Merge sort: O(n) extra memory. Every sort algorithm choice is also a memory trade-off.",
-              href: "/memory",
-            },
-            {
-              label: "14 / recursion",
-              value: "Merge sort is recursion",
-              desc: "Base case: one element is sorted. Recursive step: sort each half. The call stack grows log n deep. At n = 1,000,000: 20 levels. Safe and predictable.",
-              href: "/recursion",
-            },
-            {
-              label: "15 / big o",
-              value: "The proven ceiling",
-              desc: "O(n log n) is the mathematical ceiling for comparison sorts. The gap between O(n squared) and O(n log n) is 25,000x at one million elements. Sorting is the canonical Big O example.",
-              href: "/big-o",
-            },
-            {
-              label: "09 / pointers",
-              value: "qsort takes void*",
-              desc: "In C every array parameter is a pointer. void bubble_sort(int *arr, int n) -- arr is the address of the first element. qsort() takes void* -- untyped pointers. Rust generics replace void* with type safety.",
-              href: "/pointers",
-            },
-            {
-              label: "13 / hashing",
-              value: "Sorting vs hashing",
-              desc: "Both solve fast data retrieval. Sorted array + binary search: O(log n) lookup. Hash map: O(1) lookup. Sort once: O(n log n) up front. The hashing page explains when to use which.",
-              href: "/hashing",
-            },
-            {
-              label: "07 / operating system",
-              value: "The scheduler sorts",
-              desc: "The OS scheduler sorts processes by priority, wait time, and virtual runtime. CFS always runs the process with the least CPU time -- a sort on a run queue, running every millisecond.",
-              href: "/operating-system",
-            },
-            {
-              label: "10 / distributed systems",
-              value: "External merge sort",
-              desc: "Sorting distributed data: each node has a sorted partition. Merging k sorted partitions is O(n log k). This is external merge sort -- how databases sort data larger than RAM.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "19 / blockchain",
-              value: "Mempool fee sort",
-              desc: "Bitcoin miners sort the mempool by fee rate. Highest satoshis per virtual byte confirms first. O(n log n) on the most consequential array in the history of finance.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -768,6 +697,26 @@ export const sorting: PageContent = {
       {
         slug: "cpu",
         text: `Branch prediction and cache behaviour decide real sorting speed as much as Big O does. The CPU page is the hardware your sort actually runs on.`,
+      },
+      {
+        slug: "binary",
+        text: `Every comparison, <code>arr[j] > arr[j+1]</code>, compiles to a subtraction whose sign bit decides the swap. The binary page is sorting at the bit level.`,
+      },
+      {
+        slug: "pointers",
+        text: `In C a sort takes a pointer to the first element, and <code>qsort()</code> takes untyped <code>void*</code>. The pointers page is how a sort reaches the array.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The OS scheduler keeps its run queue sorted by virtual runtime, running the least-served process every millisecond. The operating system page sorts to schedule.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Merging k already-sorted partitions across nodes is O(n log k), the external merge sort databases use for data larger than RAM. The distributed systems page sorts at scale.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin miners sort the mempool by fee rate, highest satoshis-per-byte first. The blockchain page runs O(n log n) on the most consequential array in finance.`,
       },
     ],
   },

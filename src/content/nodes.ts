@@ -153,6 +153,7 @@ export const nodes: PageContent = {
           title: "// fractal, not analogical",
           body: `The three scales aren't a metaphor for each other; they're the same idea applied at different orders of magnitude. A linked-list node is ~16 bytes on the heap, addressed by a pointer. A network node is a whole computer, addressed by an IP address. A blockchain node is a computer running specific software, addressed by a public-key hash. Same three properties (identity, state, neighbours) every time.`,
         },
+        { kind: "widget", name: "node-scales" },
         { kind: "heading", text: "The data-structure node, in code" },
         {
           kind: "prose",

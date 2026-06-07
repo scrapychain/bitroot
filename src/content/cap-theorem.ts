@@ -438,65 +438,6 @@ export const capTheorem: PageContent = {
           kind: "prose",
           html: `<p>This is why you wait for confirmations. This is why Bitcoin is slow. This is why it has never been successfully double-spent in over fifteen years. Every second of waiting is the price of consistency in a trustless world.</p>`,
         },
-        { kind: "heading", text: "Where the CAP theorem appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>CAP is not an isolated result; it touches almost every layer of the stack below it. The shortest path from each:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x02 / binary",
-              value: "Disagreement is binary",
-              desc: "Every value a distributed system stores is ultimately binary. When two servers disagree they hold different binary states at the same logical address.",
-              href: "/binary",
-            },
-            {
-              label: "0x06 / memory",
-              value: "Two copies, one truth",
-              desc: "The CAP tradeoff is a memory problem: two machines, two copies of data, one truth, impossible to keep perfectly aligned when the network between them fails.",
-              href: "/memory",
-            },
-            {
-              label: "0x0F / networking",
-              value: "The P in CAP",
-              desc: "A network partition is the P in CAP. TCP/IP carries the consistency messages between nodes; when packets drop, the theorem activates.",
-              href: "/networking",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "Consistency by math",
-              desc: "Bitcoin uses SHA-256 to enforce consistency. Each block hash is an immutable link; changing history means recomputing every hash that follows, which is computationally impossible.",
-              href: "/hashing",
-            },
-            {
-              label: "0x0C / linked lists",
-              value: "Tamper-evident by structure",
-              desc: "A blockchain is a linked list where the pointer between nodes is a hash. CAP explains why changing any node is detectable by every other node; the consistency guarantee is structural.",
-              href: "/linked-list",
-            },
-            {
-              label: "0x0B / arrays",
-              value: "Shards are arrays",
-              desc: "Distributed arrays are called shards. CAP decides whether all shards must agree before responding, or whether each can answer independently.",
-              href: "/arrays",
-            },
-            {
-              label: "0x10 / distributed systems",
-              value: "The fundamental constraint",
-              desc: "CAP is the fundamental constraint of distributed systems. Every architecture decision (replication, consensus, sharding) is an answer to the same CAP question.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "0x12 / blockchain",
-              value: "Crypto chose CP",
-              desc: "Bitcoin chose CP. Ethereum chose CP. Both sacrifice availability to guarantee consistency, because financial ledgers have no room for reconciling later. CAP is why crypto takes time to confirm.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -525,6 +466,22 @@ export const capTheorem: PageContent = {
       {
         slug: "hashing",
         text: `Distributed databases use consistent hashing to spread data across nodes, and CAP decides what happens to that data during a partition. The hashing page places the keys; this page is what breaks when the network does.`,
+      },
+      {
+        slug: "binary",
+        text: `Every value a distributed system stores is ultimately binary, so disagreement is two servers holding different bits at the same logical address. The binary page is what the conflict is made of.`,
+      },
+      {
+        slug: "memory",
+        text: `CAP is a memory problem at heart: two machines, two copies, one truth, impossible to keep aligned when the link between them fails. The memory page is the copies it splits.`,
+      },
+      {
+        slug: "linked-list",
+        text: `A blockchain is a linked list whose pointers are hashes, so tampering with any node is detectable by every other. The linked-list page is consistency made structural.`,
+      },
+      {
+        slug: "arrays",
+        text: `Distributed arrays are called shards, and CAP decides whether they must all agree before responding or each can answer alone. The arrays page is the structure being split.`,
       },
     ],
   },

@@ -485,107 +485,6 @@ export const pointers: PageContent = {
 </ul>
 <p>These are not theoretical. Several Bitcoin protocol bugs in history were exactly these pointer bugs in C++ code. Rust in the Linux kernel and in Bitcoin infrastructure exists because of them.</p>`,
         },
-        { kind: "heading", text: "Where pointers appear in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>A pointer is the smallest unit of indirection in computing, so it shows up on nearly every other page. Here is where.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 4,
-          cards: [
-            {
-              label: "01 / number systems",
-              value: "Addresses are hex",
-              desc: "A memory address is a hex number like 0x7fff5fbff8d4. Hex because raw binary addresses would be unreadable; the number systems page explains why addresses are always written that way.",
-              href: "/number-systems",
-            },
-            {
-              label: "02 / binary",
-              value: "8 bytes of binary",
-              desc: "A 64-bit pointer is 8 bytes of binary stored in a register or on the stack. The binary page is what a pointer is actually made of at the lowest level.",
-              href: "/binary",
-            },
-            {
-              label: "03 / ascii",
-              value: "char* is a pointer",
-              desc: "char* in C is a pointer to the first byte of a string, and the string ends when a NUL byte (0x00) is found. Every C string is a pointer plus a contract.",
-              href: "/ascii",
-            },
-            {
-              label: "04 / logic gates",
-              value: "Address lines are gates",
-              desc: "Load and store instructions take an address, which is gated onto the address bus. Address lines are logic gates routing the binary address to the right memory cells.",
-              href: "/logic-gates",
-            },
-            {
-              label: "05 / cpu",
-              value: "The program counter",
-              desc: "The program counter is a pointer to the next instruction; the stack pointer points at the top of the call stack. Every call and return is the CPU following and updating pointers.",
-              href: "/cpu",
-            },
-            {
-              label: "06 / memory",
-              value: "Structure over bytes",
-              desc: "Without pointers, memory is just a flat array of bytes. Pointers are how you build structure on top of it; the memory page's regions only make sense with pointers connecting them.",
-              href: "/memory",
-            },
-            {
-              label: "07 / operating system",
-              value: "Every syscall buffer",
-              desc: "Every syscall argument is a pointer: in write(fd, buf, n), buf is a pointer the kernel validates and copies through. Every OS abstraction is a pointer with a permission check attached.",
-              href: "/operating-system",
-            },
-            {
-              label: "08 / variables",
-              value: "Header plus pointer",
-              desc: "Dynamic variables (Vec, String, Box) are a fixed-size header containing a pointer: the header on the stack, the pointer reaching the heap. Pointers in their most everyday form.",
-              href: "/variables",
-            },
-            {
-              label: "20 / recursion",
-              value: "Return addresses",
-              desc: "The return address on the call stack is a pointer to the instruction to run after a function returns. Buffer overflow attacks overwrite exactly this pointer. Recursion is pointer-chasing through code.",
-              href: "/recursion",
-            },
-            {
-              label: "11 / arrays",
-              value: "arr[i] is arithmetic",
-              desc: "arr[i] is pointer arithmetic: base_address + (i x element_size). The array is a pointer to its first element (arr == &arr[0]), so every access dereferences a pointer in one instruction.",
-              href: "/arrays",
-            },
-            {
-              label: "12 / linked lists",
-              value: "Every node points",
-              desc: "Every node holds a pointer: struct Node { int value; Node *next; }. The list only exists because of that pointer, and each dereference is a potential cache miss this page explains.",
-              href: "/linked-list",
-            },
-            {
-              label: "13 / hashing",
-              value: "Buckets are pointers",
-              desc: "A hash map uses pointers internally: each bucket may point to a linked list of entries (chaining). Its O(1) lookup follows exactly one pointer in the best case.",
-              href: "/hashing",
-            },
-            {
-              label: "15 / networking",
-              value: "Sockets are descriptors",
-              desc: "A socket is a file descriptor, an integer the OS uses as a pointer into its socket table. Every send() and recv() takes a buffer pointer the kernel validates before touching user memory.",
-              href: "/networking",
-            },
-            {
-              label: "19 / blockchain",
-              value: "prev_hash is a pointer",
-              desc: "Bitcoin's prev_hash is a pointer, not a memory address but a cryptographic content address. Change the block and the hash changes, the pointer breaks, and the chain is provably invalid.",
-              href: "/blockchain",
-            },
-            {
-              label: "21 / big o",
-              value: "O(1) with a catch",
-              desc: "Following a pointer is O(1), but cache misses make it feel like more. A linked list traversal is O(n) by the algorithm, yet each dereference can stall the CPU ~200 cycles waiting for RAM.",
-              href: "/big-o",
-            },
-          ],
-        },
         {
           kind: "callout",
           variant: "info",
@@ -640,6 +539,38 @@ export const pointers: PageContent = {
       {
         slug: "operating-system",
         text: `Crossing the kernel boundary means handing the OS a pointer to your buffer. A bad pointer there is a segfault. The OS page is the strictest user of this one.`,
+      },
+      {
+        slug: "number-systems",
+        text: `A pointer is an address printed in hex, like <code>0x7fff5fbff8d4</code>. The number systems page is why those addresses read in base sixteen.`,
+      },
+      {
+        slug: "binary",
+        text: `A 64-bit pointer is 8 bytes of binary in a register or on the stack. The binary page is what a pointer is made of at the lowest level.`,
+      },
+      {
+        slug: "ascii",
+        text: `A C string is a <code>char*</code> to its first byte, ending at a NUL (<code>0x00</code>). The ASCII page is the bytes that pointer walks.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `Load and store instructions gate an address onto the address bus through logic gates that route it to the right cells. The logic gates page is a pointer in hardware.`,
+      },
+      {
+        slug: "recursion",
+        text: `Each stack frame holds a return-address pointer, and buffer-overflow attacks overwrite exactly that. The recursion page is pointer-chasing through code.`,
+      },
+      {
+        slug: "networking",
+        text: `A socket is a descriptor the OS treats as a pointer into its socket table, and every <code>send()</code> hands the kernel a buffer pointer to validate. The networking page is pointers across the boundary.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin's <code>prev_hash</code> is a pointer by content, not address: change the block and the hash breaks the link. The blockchain page is the pointer made cryptographic.`,
+      },
+      {
+        slug: "big-o",
+        text: `Following a pointer is O(1), but a cache miss can stall the CPU ~200 cycles, so the notation hides the real cost. The big-o page is where that gap lives.`,
       },
     ],
   },

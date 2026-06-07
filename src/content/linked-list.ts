@@ -676,113 +676,6 @@ export const linkedList: PageContent = {
   <li><strong>"Learning Rust With Entirely Too Many Linked Lists"</strong>. The single best resource for understanding why linked lists are hard in Rust, and what to do about it.</li>
 </ul>`,
         },
-        { kind: "heading", text: "Where linked lists appear in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>A chain of somewheres shows up everywhere once you know its shape. Here is where the pointer chase reaches across the site.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 4,
-          cards: [
-            {
-              label: "02 / binary",
-              value: "8 bytes per next",
-              desc: "Every next pointer is 8 bytes of binary, a 64-bit address stored in the node. Linked lists are chains of binary numbers pointing through the heap.",
-              href: "/binary",
-            },
-            {
-              label: "01 / number systems",
-              value: "Scattered hex addresses",
-              desc: "Heap addresses are hex numbers: 0x5591a2b30010 for one node, 0x7f3a0000b020 for the next, scattered across the address space. Hex because binary addresses would be unreadable.",
-              href: "/number-systems",
-            },
-            {
-              label: "06 / memory",
-              value: "One malloc per node",
-              desc: "Every node is a separate heap allocation, one malloc or Box::new each. The memory page warned this costs hundreds of cycles. A five-node list is five trips to the allocator; a Vec pays once.",
-              href: "/memory",
-            },
-            {
-              label: "05 / cpu",
-              value: "Unprefetchable chases",
-              desc: "Walking a list is pointer chases. The CPU cannot prefetch the next node; it learns the address only by reading the current one. Every step is a potential 200-300 cycle cache miss.",
-              href: "/cpu",
-            },
-            {
-              label: "07 / operating system",
-              value: "Intrusive kernel lists",
-              desc: "The kernel uses intrusive doubly linked lists for run queues, wait queues, and timer lists. The same list_head embedded in task_struct connects the structs the OS page described.",
-              href: "/operating-system",
-            },
-            {
-              label: "08 / variables",
-              value: "Nodes are structs",
-              desc: "A node is a struct variable: value plus next: *Node in C, or value plus next: Option<Box<Node>> in Rust. A linked list is those structs scattered across the heap, joined by their pointer fields.",
-              href: "/variables",
-            },
-            {
-              label: "09 / pointers",
-              value: "Pointers, applied",
-              desc: "The next field is a pointer; walking is dereferencing; inserting writes two pointers; deleting writes one. The whole structure is the pointer page made into a chain.",
-              href: "/pointers",
-            },
-            {
-              label: "10 / compile vs runtime",
-              value: "Rejected at compile time",
-              desc: "A doubly linked list is the famous case of Rust refusing code C compiles silently: two mutable references to one node. Rust says no at compile time; C corrupts at runtime.",
-              href: "/compile-vs-runtime",
-            },
-            {
-              label: "11 / arrays",
-              value: "The opposite",
-              desc: "Arrays and linked lists are opposites: contiguous vs scattered, O(1) vs O(n) access, cache-friendly vs cache-hostile. The arrays page is the other side of the fundamental tradeoff.",
-              href: "/arrays",
-            },
-            {
-              label: "20 / recursion",
-              value: "A recursive structure",
-              desc: "A list is either empty or a node followed by a list. The natural traversal is recursive; the safe one is iterative when the list is long. The blockchain is 800,000 nodes deep.",
-              href: "/recursion",
-            },
-            {
-              label: "13 / hashing",
-              value: "Buckets are chains",
-              desc: "Hash maps resolve collisions with linked lists: each bucket is the head of a chain, and colliding keys hang off one array slot. This page is the prerequisite for the next one.",
-              href: "/hashing",
-            },
-            {
-              label: "21 / big o",
-              value: "Why Big O lies",
-              desc: "O(n) access is the price you pay for O(1) inserts: same classification as array iteration, but 5 to 50 times slower. Cache behaviour is not in the notation; linked lists are the proof.",
-              href: "/big-o",
-            },
-            {
-              label: "15 / networking",
-              value: "sk_buff chains",
-              desc: "The Linux kernel often implements socket send and receive buffers as linked lists of sk_buff structs. Each buffer is a node; the packets in flight from the networking page live in them.",
-              href: "/networking",
-            },
-            {
-              label: "16 / distributed systems",
-              value: "Append-only logs",
-              desc: "Event logs are append-only linked lists where each event points to the previous, the same shape as the blockchain. The same tamper-evidence argument applies once the pointer is a hash.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "19 / blockchain",
-              value: "Hash-linked nodes",
-              desc: "The Bitcoin blockchain is a singly linked list whose next pointer is a SHA-256 double hash. Change any block, its hash changes, the next block's pointer no longer matches, the chain breaks.",
-              href: "/blockchain",
-            },
-            {
-              label: "22 / sorting",
-              value: "Painful to sort",
-              desc: "Merge sort works on lists by splitting via pointers, but quicksort needs random access, and the cache cost of any sort is far higher than on an array. The sorting page chose arrays deliberately.",
-              href: "/sorting",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -819,6 +712,42 @@ export const linkedList: PageContent = {
       {
         slug: "blockchain",
         text: `A blockchain is a linked list whose <code>next</code> pointer is a cryptographic hash of the previous block. The structure on this page is the chain in blockchain.`,
+      },
+      {
+        slug: "binary",
+        text: `Every <code>next</code> pointer is 8 bytes of binary, a 64-bit address held in the node. The binary page is what the chain is actually made of.`,
+      },
+      {
+        slug: "number-systems",
+        text: `Each node sits at a scattered hex address like <code>0x5591a2b30010</code>. The number systems page is why those addresses read in base sixteen.`,
+      },
+      {
+        slug: "cpu",
+        text: `Walking a list is unprefetchable pointer chases: the CPU learns the next address only by reading the current node, risking a cache miss each step. The CPU page is why that hurts.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The kernel threads run queues, wait queues, and timers through intrusive doubly linked lists. The operating system page runs on the structure from this page.`,
+      },
+      {
+        slug: "variables",
+        text: `A node is a struct variable: a value plus a <code>next</code> pointer field. The variables page is the node before you chain it.`,
+      },
+      {
+        slug: "compile-vs-runtime",
+        text: `A doubly linked list is the classic case Rust rejects at compile time and C corrupts at runtime: two mutable references to one node. The compile vs runtime page is that line.`,
+      },
+      {
+        slug: "networking",
+        text: `Linux holds socket buffers as linked lists of <code>sk_buff</code> nodes, one per packet in flight. The networking page's packets live in the chain from this page.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `An append-only event log is a linked list where each event points back to the prior one, the same shape as a blockchain. The distributed systems page reuses it.`,
+      },
+      {
+        slug: "sorting",
+        text: `Merge sort splits a list by pointers, but quicksort needs random access a list lacks, so sorting one is costly. The sorting page deliberately chose arrays instead.`,
       },
     ],
   },

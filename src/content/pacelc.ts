@@ -547,65 +547,6 @@ export const pacelc: PageContent = {
           kind: "raw",
           html: `<p class="formula-block">// PACELC as a design tool<br>// Ask this about every system you build:<br>//<br>// IF partition:<br>//&nbsp;&nbsp;&nbsp;choose A (stay online, risk divergence)<br>//&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C (go offline, guarantee truth)<br>//<br>// ELSE normal operation:<br>//&nbsp;&nbsp;&nbsp;choose L (answer fast, risk staleness)<br>//&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C (answer correct, pay latency)<br>//<br>// Your answer defines your architecture.<br>// Everything else follows from it.</p>`,
         },
-        { kind: "heading", text: "Where PACELC appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>The latency-versus-consistency tradeoff is not unique to databases. It shows up at every layer of the stack:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x06 / memory",
-              value: "Your cache is PACELC",
-              desc: "L1 cache is PA/EL: fast, possibly stale. RAM is PC/EC: slower, always consistent. Your CPU makes this tradeoff billions of times per second inside your own machine.",
-              href: "/memory",
-            },
-            {
-              label: "0x0F / networking",
-              value: "Latency is physics",
-              desc: "London to Tokyo is 250ms at the speed of light. PACELC is why distributed systems are fundamentally constrained by geography. The else clause is a physics problem.",
-              href: "/networking",
-            },
-            {
-              label: "0x09 / pointers",
-              value: "A remote reference",
-              desc: "A pointer to a value on another machine is a distributed reference. Following it means choosing: read the local cache (EL) or go to the source (EC). Every RPC is a PACELC decision.",
-              href: "/pointers",
-            },
-            {
-              label: "0x0B / arrays",
-              value: "Sharded reads",
-              desc: "A distributed array sharded across five machines. Reading element 42 from the nearest shard is EL; verifying with the primary is EC. The data structure and the theorem are inseparable.",
-              href: "/arrays",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "EC paid up front",
-              desc: "Blockchains pay the EC latency cost at write time using hashing. A block hash is computed once, verified in nanoseconds. Slow to produce, instant to confirm: the PC/EC tradeoff optimised.",
-              href: "/hashing",
-            },
-            {
-              label: "0x11 / cap theorem",
-              value: "The half before this",
-              desc: "PACELC extends CAP. CAP covers the P case: partition. PACELC adds the E case: normal operation. CAP told you what breaks; PACELC tells you what you choose every other second.",
-              href: "/cap-theorem",
-            },
-            {
-              label: "0x10 / distributed systems",
-              value: "Every decision is PACELC",
-              desc: "Every architectural decision in a distributed system is ultimately a PACELC choice. Replication strategy: PA or PC. Read path: EL or EC. Four letters, the entire philosophy.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "0x13 / blockchain",
-              value: "A public declaration",
-              desc: "Bitcoin: PC/EC, ten minutes, absolute truth. Ethereum: PC/EC, twelve minutes, DeFi safe. Solana: PA/EL, 400ms, accept the outages. Every chain is a public PACELC declaration.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -634,6 +575,22 @@ export const pacelc: PageContent = {
       {
         slug: "big-o",
         text: `Latency is a constant factor, not a Big O class, yet it dominates real distributed performance. The big-o page measures growth; this page is a reminder that constants still decide who wins.`,
+      },
+      {
+        slug: "memory",
+        text: `Your cache is PACELC in miniature: L1 is fast and possibly stale (EL), RAM is slower but consistent (EC). The memory page makes this tradeoff billions of times a second.`,
+      },
+      {
+        slug: "pointers",
+        text: `A pointer to a value on another machine is a remote reference: follow the local cache (EL) or go to the source (EC). The pointers page is where every RPC becomes a PACELC choice.`,
+      },
+      {
+        slug: "arrays",
+        text: `A sharded array reads from the nearest shard (EL) or verifies against the primary (EC). The arrays page is the structure this tradeoff runs on once it is distributed.`,
+      },
+      {
+        slug: "hashing",
+        text: `Blockchains pay the EC cost up front with hashing: a block hash is slow to produce, instant to verify. The hashing page is the PC/EC tradeoff optimised.`,
       },
     ],
   },

@@ -567,89 +567,6 @@ export const variables: PageContent = {
   <li><strong>Hennessy &amp; Patterson, <em>Computer Architecture</em></strong>, for the hardware end of the chain (caches, prefetchers, write buffers).</li>
 </ul>`,
         },
-        { kind: "heading", text: "Where variables appear in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>One variable, traced down to its bits, touches nearly every other page on the site. Here is where it shows up.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 4,
-          cards: [
-            {
-              label: "02 / binary",
-              value: "Every variable is binary",
-              desc: "int x = 42 is 00101010 in RAM. The name x disappears at compile time; the binary pattern is what actually exists. Binary is the foundation of every variable ever declared.",
-              href: "/binary",
-            },
-            {
-              label: "01 / number systems",
-              value: "Addresses are hex",
-              desc: "0x7fff5fbff8d4 for x on the stack, 0x55b6ea102b30 for heap data. Hex because binary addresses would be unreadable. The number systems page explains why 16 is the right shorthand.",
-              href: "/number-systems",
-            },
-            {
-              label: "04 / logic gates",
-              value: "Bits are gate states",
-              desc: "The bits of your variable are stored in DRAM cells: transistors and capacitors. A flip-flop holds one bit, built from the same gates as your CPU's ALU. Variables exist as silicon holding charge.",
-              href: "/logic-gates",
-            },
-            {
-              label: "05 / cpu",
-              value: "Loads and stores",
-              desc: "The compiler emits load and store instructions; the CPU executes them. Every read is a load, every write a store. The CPU has no idea what a variable is. It only knows addresses.",
-              href: "/cpu",
-            },
-            {
-              label: "06 / memory",
-              value: "Where variables live",
-              desc: "Stack, heap, data, bss, text and rodata are the regions from the memory page. Variables land in one of them based on how they are declared. The memory hierarchy is where all variables live.",
-              href: "/memory",
-            },
-            {
-              label: "07 / operating system",
-              value: "Makes variables possible",
-              desc: "The OS creates the virtual address space, reserves the stack, maps the binary's sections. Without an address space there is no variable. Process creation is what makes variables possible.",
-              href: "/operating-system",
-            },
-            {
-              label: "09 / pointers",
-              value: "A variable holding an address",
-              desc: "A pointer is a variable whose value is the address of another variable. int *p = &x stores the address of x; *p reads what lives there. Pointers and variables are inseparable.",
-              href: "/pointers",
-            },
-            {
-              label: "10 / compile vs runtime",
-              value: "Two moments",
-              desc: "The compiler decides where each variable lives: stack or heap, region, offset. That decision is compile time. The actual store into RAM happens at runtime. Every variable lives through both.",
-              href: "/compile-vs-runtime",
-            },
-            {
-              label: "11 / arrays",
-              value: "Variables in sequence",
-              desc: "An array is a block of variables stored contiguously. arr[0] is a variable; arr[1] is a variable 4 bytes later. The same alignment rules from this page apply to every element.",
-              href: "/arrays",
-            },
-            {
-              label: "20 / recursion",
-              value: "Variables fill the stack",
-              desc: "Every recursive call creates new variables: a new stack frame, new locals, a new return address. Without a base case the stack fills with frames until the OS kills the process.",
-              href: "/recursion",
-            },
-            {
-              label: "13 / hashing",
-              value: "Alignment is security",
-              desc: "Bitcoin's block header is 80 bytes of variables in memory. SHA-256 hashes those raw bytes. One padding byte changes the hash, making an invalid block the network rejects. Alignment is a security property.",
-              href: "/hashing",
-            },
-            {
-              label: "19 / blockchain",
-              value: "The nonce variable",
-              desc: "The nonce in a block header is a u32 variable, four bytes. Miners increment it billions of times per second; each increment is a store instruction. The most expensive variable assignment in computing.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -682,6 +599,26 @@ export const variables: PageContent = {
       {
         slug: "hashing",
         text: `A <code>HashMap</code> variable is a small struct on the stack (pointer, length, capacity) pointing at megabytes on the heap. Same shape as <code>Vec</code>. The hashing page reuses this layout.`,
+      },
+      {
+        slug: "number-systems",
+        text: `A variable's address is a hex number like <code>0x7fff5fbff8d4</code>. The number systems page is why 16 is the readable shorthand for it.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `A variable's bits sit in DRAM cells and flip-flops, the same gates as the ALU. The logic gates page is your variable as silicon holding charge.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The OS builds the virtual address space and reserves the stack a variable lives in; without it there is no variable. The operating system page makes them possible.`,
+      },
+      {
+        slug: "recursion",
+        text: `Every recursive call mints fresh locals in a new stack frame, and without a base case they fill the stack until the process dies. The recursion page is variables piling up.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin's nonce is a single <code>u32</code> variable miners overwrite billions of times a second. The blockchain page has the most expensive variable assignment in computing.`,
       },
     ],
   },

@@ -69,7 +69,9 @@ export type WidgetName =
   | "process-scheduler"
   | "sorting-race"
   | "hash-visualiser"
-  | "search-race";
+  | "search-race"
+  | "tcp-handshake-sim"
+  | "node-scales";
 
 export type Block =
   | { kind: "prose"; html: string }

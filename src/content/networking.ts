@@ -278,6 +278,7 @@ export const networking: PageContent = {
           html: `<p>A TCP connection is opened with the famous <strong>three-way handshake</strong>: <code>SYN</code> from the client, <code>SYN-ACK</code> back from the server, <code>ACK</code> from the client. The point of these three messages is to agree on starting sequence numbers in both directions and to confirm that both ends can actually hear each other. After that, the byte stream is open and either side can write.</p>
 <p>Closing is the same shape in reverse, with <code>FIN</code> and <code>ACK</code>. None of this is your application's problem. <code>TcpStream::connect</code> and <code>connect()</code> are wrappers that run the handshake before they return.</p>`,
         },
+        { kind: "widget", name: "tcp-handshake-sim" },
         { kind: "heading", text: "Look at what's actually on the wire" },
         {
           kind: "prose",

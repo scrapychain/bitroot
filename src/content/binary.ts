@@ -339,65 +339,6 @@ export const binary: PageContent = {
             c: { language: "c", code: cSatoshis },
           },
         },
-        { kind: "heading", text: "Where binary appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>This page is the substrate; every other topic on the site rests on it somewhere. The shortest path from any of them back to here:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x01 / number systems",
-              value: "Base 2 explained",
-              desc: "Binary is base 2. The number-systems page is why that base exists and what it means.",
-              href: "/number-systems",
-            },
-            {
-              label: "0x03 / ascii",
-              value: "Bit patterns with names",
-              desc: "'H' = 72 = 01001000. ASCII is 128 specific binary patterns given names.",
-              href: "/ascii",
-            },
-            {
-              label: "0x04 / logic gates",
-              value: "Transistors wired together",
-              desc: "Logic gates are transistors wired to compute binary operations. AND, OR, XOR: all binary.",
-              href: "/logic-gates",
-            },
-            {
-              label: "0x05 / cpu",
-              value: "Machine code is binary",
-              desc: "The CPU's fetch-decode-execute cycle operates entirely on binary instructions. Every opcode is bits.",
-              href: "/cpu",
-            },
-            {
-              label: "0x06 / memory",
-              value: "Organised binary",
-              desc: "Every byte in RAM is 8 bits. Every address is a binary number. Memory is organised binary.",
-              href: "/memory",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "64 rounds of binary",
-              desc: "SHA-256 is 64 rounds of binary operations: AND, XOR, bit rotations. The output is 256 bits of binary.",
-              href: "/hashing",
-            },
-            {
-              label: "0x0F / networking",
-              value: "Binary at planet scale",
-              desc: "Every packet is binary. Every IP address is 32 bits of binary. The internet is binary at scale.",
-              href: "/networking",
-            },
-            {
-              label: "0x11 / blockchain",
-              value: "256-bit keys, u64 amounts",
-              desc: "Bitcoin private keys are 256 random bits. Transaction amounts are 64-bit integers. The entire chain is hashes of hashes of hashes, all of it binary, all of it integer math.",
-              href: "/blockchain",
-            },
-          ],
-        },
         { kind: "heading", text: "Where this lands you" },
         {
           kind: "prose",
@@ -435,6 +376,14 @@ export const binary: PageContent = {
       {
         slug: "hashing",
         text: `SHA-256 turns bytes into exactly 256 bits, and flipping one input bit flips about half the output bits. Hashing is binary arithmetic at its most violent.`,
+      },
+      {
+        slug: "networking",
+        text: `Every packet is binary and every IP address is 32 bits of it. The networking page is binary at planet scale.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin private keys are 256 random bits and amounts are 64-bit integers. The blockchain page is hashes of hashes of hashes, all of it binary, all of it integer math.`,
       },
     ],
   },

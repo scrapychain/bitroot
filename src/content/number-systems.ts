@@ -467,49 +467,6 @@ All hiding the same binary underneath.</em></p>
           title: "// from numbers to bits",
           body: `Decimal lives in your head. Hex lives in your debugger. Binary lives in the wires. The next page goes all the way down to that last layer: what binary actually <em>is</em>, and what you can do with it once you're there.`,
         },
-        { kind: "heading", text: "Where number systems appear in ScrapyBytes" },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "binary",
-              value: "base 2",
-              desc: "Binary is base 2. This page explains why - the next page shows what you do with it.",
-              href: "/binary",
-            },
-            {
-              label: "ascii",
-              value: "'H' = 72 = 0x48",
-              desc: "'H' = 72 decimal = 0x48 hex = 01001000 binary. Every character is a number in disguise.",
-              href: "/ascii",
-            },
-            {
-              label: "memory",
-              value: "0x7ffeef3a…",
-              desc: "Every memory address is a hex number. Understanding hex is required reading before touching pointers.",
-              href: "/memory",
-            },
-            {
-              label: "hashing",
-              value: "64 hex chars",
-              desc: "SHA-256 outputs 64 hex characters = 256 bits. The entire cryptographic security model is built on this one number.",
-              href: "/hashing",
-            },
-            {
-              label: "networking",
-              value: "192.168.0.1",
-              desc: "IP addresses are binary written as decimal. MAC addresses are hex. Two number systems in the same packet header.",
-              href: "/networking",
-            },
-            {
-              label: "blockchain",
-              value: "256-bit hex",
-              desc: "Bitcoin private keys are 256-bit hex numbers. Every hash is hex. Every block ID is hex. The whole chain is hex.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -546,6 +503,10 @@ All hiding the same binary underneath.</em></p>
       {
         slug: "networking",
         text: `An IPv4 address is four base-ten numbers, IPv6 is eight base-sixteen groups, a MAC address is hex. Networking is number bases printed on the wire.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin private keys, hashes, and block IDs are all 256-bit hex numbers. The blockchain page is base sixteen all the way down.`,
       },
     ],
   },

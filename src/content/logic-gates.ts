@@ -331,65 +331,6 @@ export const logicGates: PageContent = {
 </ul>
 <p>The point isn't to know every layer in detail. The point is to know they're <em>there</em>, stacked on top of each other, all the way down to electrons.</p>`,
         },
-        { kind: "heading", text: "Where logic gates appear in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>This is the page everything else rests on. Every later topic reaches back to a gate somewhere:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x02 / binary",
-              value: "Operators are gates",
-              desc: "Bitwise operators in code are logic gates in hardware. & is AND, | is OR, ^ is XOR, ~ is NOT. When your program runs them, silicon switches fire.",
-              href: "/binary",
-            },
-            {
-              label: "0x03 / ascii",
-              value: "Case toggle is one XOR",
-              desc: "Uppercase to lowercase is a single XOR operation. 'A' ^ 0x20 = 'a'. One gate. One switch. The whole alphabet.",
-              href: "/ascii",
-            },
-            {
-              label: "0x05 / cpu",
-              value: "Billions of gates, organised",
-              desc: "A CPU is billions of logic gates organised to compute. The fetch-decode-execute cycle is gates switching in sequence at four billion times per second.",
-              href: "/cpu",
-            },
-            {
-              label: "0x06 / memory",
-              value: "Gates that remember",
-              desc: "An SR latch is two NOR gates in a feedback loop: a memory cell. Flip-flops are clocked latches; registers are flip-flops in parallel. Memory is gates remembering.",
-              href: "/memory",
-            },
-            {
-              label: "0x01 / number systems",
-              value: "Gates only speak binary",
-              desc: "Hex is how humans read binary; binary is how gates think. Every hex digit is four gate states. The translation is effortless because gates only speak binary.",
-              href: "/number-systems",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "SHA-256 is gates",
-              desc: "SHA-256 is AND, XOR, NOT, and bit rotations: all logic gates, all built from transistors. The entire security of Bitcoin runs on gates you learned here.",
-              href: "/hashing",
-            },
-            {
-              label: "0x09 / pointers",
-              value: "Addresses through gates",
-              desc: "A memory address is a binary number; binary is gate states. When the CPU follows a pointer it feeds an address through logic gates to locate data in RAM.",
-              href: "/pointers",
-            },
-            {
-              label: "0x11 / blockchain",
-              value: "Proof of work is gates",
-              desc: "Bitcoin miners run SHA-256 billions of times per second. Every hash attempt is logic gates firing on silicon. Proof of work is computation; computation is gates; gates are transistors; transistors are switches.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -418,6 +359,14 @@ export const logicGates: PageContent = {
       {
         slug: "ascii",
         text: `A gate cannot read an A, only the bits <code>0100 0001</code>. The character meaning lives one layer up. Gates move the bits; ASCII decides what they spell.`,
+      },
+      {
+        slug: "pointers",
+        text: `Following a pointer feeds a binary address through logic gates to locate data in RAM. The pointers page rides on the gates here.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Every proof-of-work hash attempt is logic gates firing on silicon: computation is gates, gates are transistors, transistors are switches. The blockchain page is gates at industrial scale.`,
       },
     ],
   },

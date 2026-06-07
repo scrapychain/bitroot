@@ -562,77 +562,6 @@ export const bigO: PageContent = {
           html: `<p>Big O also defines what is <em>possible</em>. Any algorithm that sorts by comparing elements cannot do better than O(n log n). This is proven, not a limitation of current cleverness: there are <code>n!</code> possible orderings of n elements, each comparison eliminates at most half of them, so the minimum number of comparisons is <code>log₂(n!) ≈ n log n</code>.</p>
 <p>O(n log n) is the sorting ceiling. Merge sort hits it; quicksort hits it on average; bubble sort and insertion sort do not. The next page proves all of this in code.</p>`,
         },
-        { kind: "heading", text: "Big O across ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>This page is the backbone the whole curriculum hangs from. Every prior topic has a Big O story:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x02 / binary",
-              value: "Binary search is O(log n)",
-              desc: "Binary search works because binary is ordered. Each comparison eliminates half the search space. Its entire efficiency comes from the structure of binary numbers.",
-              href: "/binary",
-            },
-            {
-              label: "0x0B / arrays",
-              value: "O(1) access, the superpower",
-              desc: "base + i × size is one instruction: O(1) access. O(n) search unsorted, O(log n) sorted, O(n) insert and delete in the middle. The contiguous layout is what makes O(1) possible.",
-              href: "/arrays",
-            },
-            {
-              label: "0x0C / linked lists",
-              value: "O(n) access, the hidden cost",
-              desc: "No base + offset, so you follow the chain: O(n) access, O(1) insert at head. Same O(n) traversal as arrays but 10 to 100 times slower. Big O explains the algorithm; cache explains the reality.",
-              href: "/linked-list",
-            },
-            {
-              label: "0x06 / memory",
-              value: "Where Big O has limits",
-              desc: "Same O(n) on an array can beat O(n) on a linked list because of cache behaviour. Big O counts operations, not memory access patterns, not cache hits, not hardware.",
-              href: "/memory",
-            },
-            {
-              label: "0x05 / cpu",
-              value: "Counting the operations",
-              desc: "The CPU executes one operation at a time, and Big O counts those operations. O(1) is one execution unit regardless of n; O(n) is n of them. The fetch-decode-execute loop runs once per unit of work.",
-              href: "/cpu",
-            },
-            {
-              label: "0x14 / recursion",
-              value: "Elegant or a time bomb",
-              desc: "Every recursive algorithm has a Big O: factorial O(n), naive Fibonacci O(2ⁿ), merge sort O(n log n), binary search O(log n). Big O is how you know which one you wrote.",
-              href: "/recursion",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "The O(1) that runs Bitcoin",
-              desc: "Hash maps reach O(1) average by computing a direct address: no searching, no comparing. O(1) versus O(n) at 85 million entries is the difference between Bitcoin validation and an unusable system.",
-              href: "/hashing",
-            },
-            {
-              label: "0x0F / networking",
-              value: "Why packets arrive fast",
-              desc: "Routing is a Big O problem. Dijkstra's shortest path is O((V+E) log V). If routing were O(n²) the internet would be slower than the postal service. Big O is literally why your packets arrive in milliseconds.",
-              href: "/networking",
-            },
-            {
-              label: "0x10 / distributed systems",
-              value: "Naming the cost of agreement",
-              desc: "CAP is partly a Big O problem. Eventually-consistent reads are O(1); strongly-consistent reads cost O(network round-trips). The distributed-systems page showed the tradeoff; Big O names the cost.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "0x13 / blockchain",
-              value: "Security is asymmetric Big O",
-              desc: "Compute a hash O(1), verify O(1), find a nonce O(2⁷⁰), reverse SHA-256 O(2²⁵⁶). The gap between O(1) and O(2²⁵⁶) is the entire security model. Not cryptography. Complexity.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -665,6 +594,18 @@ export const bigO: PageContent = {
       {
         slug: "cpu",
         text: `Big O ignores constant factors, but the CPU does not. The CPU page is the reason a cache-friendly O(n) can beat a cache-hostile O(n).`,
+      },
+      {
+        slug: "binary",
+        text: `Binary search is O(log n) precisely because binary is ordered: every comparison eliminates half the search space. The binary page is where that halving comes from.`,
+      },
+      {
+        slug: "networking",
+        text: `Routing is a Big O problem: Dijkstra's shortest path is O((V+E) log V). The networking page is why your packets arrive in milliseconds instead of an O(n squared) crawl.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Eventually-consistent reads are O(1); strongly-consistent reads cost O(network round-trips). The distributed-systems page showed the tradeoff; this page names its cost.`,
       },
       {
         slug: "blockchain",

@@ -500,119 +500,6 @@ export const arrays: PageContent = {
   <li><strong>Data-Oriented Design</strong> (Mike Acton's talks). The game-engine philosophy of organising your data as arrays of fields, not arrays of structs, for maximum cache friendliness.</li>
 </ul>`,
         },
-        { kind: "heading", text: "Where arrays appear in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>The simplest data structure is also the most universal. Here is where the numbered street shows up across the site.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 4,
-          cards: [
-            {
-              label: "01 / number systems",
-              value: "Addresses are hex",
-              desc: "Every element's address is a hex number: 0x1000, 0x1004, 0x1008. Hex because binary addresses would be unreadable. Array indexing is arithmetic on hex numbers.",
-              href: "/number-systems",
-            },
-            {
-              label: "02 / binary",
-              value: "Elements are binary",
-              desc: "Every element is binary in memory: 42 is 00101010 at its address. The whole array is those patterns laid end to end. Binary is what the array contains; addresses are how you find each one.",
-              href: "/binary",
-            },
-            {
-              label: "03 / ascii",
-              value: "A string is a char array",
-              desc: "'H', 'e', 'l', 'l', 'o' is five bytes at consecutive addresses. The ASCII page showed what each byte means; this page shows how they sit in memory. Together: how text actually works.",
-              href: "/ascii",
-            },
-            {
-              label: "04 / logic gates",
-              value: "SIMD in silicon",
-              desc: "SIMD instructions operate on arrays in silicon. AVX2 adds eight 32-bit integers in one instruction: eight elements, one clock cycle. The array is the unit of hardware throughput.",
-              href: "/logic-gates",
-            },
-            {
-              label: "05 / cpu",
-              value: "Cache lines",
-              desc: "Cache lines are 64-byte chunks of RAM. Walking an array in order loads 16 integers per fetch, and the prefetcher starts loading the next line before you ask. Arrays and the cache were built for each other.",
-              href: "/cpu",
-            },
-            {
-              label: "06 / memory",
-              value: "A slice of memory",
-              desc: "An array is a slice of the flat memory space the memory page described. Stack arrays live in the stack frame; heap arrays live wherever malloc found space. Same array, different regions.",
-              href: "/memory",
-            },
-            {
-              label: "07 / operating system",
-              value: "Arrays span pages",
-              desc: "The OS lays out arrays in contiguous virtual pages. Cross a page boundary and the MMU transparently maps the next page. Arrays span pages silently; your code never knows.",
-              href: "/operating-system",
-            },
-            {
-              label: "08 / variables",
-              value: "An array is a variable",
-              desc: "A fixed-size array is a variable on the stack with a compile-time size. A Vec is a variable too: a 24-byte header on the stack pointing at a large buffer on the heap. The variables page described this split.",
-              href: "/variables",
-            },
-            {
-              label: "09 / pointers",
-              value: "arr == &arr[0]",
-              desc: "An array name in C is a pointer. arr == &arr[0], always. arr[i] is *(arr + i), by definition. Every array access is a pointer dereference; the bounds check is a check that the result stays in range.",
-              href: "/pointers",
-            },
-            {
-              label: "10 / compile vs runtime",
-              value: "Length and bounds, when",
-              desc: "Fixed-size array length is compile time; Vec length is runtime. Literal index bounds check is compile time in Rust; variable index is runtime. C checks at neither time. That split is this page's neighbour.",
-              href: "/compile-vs-runtime",
-            },
-            {
-              label: "20 / recursion",
-              value: "The call stack is an array",
-              desc: "Every recursive call puts a fixed-size frame on the call stack, which is an array. The stack grows one slot per call. When it runs out of slots: stack overflow. Recursion shows what overflows.",
-              href: "/recursion",
-            },
-            {
-              label: "12 / linked lists",
-              value: "The opposite tradeoff",
-              desc: "Arrays and linked lists are opposites: contiguous vs scattered, O(1) vs O(n) access, cache-friendly vs cache-hostile. The next page is the other side of the same tradeoff.",
-              href: "/linked-list",
-            },
-            {
-              label: "13 / hashing",
-              value: "Arrays of buckets",
-              desc: "Hash maps are arrays of buckets. The hash function computes an array index; the array provides O(1) access; the hash map inherits it. Every dict, HashMap, and the Bitcoin UTXO cache is an array underneath.",
-              href: "/hashing",
-            },
-            {
-              label: "22 / sorting",
-              value: "Sorting walks arrays",
-              desc: "Merge sort splits the array; quicksort partitions it around a pivot; bubble sort compares adjacent elements. All of them are array traversals. Sorting is this page applied to the problem of ordering.",
-              href: "/sorting",
-            },
-            {
-              label: "21 / big o",
-              value: "O(1) access",
-              desc: "O(1) access is the array's superpower: base + (i x stride), one instruction. O(n) to traverse, O(log n) to binary-search when sorted. Big O named these costs; the array is the structure they apply to.",
-              href: "/big-o",
-            },
-            {
-              label: "15 / networking",
-              value: "Packets are byte arrays",
-              desc: "Every network packet is a byte array. Every TCP segment is a slice of one. Every Bitcoin transaction broadcast is a serialised byte array over a socket. Networking is this page's byte slices in flight.",
-              href: "/networking",
-            },
-            {
-              label: "19 / blockchain",
-              value: "Nested byte arrays",
-              desc: "Bitcoin transactions are byte arrays, block headers are fixed 80-byte arrays, the UTXO set is an array-backed hash map, the mempool is an array of pending transactions. The whole chain is nested arrays.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -649,6 +536,42 @@ export const arrays: PageContent = {
       {
         slug: "cpu",
         text: `Contiguous memory is what the CPU cache loves. Reading <code>arr[0]</code> pulls the next several elements in for free. The CPU page is why arrays are fast in practice.`,
+      },
+      {
+        slug: "number-systems",
+        text: `Every element address is a hex number: <code>0x1000</code>, <code>0x1004</code>, <code>0x1008</code>. The number systems page is why indexing is arithmetic on hex.`,
+      },
+      {
+        slug: "binary",
+        text: `Every element is binary in memory: <code>42</code> is <code>00101010</code> at its address. The binary page is what an array actually contains.`,
+      },
+      {
+        slug: "ascii",
+        text: `A string is a char array: <code>'H','e','l','l','o'</code> at consecutive addresses. The ASCII page says what each byte means; this page says how they sit.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `SIMD instructions add eight elements in a single clock cycle, so the array is the unit of hardware throughput. The logic gates page is the silicon underneath.`,
+      },
+      {
+        slug: "operating-system",
+        text: `The OS lays an array across contiguous virtual pages and the MMU maps the next one as you cross it. The operating system page is why arrays span pages silently.`,
+      },
+      {
+        slug: "compile-vs-runtime",
+        text: `A fixed array's length and literal-index bounds are known at compile time; a <code>Vec</code>'s are runtime. The compile vs runtime page is that split applied to indexing.`,
+      },
+      {
+        slug: "recursion",
+        text: `The call stack is an array: each recursive call adds a frame, and running out of slots is stack overflow. The recursion page is what overflows.`,
+      },
+      {
+        slug: "networking",
+        text: `Every packet is a byte array and every TCP segment is a slice of one. The networking page is this page's byte slices in flight.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin transactions are byte arrays, block headers fixed 80-byte arrays, the UTXO set an array-backed map. The blockchain page is nested arrays all the way down.`,
       },
     ],
   },

@@ -584,107 +584,6 @@ export const compileVsRuntime: PageContent = {
 </ul>
 <p>Every one of those is a different way to shift work along the same line.</p>`,
         },
-        { kind: "heading", text: "Where compile vs runtime appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>Once you see the line between the two phases, it is in every layer of the site. Here is where.</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 4,
-          cards: [
-            {
-              label: "02 / binary",
-              value: "Output, then input",
-              desc: "The compiler converts your source to binary machine code at compile time. The CPU decodes and executes those bytes at runtime. Binary is the output of compile time and the input of runtime.",
-              href: "/binary",
-            },
-            {
-              label: "01 / number systems",
-              value: "Hex disappears",
-              desc: "0xCAFEBABE in your source is parsed and converted to bytes at compile time; the hex prefix vanishes. At runtime the CPU loads bytes with no idea they were once hex.",
-              href: "/number-systems",
-            },
-            {
-              label: "04 / logic gates",
-              value: "Fixed at fabrication",
-              desc: "A chip's layout is fixed at fabrication, the chip's compile time. At runtime, current flows through that fixed silicon structure. Like an ahead-of-time compiled program, the hardware cannot change while running.",
-              href: "/logic-gates",
-            },
-            {
-              label: "05 / cpu",
-              value: "Pick, then run",
-              desc: "The ISA defines which bit patterns mean which operations (compile time). Which instruction runs at this moment is always runtime. The compiler picks the instructions; the CPU runs them.",
-              href: "/cpu",
-            },
-            {
-              label: "06 / memory",
-              value: "Stack vs heap timing",
-              desc: "Stack offsets are compile time: the compiler knows where every local lives before the program starts. Heap allocations are runtime: the allocator asks the OS for space only when the code executes.",
-              href: "/memory",
-            },
-            {
-              label: "07 / operating system",
-              value: "Linking, two phases",
-              desc: "Static linking happens at compile time; dynamic linking at runtime startup. Syscall numbers are fixed at compile time, but which argument you pass is determined at runtime.",
-              href: "/operating-system",
-            },
-            {
-              label: "08 / variables",
-              value: "Shape vs content",
-              desc: "Whether a variable is stack or heap is a compile-time decision; what value it holds is runtime. The compiler knows the shape, the program determines the content. The same split, two angles.",
-              href: "/variables",
-            },
-            {
-              label: "09 / pointers",
-              value: "Verified or trusted",
-              desc: "A reference's type is checked at compile time in Rust, and so is its validity. For raw pointers, validity is runtime, and C trusts you on both. Rust verifies one and trusts you on the other.",
-              href: "/pointers",
-            },
-            {
-              label: "11 / arrays",
-              value: "Sizes and bounds",
-              desc: "Fixed array sizes are compile time; Vec sizes are runtime. Bounds checks on literal indices are compile time in Rust; on variable indices they are runtime (C: silent corruption, Rust: panic).",
-              href: "/arrays",
-            },
-            {
-              label: "20 / recursion",
-              value: "TCO vs overflow",
-              desc: "Whether a call is tail-recursive and can become a loop is compile time in languages with TCO. Whether the recursion overflows the stack is always runtime. The base case is a runtime check.",
-              href: "/recursion",
-            },
-            {
-              label: "13 / hashing",
-              value: "Algorithm vs data",
-              desc: "SHA-256's algorithm is fixed at compile time: 64 rounds, specific constants, specific operations. Which block you are hashing is always runtime. The algorithm is known; the data is input.",
-              href: "/hashing",
-            },
-            {
-              label: "19 / blockchain",
-              value: "Rules vs validation",
-              desc: "Bitcoin consensus rules are compile-time constants in every node's binary. Block validation is runtime: this block, with these transactions, meeting those rules. Change the rules and you fork Bitcoin.",
-              href: "/blockchain",
-            },
-            {
-              label: "16 / distributed systems",
-              value: "Tradeoff vs condition",
-              desc: "Whether your system is partitioned right now is only knowable at runtime. But which CAP tradeoff you accept is a compile-time architectural decision made before you shipped.",
-              href: "/distributed-systems",
-            },
-            {
-              label: "21 / big o",
-              value: "Prediction vs reality",
-              desc: "Big O is a compile-time analysis: you reason about the algorithm before running it. Actual performance depends on runtime data shapes, cache state, and branch prediction. Prediction versus reality.",
-              href: "/big-o",
-            },
-            {
-              label: "22 / sorting",
-              value: "Choice vs comparisons",
-              desc: "The sorting algorithm you choose is compile time. How many comparisons it takes on this specific input is runtime. Why nearly-sorted data makes insertion sort win is a runtime property Big O cannot capture.",
-              href: "/sorting",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -717,6 +616,38 @@ export const compileVsRuntime: PageContent = {
       {
         slug: "big-o",
         text: `Some costs are paid once at compile time, others on every run. Knowing which is a Big O question about where the work lives. The big-o page is the lens.`,
+      },
+      {
+        slug: "number-systems",
+        text: `A literal like <code>0xCAFEBABE</code> is parsed to bytes at compile time and the hex prefix vanishes; the CPU runs the bytes at runtime. The number systems page is the notation that disappears.`,
+      },
+      {
+        slug: "logic-gates",
+        text: `A chip's layout is fixed at fabrication, its compile time, and current flows through that frozen silicon at runtime. The logic gates page is hardware that cannot change while running.`,
+      },
+      {
+        slug: "arrays",
+        text: `Fixed array sizes and literal-index bounds are compile time; <code>Vec</code> sizes and variable indices are runtime. The arrays page is this split applied to indexing.`,
+      },
+      {
+        slug: "recursion",
+        text: `Whether a call is tail-recursive is compile time; whether it overflows the stack is always runtime, decided by the base case. The recursion page is that runtime check.`,
+      },
+      {
+        slug: "hashing",
+        text: `SHA-256's rounds and constants are fixed at compile time; which block you hash is runtime. The hashing page is a known algorithm fed unknown data.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Bitcoin's consensus rules are compile-time constants in every node binary; validating a given block is runtime. The blockchain page is rules versus validation, and changing the rules forks the chain.`,
+      },
+      {
+        slug: "distributed-systems",
+        text: `Whether you are partitioned right now is only knowable at runtime, but which CAP tradeoff you accept is an architectural decision made before shipping. The distributed systems page is that choice.`,
+      },
+      {
+        slug: "sorting",
+        text: `The sort you choose is compile time; how many comparisons it makes on this input is runtime. The sorting page is why nearly-sorted data wins in ways Big O cannot see.`,
       },
     ],
   },

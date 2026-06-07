@@ -491,77 +491,6 @@ export const cpu: PageContent = {
   <li><strong>Compiler Explorer (godbolt.org)</strong>: see what bytes your high-level code actually becomes.</li>
 </ul>`,
         },
-        { kind: "heading", text: "Where the CPU appears in ScrapyBytes" },
-        {
-          kind: "prose",
-          html: `<p>The CPU is the engine the whole site runs on. Every other topic either feeds it instructions or runs on top of its loop:</p>`,
-        },
-        {
-          kind: "grid",
-          columns: 3,
-          cards: [
-            {
-              label: "0x02 / binary",
-              value: "Instructions are binary",
-              desc: "Every CPU instruction is binary: opcode, registers, and operands packed into bits. A running program is a stream of binary flowing through the fetch-decode-execute loop.",
-              href: "/binary",
-            },
-            {
-              label: "0x01 / number systems",
-              value: "Hex for humans, binary for silicon",
-              desc: "Instruction addresses are hex, register values are binary, immediates are decimal in source. The CPU sees only binary; everything else is human convenience.",
-              href: "/number-systems",
-            },
-            {
-              label: "0x03 / ascii",
-              value: "Letters are just integers",
-              desc: "When you type a character the CPU processes its ASCII code as a binary integer. 72 for H, 65 for A. The CPU has no idea it is working with letters.",
-              href: "/ascii",
-            },
-            {
-              label: "0x04 / logic gates",
-              value: "The CPU is gates",
-              desc: "The ALU is logic gates, the control unit is logic gates, the registers are flip-flops (gates with memory). The entire CPU is gates organised to compute.",
-              href: "/logic-gates",
-            },
-            {
-              label: "0x06 / memory",
-              value: "The CPU waits on RAM",
-              desc: "Every instruction fetch and data access is a memory operation. The CPU spends most of its time waiting for memory; caches exist because RAM is too slow to wait on.",
-              href: "/memory",
-            },
-            {
-              label: "0x07 / operating system",
-              value: "The OS shares the CPU",
-              desc: "The OS schedules which program gets CPU time. Your process runs for a slice, gets paused, another runs, then yours again. The CPU just keeps looping.",
-              href: "/operating-system",
-            },
-            {
-              label: "0x09 / pointers",
-              value: "The PC is a pointer",
-              desc: "The program counter points at the next instruction. Every memory access the CPU makes follows a binary address (a pointer) to find its data.",
-              href: "/pointers",
-            },
-            {
-              label: "0x0D / hashing",
-              value: "SHA-256 is a CPU workload",
-              desc: "Every hash is dozens of ALU operations. Bitcoin miners run SHA-256 trillions of times per second. The CPU is the engine of every blockchain in existence.",
-              href: "/hashing",
-            },
-            {
-              label: "0x0F / networking",
-              value: "Your NIC has its own CPU",
-              desc: "Your network card runs its own fetch-decode-execute loop while the main CPU handles everything else. Parallel computation, two CPUs sharing one machine.",
-              href: "/networking",
-            },
-            {
-              label: "0x12 / blockchain",
-              value: "Mining is the loop at its limit",
-              desc: "Bitcoin mining is the fetch-decode-execute loop pushed to its physical limit. An ASIC runs SHA-256 trillions of times per second to find one hash with enough leading zeros. The CPU is why mining costs electricity.",
-              href: "/blockchain",
-            },
-          ],
-        },
       ],
     },
   ],
@@ -598,6 +527,22 @@ export const cpu: PageContent = {
       {
         slug: "hashing",
         text: `SHA-256 is so common that CPUs ship dedicated instructions for it (SHA-NI, ARMv8 Crypto). Each round is one trip through the fetch-decode-execute loop on this page.`,
+      },
+      {
+        slug: "number-systems",
+        text: `Instruction addresses are hex, register values binary, immediates decimal in source: the same number in three masks. The number systems page is the CPU's notation.`,
+      },
+      {
+        slug: "ascii",
+        text: `The CPU processes a character as its ASCII integer, <code>72</code> for H, with no idea it is a letter. The ASCII page is the meaning the silicon never sees.`,
+      },
+      {
+        slug: "networking",
+        text: `Your network card runs its own fetch-decode-execute loop alongside the main CPU, two processors sharing one machine. The networking page has a CPU of its own.`,
+      },
+      {
+        slug: "blockchain",
+        text: `Mining is the fetch-decode-execute loop pushed to its physical limit: an ASIC runs SHA-256 trillions of times a second. The blockchain page is why mining costs electricity.`,
       },
     ],
   },
