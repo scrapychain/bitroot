@@ -630,10 +630,10 @@ export const searching: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x19",
-    title: "Data that branches: how trees power filesystems, databases, and Bitcoin Merkle proofs.",
-    href: "/trees",
-    label: "trees",
+    eyebrow: "next up / 0x17",
+    title: "Why build it from the root up: the philosophy behind ScrapyBytes.",
+    href: "/philosophy",
+    label: "philosophy",
     variant: "cyan",
   },
 };

@@ -721,10 +721,10 @@ export const sorting: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x17",
-    title: "Data that branches: binary trees and why the filesystem is one",
-    href: "/trees",
-    label: "trees",
+    eyebrow: "next up / 0x18",
+    title: "Find it fast, or wait forever: linear vs binary search.",
+    href: "/searching",
+    label: "searching algorithms",
     variant: "cyan",
   },
 };
