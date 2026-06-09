@@ -5522,7 +5522,7 @@ const TCP_STEPS: Array<{
     color: "var(--neon-cyan)",
     client: "SYN-SENT",
     server: "LISTEN",
-    note: "1 — Client sends SYN with its starting sequence number (100).",
+    note: "1 · Client sends SYN with its starting sequence number (100).",
   },
   {
     dir: "sc",
@@ -5530,7 +5530,7 @@ const TCP_STEPS: Array<{
     color: "var(--neon-magenta)",
     client: "SYN-SENT",
     server: "SYN-RCVD",
-    note: "2 — Server replies SYN-ACK: its own seq (300), and acknowledges 101.",
+    note: "2 · Server replies SYN-ACK: its own seq (300), and acknowledges 101.",
   },
   {
     dir: "cs",
@@ -5538,7 +5538,7 @@ const TCP_STEPS: Array<{
     color: "var(--neon-lime)",
     client: "ESTABLISHED",
     server: "ESTABLISHED",
-    note: "3 — Client acknowledges 301. Both ends agree; the connection is open.",
+    note: "3 · Client acknowledges 301. Both ends agree; the connection is open.",
   },
   {
     dir: "cs",
@@ -5546,7 +5546,7 @@ const TCP_STEPS: Array<{
     color: "var(--neon-cyan)",
     client: "ESTABLISHED",
     server: "ESTABLISHED",
-    note: "Established — now bytes flow as one ordered stream.",
+    note: "Established. Now bytes flow as one ordered stream.",
   },
 ];
 
@@ -5769,7 +5769,352 @@ function NodeScalesWidget() {
       </svg>
 
       <p className="widget-caption">
-        <strong style={{ color: d.color }}>{d.title}</strong>: {d.caption} Same three properties every time — <strong>identity</strong>, <strong>state</strong>, <strong>neighbours</strong> — at wildly different scales.
+        <strong style={{ color: d.color }}>{d.title}</strong>: {d.caption} Same three properties every time: <strong>identity</strong>, <strong>state</strong>, and <strong>neighbours</strong>, at wildly different scales.
+      </p>
+    </div>
+  );
+}
+
+/* =====================================================================
+   Stack + queue visualiser: push/pop a LIFO stack and a FIFO ring-buffer
+   queue side by side, with call-stack and OS-scheduler simulations
+   ===================================================================== */
+type SQItem = { main: string; sub?: string };
+const SQ_RING = 8;
+const SQ_STACK_CAP = 8;
+
+function StackQueueVisualiserWidget() {
+  const [stack, setStack] = useState<SQItem[]>([]);
+  const [slots, setSlots] = useState<(SQItem | null)[]>(Array(SQ_RING).fill(null));
+  const [head, setHead] = useState(0);
+  const [tail, setTail] = useState(0);
+  const [count, setCount] = useState(0);
+  const [sVal, setSVal] = useState(10);
+  const [qVal, setQVal] = useState(10);
+  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" | "bad" } | null>(null);
+  const [danger, setDanger] = useState(false);
+  const [highlight, setHighlight] = useState<"s" | "q" | null>(null);
+  const [lang, setLang] = useState<"rust" | "c">("rust");
+  const [sRust, setSRust] = useState("// operate the stack to see the call");
+  const [sC, setSC] = useState("// operate the stack to see the call");
+  const [qRust, setQRust] = useState("// operate the queue to see the call");
+  const [qC, setQC] = useState("// operate the queue to see the call");
+
+  const cyan = "var(--neon-cyan)";
+  const violet = "var(--neon-violet)";
+  const red = "var(--neon-rose)";
+
+  const inputStyle = {
+    width: 58,
+    background: "var(--bg-2)",
+    color: "var(--fg)",
+    border: "1px solid var(--line-strong)",
+    borderRadius: 6,
+    fontFamily: "var(--font-mono)",
+    fontSize: 12,
+    padding: "4px 6px",
+  };
+
+  const pushStack = () => {
+    setHighlight(null);
+    if (stack.length >= SQ_STACK_CAP) {
+      setDanger(true);
+      setMsg({ text: "stack overflow: the program would crash here", tone: "bad" });
+      setSRust(`stack.push(${sVal});  // no room left: OVERFLOW`);
+      setSC(`stack_push(&s, ${sVal});  // returns 0: overflow`);
+      return;
+    }
+    setStack([...stack, { main: String(sVal) }]);
+    setDanger(false);
+    setMsg({ text: `pushed ${sVal} onto the top`, tone: "ok" });
+    setSRust(`stack.push(${sVal});`);
+    setSC(`stack_push(&s, ${sVal});`);
+    setSVal(sVal + 10);
+  };
+
+  const popStack = () => {
+    setHighlight(null);
+    if (stack.length === 0) {
+      setMsg({ text: "stack underflow: nothing to pop", tone: "warn" });
+      setSRust("stack.pop();  // None");
+      setSC("stack_pop(&s, &out);  // returns 0: empty");
+      return;
+    }
+    const top = stack[stack.length - 1].main;
+    setStack(stack.slice(0, -1));
+    setDanger(false);
+    setMsg({ text: `popped ${top}: last in, first out`, tone: "ok" });
+    setSRust(`stack.pop();  // Some(${top})`);
+    setSC(`stack_pop(&s, &out);  // out = ${top}`);
+  };
+
+  const peekStack = () => {
+    if (stack.length === 0) {
+      setMsg({ text: "the stack is empty", tone: "warn" });
+      return;
+    }
+    const top = stack[stack.length - 1].main;
+    setHighlight("s");
+    setMsg({ text: `top of stack is ${top} (not removed)`, tone: "ok" });
+    setSRust(`stack.last();  // Some(${top})`);
+    setSC(`stack_peek(&s, &out);  // out = ${top}`);
+  };
+
+  const enqueue = () => {
+    setHighlight(null);
+    if (count >= SQ_RING) {
+      setMsg({ text: "queue is full: ring-buffer capacity reached", tone: "warn" });
+      setQRust(`queue.push_back(${qVal});  // at capacity`);
+      setQC(`queue_enqueue(&q, ${qVal});  // returns 0: full`);
+      return;
+    }
+    const ns = slots.slice();
+    ns[tail] = { main: String(qVal) };
+    setSlots(ns);
+    setTail((tail + 1) % SQ_RING);
+    setCount(count + 1);
+    setMsg({ text: `enqueued ${qVal} at the back`, tone: "ok" });
+    setQRust(`queue.push_back(${qVal});`);
+    setQC(`queue_enqueue(&q, ${qVal});`);
+    setQVal(qVal + 10);
+  };
+
+  const dequeue = () => {
+    setHighlight(null);
+    if (count === 0) {
+      setMsg({ text: "queue is empty: nothing to dequeue", tone: "warn" });
+      setQRust("queue.pop_front();  // None");
+      setQC("queue_dequeue(&q, &out);  // returns 0: empty");
+      return;
+    }
+    const v = slots[head] as SQItem;
+    const ns = slots.slice();
+    ns[head] = null;
+    setSlots(ns);
+    setHead((head + 1) % SQ_RING);
+    setCount(count - 1);
+    setMsg({ text: `dequeued ${v.main}: first in, first out`, tone: "ok" });
+    setQRust(`queue.pop_front();  // Some(${v.main})`);
+    setQC(`queue_dequeue(&q, &out);  // out = ${v.main}`);
+  };
+
+  const peekQueue = () => {
+    if (count === 0) {
+      setMsg({ text: "the queue is empty", tone: "warn" });
+      return;
+    }
+    const v = slots[head] as SQItem;
+    setHighlight("q");
+    setMsg({ text: `front of queue is ${v.main} (not removed)`, tone: "ok" });
+    setQRust(`queue.front();  // Some(${v.main})`);
+    setQC(`queue_peek(&q, &out);  // out = ${v.main}`);
+  };
+
+  const simCalls = () => {
+    setStack([
+      { main: "main()", sub: "frame 0" },
+      { main: "process_block()", sub: "frame 1" },
+      { main: "validate_tx()", sub: "frame 2" },
+      { main: "verify_sig()", sub: "frame 3" },
+    ]);
+    setDanger(false);
+    setHighlight(null);
+    setMsg({ text: "call stack mid-validation: pop each frame as a function returns", tone: "ok" });
+    setSRust("// the call stack inside a Bitcoin node validating a block");
+    setSC("// the call stack inside a Bitcoin node validating a block");
+  };
+
+  const simScheduler = () => {
+    const items: SQItem[] = [
+      { main: "1001", sub: "bitcoin-core" },
+      { main: "1002", sub: "chrome" },
+      { main: "1003", sub: "terminal" },
+    ];
+    const ns: (SQItem | null)[] = Array(SQ_RING).fill(null);
+    items.forEach((it, i) => (ns[i] = it));
+    setSlots(ns);
+    setHead(0);
+    setTail(items.length % SQ_RING);
+    setCount(items.length);
+    setHighlight(null);
+    setMsg({ text: "OS run queue: dequeue gives the next process its CPU slice", tone: "ok" });
+    setQRust("// the OS scheduler run queue, dequeued round-robin");
+    setQC("// the OS scheduler run queue, dequeued round-robin");
+  };
+
+  const reset = () => {
+    setStack([]);
+    setSlots(Array(SQ_RING).fill(null));
+    setHead(0);
+    setTail(0);
+    setCount(0);
+    setSVal(10);
+    setQVal(10);
+    setDanger(false);
+    setHighlight(null);
+    setMsg(null);
+    setSRust("// operate the stack to see the call");
+    setSC("// operate the stack to see the call");
+    setQRust("// operate the queue to see the call");
+    setQC("// operate the queue to see the call");
+  };
+
+  // logical queue order, read from head forward
+  const logical: SQItem[] = Array.from({ length: count }, (_, i) => slots[(head + i) % SQ_RING] as SQItem);
+  const baseY = 318;
+  const stackColor = danger ? red : cyan;
+  const topIdx = stack.length - 1;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// push, pop, enqueue, dequeue"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={simCalls}>
+            simulate: function calls
+          </button>
+          <button type="button" className="widget-btn" onClick={simScheduler}>
+            simulate: OS scheduler
+          </button>
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      <div className="widget-controls" style={{ gap: 14, marginBottom: 10 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ color: cyan, fontFamily: "var(--font-mono)", fontSize: 12 }}>stack</span>
+          <input type="number" style={inputStyle} value={sVal} onChange={(e) => setSVal(Number(e.target.value))} aria-label="stack value" />
+          <button type="button" className="widget-btn" onClick={pushStack}>push</button>
+          <button type="button" className="widget-btn" onClick={popStack}>pop</button>
+          <button type="button" className="widget-btn" onClick={peekStack}>peek</button>
+        </span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ color: violet, fontFamily: "var(--font-mono)", fontSize: 12 }}>queue</span>
+          <input type="number" style={inputStyle} value={qVal} onChange={(e) => setQVal(Number(e.target.value))} aria-label="queue value" />
+          <button type="button" className="widget-btn" onClick={enqueue}>enqueue</button>
+          <button type="button" className="widget-btn" onClick={dequeue}>dequeue</button>
+          <button type="button" className="widget-btn" onClick={peekQueue}>peek</button>
+        </span>
+      </div>
+
+      <svg className="widget-canvas" viewBox="0 0 760 380" role="img" aria-label="A LIFO stack on the left and a FIFO ring-buffer queue on the right, operated live.">
+        {/* divider */}
+        <line x1={216} y1={10} x2={216} y2={300} stroke="var(--line-strong)" strokeWidth="1" strokeDasharray="2 5" />
+
+        {/* ---- STACK (LIFO) ---- */}
+        <text x={108} y={24} textAnchor="middle" fill={cyan} fontFamily="var(--font-mono)" fontSize="13" fontWeight="600">STACK · LIFO</text>
+        <text x={108} y={42} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="10">add and remove the top</text>
+        <line x1={36} y1={baseY + 2} x2={180} y2={baseY + 2} stroke="var(--fg-mute)" strokeWidth="2" />
+        <text x={108} y={baseY + 18} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="9">base</text>
+        {stack.map((it, i) => {
+          const top = baseY - (i + 1) * 30 + 2;
+          const isTop = i === topIdx;
+          const glow = isTop && highlight === "s";
+          return (
+            <g key={`s-${i}`}>
+              <rect x={42} y={top} width={132} height={26} rx={5} fill={glow ? stackColor : "var(--bg-2)"} stroke={stackColor} strokeWidth={isTop ? 2.5 : 1.5} opacity={isTop ? 1 : 0.85} />
+              <text x={108} y={top + (it.sub ? 13 : 17)} textAnchor="middle" fill={glow ? "var(--bg-0)" : "var(--fg)"} fontFamily="var(--font-mono)" fontSize="12" fontWeight={isTop ? 600 : 400}>{it.main}</text>
+              {it.sub && <text x={108} y={top + 23} textAnchor="middle" fill={glow ? "var(--bg-0)" : "var(--fg-mute)"} fontFamily="var(--font-mono)" fontSize="8">{it.sub}</text>}
+            </g>
+          );
+        })}
+        {/* stack pointer */}
+        {(() => {
+          const spY = stack.length > 0 ? baseY - stack.length * 30 + 15 : baseY - 6;
+          return (
+            <g>
+              <line x1={196} y1={spY} x2={178} y2={spY} stroke={stackColor} strokeWidth="1.5" />
+              <text x={200} y={spY + 4} fill={stackColor} fontFamily="var(--font-mono)" fontSize="11" fontWeight="600">SP</text>
+            </g>
+          );
+        })()}
+
+        {/* ---- QUEUE (FIFO) ---- */}
+        <text x={480} y={24} textAnchor="middle" fill={violet} fontFamily="var(--font-mono)" fontSize="13" fontWeight="600">QUEUE · FIFO</text>
+        <text x={480} y={42} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="10">enter at the back, leave at the front</text>
+        {count === 0 && (
+          <text x={480} y={96} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="11">queue empty</text>
+        )}
+        {logical.map((it, i) => {
+          const x = 248 + i * 60;
+          const isFront = i === 0;
+          const isBack = i === count - 1;
+          const glow = isFront && highlight === "q";
+          return (
+            <g key={`q-${i}`}>
+              <rect x={x} y={70} width={52} height={46} rx={5} fill={glow ? violet : "var(--bg-2)"} stroke={violet} strokeWidth={isFront ? 2.5 : 1.5} />
+              <text x={x + 26} y={it.sub ? 90 : 98} textAnchor="middle" fill={glow ? "var(--bg-0)" : "var(--fg)"} fontFamily="var(--font-mono)" fontSize="13" fontWeight="600">{it.main}</text>
+              {it.sub && <text x={x + 26} y={106} textAnchor="middle" fill={glow ? "var(--bg-0)" : "var(--fg-mute)"} fontFamily="var(--font-mono)" fontSize="7.5">{it.sub}</text>}
+              {isFront && <text x={x + 26} y={62} textAnchor="middle" fill={violet} fontFamily="var(--font-mono)" fontSize="9" fontWeight="600">FRONT</text>}
+              {isBack && <text x={x + 26} y={132} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="9">BACK</text>}
+            </g>
+          );
+        })}
+
+        {/* ---- RING BUFFER (physical) ---- */}
+        <text x={248} y={188} fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="10">ring buffer · physical array (head and tail wrap around)</text>
+        {Array.from({ length: SQ_RING }, (_, i) => {
+          const x = 248 + i * 58;
+          const cell = slots[i];
+          return (
+            <g key={`r-${i}`}>
+              <rect x={x} y={200} width={50} height={40} rx={4} fill="var(--bg-2)" stroke="var(--line-strong)" strokeWidth="1.5" />
+              {cell ? (
+                <text x={x + 25} y={224} textAnchor="middle" fill={violet} fontFamily="var(--font-mono)" fontSize="11" fontWeight="600">{cell.main}</text>
+              ) : (
+                <text x={x + 25} y={224} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="12">·</text>
+              )}
+              <text x={x + 25} y={196} textAnchor="middle" fill="var(--fg-mute)" fontFamily="var(--font-mono)" fontSize="8">{i}</text>
+              {i === head && <text x={x + 25} y={256} textAnchor="middle" fill={cyan} fontFamily="var(--font-mono)" fontSize="9" fontWeight="600">head</text>}
+              {i === tail && <text x={x + 25} y={270} textAnchor="middle" fill="var(--neon-amber)" fontFamily="var(--font-mono)" fontSize="9" fontWeight="600">tail</text>}
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* comparison bar */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontFamily: "var(--font-mono)", fontSize: 12, margin: "10px 0" }}>
+        <span style={{ color: cyan }}>
+          stack: {stack.length} item{stack.length === 1 ? "" : "s"}{stack.length > 0 ? ` (top = ${stack[stack.length - 1].main})` : ""}
+        </span>
+        <span style={{ color: violet }}>
+          queue: {count} item{count === 1 ? "" : "s"}{count > 0 ? ` (front = ${logical[0].main}, back = ${logical[count - 1].main})` : ""}
+        </span>
+      </div>
+
+      {/* live code preview */}
+      <div className="widget-controls" style={{ marginBottom: 8 }}>
+        <button type="button" className={`widget-btn ${lang === "rust" ? "is-active" : ""}`} onClick={() => setLang("rust")}>Rust</button>
+        <button type="button" className={`widget-btn ${lang === "c" ? "is-active" : ""}`} onClick={() => setLang("c")}>C</button>
+      </div>
+      <pre
+        style={{
+          background: "var(--bg-2)",
+          border: "1px solid var(--line-strong)",
+          borderRadius: 8,
+          padding: "10px 12px",
+          margin: 0,
+          fontFamily: "var(--font-mono)",
+          fontSize: 12,
+          lineHeight: 1.6,
+          color: "var(--fg)",
+          overflowX: "auto",
+        }}
+      >
+        <span style={{ color: cyan }}>{lang === "rust" ? sRust : sC}</span>
+        {"\n"}
+        <span style={{ color: violet }}>{lang === "rust" ? qRust : qC}</span>
+      </pre>
+
+      {msg && (
+        <p className="widget-caption" style={{ color: msg.tone === "bad" ? red : msg.tone === "warn" ? "var(--neon-amber)" : "var(--neon-lime)" }}>
+          {msg.text}
+        </p>
+      )}
+      <p className="widget-caption">
+        the stack only grows and shrinks at its top. the queue only takes from the back and gives from the front, and the ring buffer underneath shows how head and tail wrap around so neither operation ever shifts an element.
       </p>
     </div>
   );
@@ -5827,6 +6172,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <TcpHandshakeWidget />;
     case "node-scales":
       return <NodeScalesWidget />;
+    case "stack-queue-visualiser":
+      return <StackQueueVisualiserWidget />;
     default:
       return null;
   }

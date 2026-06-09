@@ -71,7 +71,8 @@ export type WidgetName =
   | "hash-visualiser"
   | "search-race"
   | "tcp-handshake-sim"
-  | "node-scales";
+  | "node-scales"
+  | "stack-queue-visualiser";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -121,7 +122,8 @@ export interface PageContent {
     | "recursion"
     | "big-o"
     | "sorting"
-    | "searching";
+    | "searching"
+    | "stacks-queues";
   hexLabel: string;
   category: string;
   hero: {

@@ -630,10 +630,10 @@ export const searching: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x17",
-    title: "Why build it from the root up: the philosophy behind ScrapyBytes.",
-    href: "/philosophy",
-    label: "philosophy",
+    eyebrow: "next up / 0x19",
+    title: "Two rules each, everything else follows: stacks and queues.",
+    href: "/stacks-queues",
+    label: "stacks & queues",
     variant: "cyan",
   },
 };

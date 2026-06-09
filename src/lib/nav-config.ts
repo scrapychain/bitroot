@@ -203,6 +203,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/stacks-queues",
+    label: "Stacks & Queues",
+    num: "25",
+    accent: "var(--neon-violet)",
+    desc: "Two rules each, everything else follows. LIFO and FIFO, the call stack you already use, ring-buffer queues, priority queues, and the Bitcoin mempool as a max-heap.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     num: "23",
