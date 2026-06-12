@@ -2485,6 +2485,233 @@ function DistributedTruthPosterDiagram() {
 }
 
 /* =====================================================================
+   30. Binary tree traversal (trees beginner): the sample tree 1..7
+   with the three traversal orders listed underneath.
+   ===================================================================== */
+function BinaryTreeTraversalDiagram() {
+  // node positions for the balanced tree:
+  //         4
+  //       /   \
+  //      2     6
+  //     / \   / \
+  //    1   3 5   7
+  const nodes = [
+    { v: 4, x: 360, y: 46 },
+    { v: 2, x: 220, y: 130 },
+    { v: 6, x: 500, y: 130 },
+    { v: 1, x: 140, y: 214 },
+    { v: 3, x: 300, y: 214 },
+    { v: 5, x: 420, y: 214 },
+    { v: 7, x: 580, y: 214 },
+  ];
+  const edges = [
+    [0, 1], [0, 2],
+    [1, 3], [1, 4],
+    [2, 5], [2, 6],
+  ];
+  const at = (i: number) => nodes[i];
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="A balanced binary tree with root 4, children 2 and 6, and leaves 1, 3, 5, 7. Below it the three depth-first traversal orders are listed: inorder 1234567, preorder 4213657, and postorder 1325764."
+    >
+      <text x="0" y="20" className={groupTitle}>A BINARY TREE: one root, every node up to two children</text>
+
+      {edges.map(([a, b], i) => (
+        <line
+          key={`e-${i}`}
+          className={`${arrow} tone-teal`}
+          x1={at(a).x}
+          y1={at(a).y + 18}
+          x2={at(b).x}
+          y2={at(b).y - 18}
+        />
+      ))}
+
+      {nodes.map((n, i) => {
+        const tone = i === 0 ? "magenta" : i >= 3 ? "cyan" : "teal";
+        return (
+          <g key={`n-${i}`}>
+            <circle cx={n.x} cy={n.y} r="20" className={`${cell} tone-${tone}`} />
+            <text x={n.x} y={n.y + 5} textAnchor="middle" className={`${cellValue} tone-${tone}`}>
+              {n.v}
+            </text>
+          </g>
+        );
+      })}
+
+      <text x={360} y={36} textAnchor="middle" className={note}>root</text>
+      <text x={140} y={250} textAnchor="middle" className={note}>leaf</text>
+      <text x={580} y={250} textAnchor="middle" className={note}>leaf</text>
+
+      <text x="0" y="284" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>
+        inorder   (left, self, right) : 1 2 3 4 5 6 7   sorted
+      </text>
+      <text x="0" y="302" className={`${cellValue} tone-violet`} style={{ fontSize: "12px" }}>
+        preorder  (self, left, right) : 4 2 1 3 6 5 7   copy / serialise
+      </text>
+      <text x="0" y="320" className={`${cellValue} tone-cyan`} style={{ fontSize: "12px" }}>
+        postorder (left, right, self) : 1 3 2 5 7 6 4   delete / merkle root
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   31. Degenerate tree (trees intermediate): a sorted insert collapses a
+   naive BST into a linked list, every node hanging off the right.
+   ===================================================================== */
+function DegenerateTreeDiagram() {
+  const chain = [1, 2, 3, 4, 5];
+  const startX = 90;
+  const startY = 42;
+  const dx = 70;
+  const dy = 44;
+  const px = (i: number) => startX + i * dx;
+  const py = (i: number) => startY + i * dy;
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 300"
+      ariaLabel="Inserting 1, 2, 3, 4, 5 in sorted order into a naive binary search tree. Every value is larger than the last, so each node becomes the right child of the previous one. The tree degenerates into a single right-leaning chain, identical in shape to a linked list, giving O(n) search."
+    >
+      <text x="0" y="20" className={groupTitle}>INSERT 1,2,3,4,5 IN ORDER: the BST becomes a linked list</text>
+
+      {chain.slice(0, -1).map((_, i) => (
+        <line
+          key={`e-${i}`}
+          className={`${arrow} tone-rose`}
+          x1={px(i) + 16}
+          y1={py(i) + 14}
+          x2={px(i + 1) - 16}
+          y2={py(i + 1) - 14}
+          markerEnd="url(#diag-arrow-rose)"
+        />
+      ))}
+
+      {chain.map((v, i) => (
+        <g key={`n-${i}`}>
+          <circle cx={px(i)} cy={py(i)} r="19" className={`${cell} tone-rose`} />
+          <text x={px(i)} y={py(i) + 5} textAnchor="middle" className={`${cellValue} tone-rose`}>
+            {v}
+          </text>
+          <text x={px(i) + 30} y={py(i) + 5} className={note}>
+            {i === 0 ? "root" : `${v} > ${chain[i - 1]}: go right`}
+          </text>
+        </g>
+      ))}
+
+      <text x={px(4) + 60} y={py(4) - 6} className={`${cellValue} tone-amber`} style={{ fontSize: "13px" }}>
+        height = n - 1
+      </text>
+      <text x={px(4) + 60} y={py(4) + 14} className={note}>
+        search is now O(n)
+      </text>
+      <text x="0" y="294" className="diagram-note tone-amber">
+        a sorted insert sequence destroys a naive BST. this is why balance matters.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   32. B-tree node (trees advanced): one node holds many keys, each gap a
+   pointer to a subtree. Few levels, few disk reads.
+   ===================================================================== */
+function BtreeNodeDiagram() {
+  const keys = [10, 20, 30];
+  const rootX = 230;
+  const rootY = 60;
+  const keyW = 64;
+  const rootW = keys.length * keyW + keyW; // 4 slots wide
+
+  const children = [
+    { label: "< 10", keys: ["3", "7"] },
+    { label: "10-20", keys: ["13", "17"] },
+    { label: "20-30", keys: ["23", "27"] },
+    { label: "> 30", keys: ["33", "37"] },
+  ];
+  const childW = 96;
+  const childGap = 30;
+  const totalChildW = children.length * childW + (children.length - 1) * childGap;
+  const childStartX = (720 - totalChildW) / 2;
+  const childY = 190;
+
+  const slotCenter = (i: number) => rootX + i * keyW + keyW / 2;
+  const childCenter = (i: number) => childStartX + i * (childW + childGap) + childW / 2;
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 280"
+      ariaLabel="A B-tree node holding three separator keys 10, 20 and 30, creating four gaps. Each gap points down to a child node holding a range of keys: less than 10, between 10 and 20, between 20 and 30, and greater than 30. One node packs many keys so one disk read loads many keys."
+    >
+      <text x="0" y="20" className={groupTitle}>A B-TREE NODE: many keys per node, all leaves at one depth</text>
+
+      {/* root node with separator keys */}
+      <rect x={rootX} y={rootY} width={rootW} height={42} className={`${cell} tone-bitcoin`} rx="4" />
+      {keys.map((k, i) => (
+        <line
+          key={`sep-${i}`}
+          x1={rootX + (i + 1) * keyW}
+          y1={rootY}
+          x2={rootX + (i + 1) * keyW}
+          y2={rootY + 42}
+          className="diagram-divider"
+        />
+      ))}
+      {keys.map((k, i) => (
+        <text
+          key={`k-${i}`}
+          x={rootX + (i + 1) * keyW}
+          y={rootY + 27}
+          textAnchor="middle"
+          className={`${cellValue} tone-bitcoin`}
+        >
+          {k}
+        </text>
+      ))}
+
+      {/* pointers from each gap down to a child */}
+      {children.map((c, i) => (
+        <line
+          key={`p-${i}`}
+          className={`${arrow} tone-bitcoin`}
+          x1={slotCenter(i)}
+          y1={rootY + 42}
+          x2={childCenter(i)}
+          y2={childY - 2}
+          markerEnd="url(#diag-arrow-bitcoin)"
+        />
+      ))}
+
+      {/* child nodes */}
+      {children.map((c, i) => (
+        <g key={`c-${i}`}>
+          <rect x={childStartX + i * (childW + childGap)} y={childY} width={childW} height={38} className={`${cell} tone-amber`} rx="4" />
+          <text
+            x={childCenter(i)}
+            y={childY + 24}
+            textAnchor="middle"
+            className={`${cellValue} tone-amber`}
+            style={{ fontSize: "13px" }}
+          >
+            {c.keys.join("  ")}
+          </text>
+          <text x={childCenter(i)} y={childY + 54} textAnchor="middle" className={note}>
+            {c.label}
+          </text>
+        </g>
+      ))}
+
+      <text x="0" y="274" className={note}>
+        one disk read loads one node. pack hundreds of keys per node and the tree stays 3 to 4 levels deep.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -2519,6 +2746,9 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "bitcoin-block-detail": BitcoinBlockDetailDiagram,
   "mining-nonce-search": MiningNonceSearchDiagram,
   "distributed-truth-poster": DistributedTruthPosterDiagram,
+  "binary-tree-traversal": BinaryTreeTraversalDiagram,
+  "degenerate-tree": DegenerateTreeDiagram,
+  "btree-node": BtreeNodeDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

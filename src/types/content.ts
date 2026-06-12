@@ -43,7 +43,10 @@ export type DiagramName =
   | "computing-stack-ladder"
   | "bitcoin-block-detail"
   | "mining-nonce-search"
-  | "distributed-truth-poster";
+  | "distributed-truth-poster"
+  | "binary-tree-traversal"
+  | "degenerate-tree"
+  | "btree-node";
 
 export type WidgetName =
   | "gossip-network"
@@ -72,7 +75,8 @@ export type WidgetName =
   | "search-race"
   | "tcp-handshake-sim"
   | "node-scales"
-  | "stack-queue-visualiser";
+  | "stack-queue-visualiser"
+  | "bst-visualiser";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -123,7 +127,8 @@ export interface PageContent {
     | "big-o"
     | "sorting"
     | "searching"
-    | "stacks-queues";
+    | "stacks-queues"
+    | "trees";
   hexLabel: string;
   category: string;
   hero: {

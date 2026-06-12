@@ -211,6 +211,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/trees",
+    label: "Trees",
+    num: "26",
+    accent: "var(--neon-emerald)",
+    desc: "A linked list that branches. Binary search trees, balance, traversals, and the three trees running inside every Bitcoin block: Merkle, B-tree, and the recursive call tree.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     num: "23",

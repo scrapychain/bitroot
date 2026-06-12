@@ -6120,6 +6120,543 @@ function StackQueueVisualiserWidget() {
   );
 }
 
+/* =====================================================================
+   27. BST visualiser: build a binary search tree, search for a value, run
+   the three traversals, and watch a sorted insert collapse into a chain.
+   The comparison path animates amber, a found node glows green, a missing
+   one glows red. Pure vanilla state + setTimeout, no libraries. (trees page)
+   ===================================================================== */
+interface BstNode {
+  id: number;
+  val: number;
+  left: BstNode | null;
+  right: BstNode | null;
+}
+
+let BST_ID = 1;
+const bstNode = (val: number): BstNode => ({ id: BST_ID++, val, left: null, right: null });
+
+// Pure insert: returns a new tree (path-copied) and the id of the new node,
+// or newId = null when the value already exists (BSTs ignore duplicates).
+function bstInsert(node: BstNode | null, val: number): { tree: BstNode; newId: number | null } {
+  if (!node) {
+    const n = bstNode(val);
+    return { tree: n, newId: n.id };
+  }
+  if (val === node.val) return { tree: node, newId: null };
+  if (val < node.val) {
+    const r = bstInsert(node.left, val);
+    return { tree: { ...node, left: r.tree }, newId: r.newId };
+  }
+  const r = bstInsert(node.right, val);
+  return { tree: { ...node, right: r.tree }, newId: r.newId };
+}
+
+function bstMin(node: BstNode): BstNode {
+  let n = node;
+  while (n.left) n = n.left;
+  return n;
+}
+
+// Pure delete: three cases (leaf, one child, two children via inorder successor).
+function bstDelete(node: BstNode | null, val: number): BstNode | null {
+  if (!node) return null;
+  if (val < node.val) return { ...node, left: bstDelete(node.left, val) };
+  if (val > node.val) return { ...node, right: bstDelete(node.right, val) };
+  // found it
+  if (!node.left) return node.right;
+  if (!node.right) return node.left;
+  const succ = bstMin(node.right);
+  return { ...node, val: succ.val, right: bstDelete(node.right, succ.val) };
+}
+
+// Walk from the root comparing, collecting the ids visited. Used by both
+// insert and search so the animation matches what the algorithm actually does.
+function bstPath(root: BstNode | null, val: number): { path: number[]; found: boolean } {
+  const path: number[] = [];
+  let cur = root;
+  while (cur) {
+    path.push(cur.id);
+    if (val === cur.val) return { path, found: true };
+    cur = val < cur.val ? cur.left : cur.right;
+  }
+  return { path, found: false };
+}
+
+type BstOrder = "inorder" | "preorder" | "postorder";
+
+function bstTraverse(root: BstNode | null, order: BstOrder): BstNode[] {
+  const out: BstNode[] = [];
+  const walk = (n: BstNode | null) => {
+    if (!n) return;
+    if (order === "preorder") out.push(n);
+    walk(n.left);
+    if (order === "inorder") out.push(n);
+    walk(n.right);
+    if (order === "postorder") out.push(n);
+  };
+  walk(root);
+  return out;
+}
+
+function bstHeight(node: BstNode | null): number {
+  if (!node) return -1; // a single node has height 0
+  return 1 + Math.max(bstHeight(node.left), bstHeight(node.right));
+}
+
+function bstBalanced(node: BstNode | null): boolean {
+  if (!node) return true;
+  const diff = Math.abs(bstHeight(node.left) - bstHeight(node.right));
+  return diff <= 1 && bstBalanced(node.left) && bstBalanced(node.right);
+}
+
+function bstCount(node: BstNode | null): number {
+  if (!node) return 0;
+  return 1 + bstCount(node.left) + bstCount(node.right);
+}
+
+interface BstLayoutNode {
+  node: BstNode;
+  x: number;
+  y: number;
+  parent: BstNode | null;
+}
+
+// Assign x by inorder column index, y by depth. Standard BST layout: the
+// inorder position guarantees left-to-right order with no overlaps.
+function bstLayout(root: BstNode | null): {
+  nodes: BstLayoutNode[];
+  cols: number;
+  depth: number;
+} {
+  const nodes: BstLayoutNode[] = [];
+  let col = 0;
+  let maxDepth = 0;
+  const colOf = new Map<number, number>();
+
+  const assignCols = (n: BstNode | null, d: number) => {
+    if (!n) return;
+    if (d > maxDepth) maxDepth = d;
+    assignCols(n.left, d + 1);
+    colOf.set(n.id, col++);
+    assignCols(n.right, d + 1);
+  };
+  assignCols(root, 0);
+
+  const place = (n: BstNode | null, d: number, parent: BstNode | null) => {
+    if (!n) return;
+    place(n.left, d + 1, n);
+    nodes.push({ node: n, x: colOf.get(n.id) ?? 0, y: d, parent });
+    place(n.right, d + 1, n);
+  };
+  place(root, 0, null);
+
+  return { nodes, cols: col, depth: maxDepth };
+}
+
+const BST_PRESET_BALANCED = [4, 2, 6, 1, 3, 5, 7];
+const BST_PRESET_CHAIN = [1, 2, 3, 4, 5, 6, 7];
+
+function BstVisualiserWidget() {
+  const [root, setRoot] = useState<BstNode | null>(null);
+  const [value, setValue] = useState("42");
+  const [order, setOrder] = useState<BstOrder>("inorder");
+  const [running, setRunning] = useState(false);
+
+  // animation state
+  const [pathIds, setPathIds] = useState<Set<number>>(new Set());
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const [newId, setNewId] = useState<number | null>(null);
+  const [foundId, setFoundId] = useState<number | null>(null);
+  const [missId, setMissId] = useState<number | null>(null);
+  const [visited, setVisited] = useState<Set<number>>(new Set());
+  const [result, setResult] = useState<number[]>([]);
+  const [log, setLog] = useState<string>("insert values, then search or traverse.");
+
+  const timers = useRef<number[]>([]);
+  const clearTimers = () => {
+    timers.current.forEach((t) => clearTimeout(t));
+    timers.current = [];
+  };
+  const later = (fn: () => void, ms: number) => {
+    const t = window.setTimeout(fn, ms);
+    timers.current.push(t);
+  };
+  useEffect(() => clearTimers, []);
+
+  const resetAnim = () => {
+    setPathIds(new Set());
+    setActiveId(null);
+    setNewId(null);
+    setFoundId(null);
+    setMissId(null);
+    setVisited(new Set());
+  };
+
+  const layout = useMemo(() => bstLayout(root), [root]);
+  const height = useMemo(() => bstHeight(root), [root]);
+  const count = useMemo(() => bstCount(root), [root]);
+  const balanced = useMemo(() => bstBalanced(root), [root]);
+  // a balanced tree of n nodes has height ~ floor(log2 n)
+  const idealHeight = count > 0 ? Math.floor(Math.log2(count)) : 0;
+
+  const STEP = 320;
+  const NODE_R = 17;
+  const COL_W = 52;
+  const ROW_H = 66;
+  const PAD_X = 30;
+  const PAD_Y = 28;
+  const vbW = Math.max(360, layout.cols * COL_W + PAD_X * 2 - (COL_W - NODE_R * 2));
+  const vbH = (layout.depth + 1) * ROW_H + PAD_Y * 2;
+  const cx = (col: number) => PAD_X + col * COL_W + NODE_R;
+  const cy = (d: number) => PAD_Y + d * ROW_H + NODE_R;
+
+  const parseVal = () => {
+    const v = parseInt(value, 10);
+    return Number.isFinite(v) ? v : null;
+  };
+
+  const insertValue = (v: number) => {
+    const { path, found } = bstPath(root, v);
+    if (found) {
+      setRunning(true);
+      resetAnim();
+      path.forEach((id, i) =>
+        later(() => {
+          setActiveId(id);
+          setPathIds(new Set(path.slice(0, i + 1)));
+        }, i * STEP),
+      );
+      later(() => {
+        setActiveId(null);
+        setMissId(path[path.length - 1]);
+        setLog(`${v} is already in the tree. BSTs ignore duplicates.`);
+        later(() => {
+          resetAnim();
+          setRunning(false);
+        }, 800);
+      }, path.length * STEP);
+      return;
+    }
+
+    setRunning(true);
+    resetAnim();
+    setLog(
+      path.length === 0
+        ? `insert ${v}: tree was empty, ${v} becomes the root.`
+        : `insert ${v}: compared against ${path.length} node${path.length === 1 ? "" : "s"} to find its slot.`,
+    );
+    path.forEach((id, i) =>
+      later(() => {
+        setActiveId(id);
+        setPathIds(new Set(path.slice(0, i + 1)));
+      }, i * STEP),
+    );
+    later(() => {
+      const { tree, newId: nid } = bstInsert(root, v);
+      setRoot(tree);
+      setActiveId(null);
+      setNewId(nid);
+      later(() => {
+        resetAnim();
+        setRunning(false);
+      }, 700);
+    }, path.length * STEP + 120);
+  };
+
+  const onInsert = () => {
+    if (running) return;
+    const v = parseVal();
+    if (v === null) return;
+    insertValue(v);
+  };
+
+  const onSearch = () => {
+    if (running) return;
+    const v = parseVal();
+    if (v === null || !root) return;
+    const { path, found } = bstPath(root, v);
+    setRunning(true);
+    resetAnim();
+    path.forEach((id, i) =>
+      later(() => {
+        setActiveId(id);
+        setPathIds(new Set(path.slice(0, i + 1)));
+        const node = layout.nodes.find((ln) => ln.node.id === id)?.node;
+        if (node && node.val !== v) {
+          setLog(`${v} ${v < node.val ? "<" : ">"} ${node.val}: go ${v < node.val ? "left" : "right"}.`);
+        }
+      }, i * STEP),
+    );
+    later(() => {
+      setActiveId(null);
+      const last = path[path.length - 1];
+      if (found) {
+        setFoundId(last);
+        setLog(`found ${v} after ${path.length} comparison${path.length === 1 ? "" : "s"}. O(log n) on a balanced tree.`);
+      } else {
+        setMissId(last);
+        setLog(`${v} is not in the tree. fell off after ${path.length} comparison${path.length === 1 ? "" : "s"}.`);
+      }
+      later(() => {
+        resetAnim();
+        setRunning(false);
+      }, 1100);
+    }, path.length * STEP);
+  };
+
+  const onDelete = () => {
+    if (running) return;
+    const v = parseVal();
+    if (v === null || !root) return;
+    const { path, found } = bstPath(root, v);
+    if (!found) {
+      setRunning(true);
+      resetAnim();
+      path.forEach((id, i) => later(() => setPathIds(new Set(path.slice(0, i + 1))), i * STEP));
+      later(() => {
+        setMissId(path[path.length - 1]);
+        setLog(`cannot delete ${v}: not in the tree.`);
+        later(() => {
+          resetAnim();
+          setRunning(false);
+        }, 900);
+      }, path.length * STEP);
+      return;
+    }
+    setRunning(true);
+    resetAnim();
+    path.forEach((id, i) => later(() => setPathIds(new Set(path.slice(0, i + 1))), i * STEP));
+    later(() => {
+      setMissId(path[path.length - 1]);
+      setLog(`delete ${v}: removed and the tree was restructured to keep the BST property.`);
+      later(() => {
+        setRoot(bstDelete(root, v));
+        resetAnim();
+        setRunning(false);
+      }, 600);
+    }, path.length * STEP);
+  };
+
+  const onTraverse = () => {
+    if (running) return;
+    if (!root) return;
+    const seq = bstTraverse(root, order);
+    setRunning(true);
+    resetAnim();
+    setResult([]);
+    setLog(`${order}: visiting ${seq.length} nodes.`);
+    seq.forEach((n, i) =>
+      later(() => {
+        setActiveId(n.id);
+        setVisited((cur) => new Set([...cur, n.id]));
+        setResult((cur) => [...cur, n.val]);
+      }, i * 300),
+    );
+    later(() => {
+      setActiveId(null);
+      setLog(
+        order === "inorder"
+          ? "inorder on a BST always comes out sorted."
+          : order === "preorder"
+            ? "preorder visits the root first: used to copy or serialise a tree."
+            : "postorder visits the root last: used to delete a tree or compute a Merkle root.",
+      );
+      later(() => {
+        setRunning(false);
+        setVisited(new Set());
+      }, 1400);
+    }, seq.length * 300);
+  };
+
+  const onReset = () => {
+    clearTimers();
+    setRoot(null);
+    resetAnim();
+    setResult([]);
+    setRunning(false);
+    setLog("tree cleared. insert values to begin.");
+  };
+
+  const loadPreset = (vals: number[], label: string) => {
+    if (running) return;
+    clearTimers();
+    resetAnim();
+    setResult([]);
+    let t: BstNode | null = null;
+    for (const v of vals) t = bstInsert(t, v).tree;
+    setRoot(t);
+    setLog(label);
+  };
+
+  const nodeClass = (id: number) => {
+    if (newId === id) return "is-new";
+    if (foundId === id) return "is-found";
+    if (missId === id) return "is-miss";
+    if (activeId === id) return "is-active";
+    if (visited.has(id)) return "is-visited";
+    if (pathIds.has(id)) return "is-path";
+    return "";
+  };
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// build and search a binary search tree"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={onReset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      <div className="bst-grid">
+        {/* LEFT: controls */}
+        <div className="bst-controls">
+          <div className="bst-ctl-row">
+            <label className="bst-ctl-label" htmlFor="bst-val">
+              value
+            </label>
+            <input
+              id="bst-val"
+              className="bst-num"
+              value={value}
+              inputMode="numeric"
+              onChange={(e) => setValue(e.target.value.replace(/[^0-9-]/g, ""))}
+              aria-label="value to insert, search or delete"
+            />
+          </div>
+
+          <div className="bst-btn-row">
+            <button type="button" className="widget-btn bst-op insert" onClick={onInsert} disabled={running}>
+              insert
+            </button>
+            <button type="button" className="widget-btn bst-op search" onClick={onSearch} disabled={running || !root}>
+              search
+            </button>
+            <button type="button" className="widget-btn bst-op del" onClick={onDelete} disabled={running || !root}>
+              delete
+            </button>
+          </div>
+
+          <div className="bst-divider" />
+
+          <span className="bst-ctl-label">traversal</span>
+          <div className="bst-seg">
+            <button type="button" className={order === "inorder" ? "is-active" : ""} onClick={() => setOrder("inorder")}>
+              inorder
+            </button>
+            <button type="button" className={order === "preorder" ? "is-active" : ""} onClick={() => setOrder("preorder")}>
+              preorder
+            </button>
+            <button type="button" className={order === "postorder" ? "is-active" : ""} onClick={() => setOrder("postorder")}>
+              postorder
+            </button>
+          </div>
+          <button type="button" className="widget-btn bst-traverse" onClick={onTraverse} disabled={running || !root}>
+            ▶ traverse
+          </button>
+
+          <div className="bst-divider" />
+
+          <span className="bst-ctl-label">presets</span>
+          <button
+            type="button"
+            className="widget-btn bst-preset"
+            onClick={() => loadPreset(BST_PRESET_BALANCED, "preset 4,2,6,1,3,5,7: a balanced tree, height 2, O(log n).")}
+            disabled={running}
+          >
+            4,2,6,1,3,5,7 · balanced
+          </button>
+          <button
+            type="button"
+            className="widget-btn bst-preset"
+            onClick={() => loadPreset(BST_PRESET_CHAIN, "preset 1,2,3,4,5,6,7: a sorted insert. every node goes right. the BST degenerates into a linked list, O(n).")}
+            disabled={running}
+          >
+            1,2,3,4,5,6,7 · degenerate
+          </button>
+
+          {/* balance indicator */}
+          <div className={`bst-balance ${root && !balanced ? "is-bad" : ""}`}>
+            <div className="bst-balance-row">
+              <span>nodes</span>
+              <strong>{count}</strong>
+            </div>
+            <div className="bst-balance-row">
+              <span>height</span>
+              <strong>{root ? height : "·"}</strong>
+            </div>
+            <div className="bst-balance-row">
+              <span>balanced</span>
+              <strong className={root && !balanced ? "bad" : "ok"}>{root ? (balanced ? "YES" : "NO") : "·"}</strong>
+            </div>
+            {root && !balanced && (
+              <div className="bst-balance-warn">
+                O(n) worst case. ideal height for {count} nodes is {idealHeight}. use an AVL or red-black tree.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: tree visualisation */}
+        <div className="bst-stage">
+          {!root && <div className="bst-empty">empty tree. insert a value, or load a preset.</div>}
+          {root && (
+            <svg
+              className="bst-svg"
+              viewBox={`0 0 ${vbW} ${vbH}`}
+              role="img"
+              aria-label="Binary search tree visualisation"
+              preserveAspectRatio="xMidYMin meet"
+            >
+              {/* edges first so nodes draw on top */}
+              {layout.nodes.map((ln) => {
+                if (!ln.parent) return null;
+                const p = layout.nodes.find((m) => m.node.id === ln.parent!.id);
+                if (!p) return null;
+                const lit = pathIds.has(ln.node.id) && pathIds.has(p.node.id);
+                return (
+                  <line
+                    key={`e-${ln.node.id}`}
+                    x1={cx(p.x)}
+                    y1={cy(p.y)}
+                    x2={cx(ln.x)}
+                    y2={cy(ln.y)}
+                    className={`bst-edge ${lit ? "is-lit" : ""}`}
+                  />
+                );
+              })}
+              {layout.nodes.map((ln) => (
+                <g key={`n-${ln.node.id}`} className={`bst-gnode ${nodeClass(ln.node.id)}`}>
+                  <circle cx={cx(ln.x)} cy={cy(ln.y)} r={NODE_R} className="bst-circle" />
+                  <text x={cx(ln.x)} y={cy(ln.y) + 4} textAnchor="middle" className="bst-label">
+                    {ln.node.val}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          )}
+
+          <div className="bst-readout">
+            <div className="bst-log">{log}</div>
+            {result.length > 0 && (
+              <div className="bst-result">
+                <span className="bst-result-tag">{order}</span>
+                <span className="bst-result-seq">{result.join("  ")}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        insert threads each value down the tree comparing left or right. search lights the same path. load the degenerate preset to watch a sorted insert collapse the tree into a linked list, the reason self-balancing trees exist.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -6174,6 +6711,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <NodeScalesWidget />;
     case "stack-queue-visualiser":
       return <StackQueueVisualiserWidget />;
+    case "bst-visualiser":
+      return <BstVisualiserWidget />;
     default:
       return null;
   }
