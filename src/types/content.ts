@@ -46,7 +46,11 @@ export type DiagramName =
   | "distributed-truth-poster"
   | "binary-tree-traversal"
   | "degenerate-tree"
-  | "btree-node";
+  | "btree-node"
+  | "graph-types"
+  | "bfs-vs-dfs"
+  | "transaction-dag"
+  | "lightning-route";
 
 export type WidgetName =
   | "gossip-network"
@@ -76,7 +80,8 @@ export type WidgetName =
   | "tcp-handshake-sim"
   | "node-scales"
   | "stack-queue-visualiser"
-  | "bst-visualiser";
+  | "bst-visualiser"
+  | "graph-explorer";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -128,7 +133,8 @@ export interface PageContent {
     | "sorting"
     | "searching"
     | "stacks-queues"
-    | "trees";
+    | "trees"
+    | "graphs";
   hexLabel: string;
   category: string;
   hero: {

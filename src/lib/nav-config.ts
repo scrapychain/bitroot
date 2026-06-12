@@ -219,6 +219,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/graphs",
+    label: "Graphs",
+    num: "27",
+    accent: "var(--neon-sky)",
+    desc: "Everything is connected, not everything is a tree. Nodes, edges, BFS, DFS, Dijkstra, and the graph algorithms routing your packets, your payments, and every Bitcoin transaction.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     num: "23",

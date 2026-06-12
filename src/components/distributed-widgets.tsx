@@ -6657,6 +6657,679 @@ function BstVisualiserWidget() {
   );
 }
 
+/* =====================================================================
+   28. Graph explorer: build a graph by clicking, then run BFS, DFS or
+   Dijkstra over it with the queue, stack or distance table shown live.
+   Presets load the Bitcoin peer mesh, a weighted router graph, and the
+   BST from the trees page (a tree IS a graph). Vanilla state + timers,
+   no libraries. (graphs page)
+   ===================================================================== */
+interface GxNode {
+  id: number;
+  x: number;
+  y: number;
+}
+
+interface GxEdge {
+  from: number;
+  to: number;
+  weight: number;
+}
+
+type GxAlgo = "bfs" | "dfs" | "dijkstra";
+
+type GxStep =
+  | { kind: "visit"; node: number; frontier: number[]; visited: number[]; order: number[] }
+  | { kind: "backtrack"; node: number; frontier: number[]; visited: number[]; order: number[] }
+  | { kind: "expand"; node: number; visited: number[]; dist: Record<number, number> }
+  | { kind: "relax"; node: number; edge: [number, number]; visited: number[]; dist: Record<number, number> }
+  | { kind: "done"; visited: number[]; dist: Record<number, number>; path: number[]; cost: number | null };
+
+// Neighbour lookup that respects the directed toggle. Weights collapse to 1
+// when the weighted toggle is off, so BFS and Dijkstra agree on hop counts.
+function gxNeighbours(
+  edges: GxEdge[],
+  node: number,
+  directed: boolean,
+  weighted: boolean,
+): Array<{ to: number; weight: number }> {
+  const out: Array<{ to: number; weight: number }> = [];
+  for (const e of edges) {
+    const w = weighted ? e.weight : 1;
+    if (e.from === node) out.push({ to: e.to, weight: w });
+    if (!directed && e.to === node) out.push({ to: e.from, weight: w });
+  }
+  // deterministic order: lowest id first, so runs are reproducible
+  return out.sort((a, b) => a.to - b.to);
+}
+
+function gxBfsSteps(edges: GxEdge[], start: number, directed: boolean): GxStep[] {
+  const steps: GxStep[] = [];
+  const visited = new Set<number>([start]);
+  const queue: number[] = [start];
+  const order: number[] = [];
+
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    order.push(node);
+    for (const { to } of gxNeighbours(edges, node, directed, false)) {
+      if (!visited.has(to)) {
+        visited.add(to);
+        queue.push(to);
+      }
+    }
+    steps.push({ kind: "visit", node, frontier: [...queue], visited: [...visited], order: [...order] });
+  }
+  return steps;
+}
+
+function gxDfsSteps(edges: GxEdge[], start: number, directed: boolean): GxStep[] {
+  const steps: GxStep[] = [];
+  const visited = new Set<number>();
+  const order: number[] = [];
+  const path: number[] = []; // the live recursion stack
+
+  const walk = (node: number) => {
+    visited.add(node);
+    order.push(node);
+    path.push(node);
+    steps.push({ kind: "visit", node, frontier: [...path], visited: [...visited], order: [...order] });
+    for (const { to } of gxNeighbours(edges, node, directed, false)) {
+      if (!visited.has(to)) walk(to);
+    }
+    path.pop();
+    if (path.length > 0) {
+      steps.push({ kind: "backtrack", node: path[path.length - 1], frontier: [...path], visited: [...visited], order: [...order] });
+    }
+  };
+  walk(start);
+  return steps;
+}
+
+function gxDijkstraSteps(
+  nodes: GxNode[],
+  edges: GxEdge[],
+  start: number,
+  target: number,
+  directed: boolean,
+  weighted: boolean,
+): GxStep[] {
+  const steps: GxStep[] = [];
+  const dist: Record<number, number> = {};
+  const prev: Record<number, number> = {};
+  const done = new Set<number>();
+  for (const n of nodes) dist[n.id] = Infinity;
+  dist[start] = 0;
+
+  // O(V^2) scan version: always expand the cheapest unfinished node.
+  for (let iter = 0; iter < nodes.length; iter++) {
+    let u: number | null = null;
+    for (const n of nodes) {
+      if (!done.has(n.id) && (u === null || dist[n.id] < dist[u])) u = n.id;
+    }
+    if (u === null || dist[u] === Infinity) break;
+    done.add(u);
+    steps.push({ kind: "expand", node: u, visited: [...done], dist: { ...dist } });
+
+    for (const { to, weight } of gxNeighbours(edges, u, directed, weighted)) {
+      if (dist[u] + weight < dist[to]) {
+        dist[to] = dist[u] + weight;
+        prev[to] = u;
+        steps.push({ kind: "relax", node: to, edge: [u, to], visited: [...done], dist: { ...dist } });
+      }
+    }
+  }
+
+  // reconstruct the shortest path to the target
+  const path: number[] = [];
+  let cost: number | null = null;
+  if (dist[target] !== Infinity && dist[target] !== undefined) {
+    cost = dist[target];
+    let cur: number | undefined = target;
+    while (cur !== undefined) {
+      path.unshift(cur);
+      cur = prev[cur];
+    }
+  }
+  steps.push({ kind: "done", visited: [...done], dist: { ...dist }, path, cost });
+  return steps;
+}
+
+// Connected components, treating every edge as undirected.
+function gxComponents(nodes: GxNode[], edges: GxEdge[]): number {
+  const seen = new Set<number>();
+  let components = 0;
+  for (const n of nodes) {
+    if (seen.has(n.id)) continue;
+    components++;
+    const queue = [n.id];
+    seen.add(n.id);
+    while (queue.length > 0) {
+      const cur = queue.shift()!;
+      for (const { to } of gxNeighbours(edges, cur, false, false)) {
+        if (!seen.has(to)) {
+          seen.add(to);
+          queue.push(to);
+        }
+      }
+    }
+  }
+  return components;
+}
+
+const GX_W = 600;
+const GX_H = 300;
+
+// Presets. Bitcoin mesh: 8 nodes on a ring, each linked to its 1st and 2nd
+// neighbours (degree 4) plus two long chords (degree 5-6 for four of them).
+function gxPresetBitcoin(): { nodes: GxNode[]; edges: GxEdge[] } {
+  const nodes: GxNode[] = Array.from({ length: 8 }, (_, i) => {
+    const theta = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    return { id: i + 1, x: 300 + Math.cos(theta) * 115, y: 150 + Math.sin(theta) * 115 };
+  });
+  const edges: GxEdge[] = [];
+  for (let i = 0; i < 8; i++) {
+    edges.push({ from: i + 1, to: ((i + 1) % 8) + 1, weight: 1 });
+    edges.push({ from: i + 1, to: ((i + 2) % 8) + 1, weight: 1 });
+  }
+  edges.push({ from: 1, to: 5, weight: 1 });
+  edges.push({ from: 3, to: 7, weight: 1 });
+  return { nodes, edges };
+}
+
+function gxPresetRouters(): { nodes: GxNode[]; edges: GxEdge[] } {
+  return {
+    nodes: [
+      { id: 1, x: 70, y: 150 },
+      { id: 2, x: 220, y: 60 },
+      { id: 3, x: 220, y: 240 },
+      { id: 4, x: 380, y: 60 },
+      { id: 5, x: 380, y: 240 },
+      { id: 6, x: 530, y: 150 },
+    ],
+    edges: [
+      { from: 1, to: 2, weight: 4 },
+      { from: 1, to: 3, weight: 2 },
+      { from: 2, to: 3, weight: 1 },
+      { from: 2, to: 4, weight: 5 },
+      { from: 3, to: 5, weight: 8 },
+      { from: 4, to: 5, weight: 2 },
+      { from: 4, to: 6, weight: 6 },
+      { from: 5, to: 6, weight: 3 },
+    ],
+  };
+}
+
+function gxPresetTree(): { nodes: GxNode[]; edges: GxEdge[] } {
+  // the balanced BST from the trees page: 4, 2, 6, 1, 3, 5, 7
+  return {
+    nodes: [
+      { id: 4, x: 300, y: 50 },
+      { id: 2, x: 170, y: 150 },
+      { id: 6, x: 430, y: 150 },
+      { id: 1, x: 100, y: 250 },
+      { id: 3, x: 240, y: 250 },
+      { id: 5, x: 360, y: 250 },
+      { id: 7, x: 500, y: 250 },
+    ],
+    edges: [
+      { from: 4, to: 2, weight: 1 },
+      { from: 4, to: 6, weight: 1 },
+      { from: 2, to: 1, weight: 1 },
+      { from: 2, to: 3, weight: 1 },
+      { from: 6, to: 5, weight: 1 },
+      { from: 6, to: 7, weight: 1 },
+    ],
+  };
+}
+
+function GraphExplorerWidget() {
+  const [nodes, setNodes] = useState<GxNode[]>(() => gxPresetRouters().nodes);
+  const [edges, setEdges] = useState<GxEdge[]>(() => gxPresetRouters().edges);
+  const [directed, setDirected] = useState(false);
+  const [weighted, setWeighted] = useState(true);
+  const [pendingFrom, setPendingFrom] = useState<number | null>(null);
+  const [weightInput, setWeightInput] = useState("1");
+  const [algo, setAlgo] = useState<GxAlgo>("bfs");
+  const [start, setStart] = useState(1);
+  const [target, setTarget] = useState(6);
+  const [speed, setSpeed] = useState(500); // ms per step
+  const [steps, setSteps] = useState<GxStep[]>([]);
+  const [stepIdx, setStepIdx] = useState(-1);
+  const [playing, setPlaying] = useState(false);
+  const idRef = useRef(7);
+
+  const components = useMemo(() => gxComponents(nodes, edges), [nodes, edges]);
+  const cur: GxStep | null = stepIdx >= 0 && stepIdx < steps.length ? steps[stepIdx] : null;
+  const finished = steps.length > 0 && stepIdx >= steps.length - 1;
+  const editing = steps.length === 0;
+
+  // play timer
+  useEffect(() => {
+    if (!playing) return;
+    if (stepIdx >= steps.length - 1) {
+      setPlaying(false);
+      return;
+    }
+    const t = window.setTimeout(() => setStepIdx((i) => i + 1), speed);
+    return () => clearTimeout(t);
+  }, [playing, stepIdx, steps.length, speed]);
+
+  const ensureStartTarget = useCallback(
+    (ns: GxNode[]) => {
+      if (ns.length === 0) return;
+      if (!ns.some((n) => n.id === start)) setStart(ns[0].id);
+      if (!ns.some((n) => n.id === target)) setTarget(ns[ns.length - 1].id);
+    },
+    [start, target],
+  );
+
+  const resetTraversal = () => {
+    setSteps([]);
+    setStepIdx(-1);
+    setPlaying(false);
+  };
+
+  const buildSteps = (): GxStep[] => {
+    if (nodes.length === 0 || !nodes.some((n) => n.id === start)) return [];
+    if (algo === "bfs") return gxBfsSteps(edges, start, directed);
+    if (algo === "dfs") return gxDfsSteps(edges, start, directed);
+    return gxDijkstraSteps(nodes, edges, start, target, directed, weighted);
+  };
+
+  const onRun = () => {
+    if (steps.length === 0) {
+      const s = buildSteps();
+      if (s.length === 0) return;
+      setSteps(s);
+      setStepIdx(0);
+      setPlaying(true);
+    } else {
+      setPlaying((p) => !p && stepIdx < steps.length - 1);
+    }
+  };
+
+  const onStep = () => {
+    setPlaying(false);
+    if (steps.length === 0) {
+      const s = buildSteps();
+      if (s.length === 0) return;
+      setSteps(s);
+      setStepIdx(0);
+    } else if (stepIdx < steps.length - 1) {
+      setStepIdx((i) => i + 1);
+    }
+  };
+
+  const onCanvasClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!editing) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * GX_W;
+    const y = ((e.clientY - rect.top) / rect.height) * GX_H;
+    // ignore clicks too close to an existing node (those select the node)
+    if (nodes.some((n) => Math.hypot(n.x - x, n.y - y) < 30)) return;
+    const id = ++idRef.current;
+    const next = [...nodes, { id, x: Math.max(20, Math.min(GX_W - 20, x)), y: Math.max(20, Math.min(GX_H - 20, y)) }];
+    setNodes(next);
+    setPendingFrom(null);
+    ensureStartTarget(next);
+  };
+
+  const onNodeClick = (id: number) => {
+    if (!editing) return;
+    if (pendingFrom === null) {
+      setPendingFrom(id);
+      return;
+    }
+    if (pendingFrom === id) {
+      setPendingFrom(null); // clicked the same node: deselect
+      return;
+    }
+    const exists = edges.some(
+      (e) => (e.from === pendingFrom && e.to === id) || (!directed && e.from === id && e.to === pendingFrom),
+    );
+    if (!exists) {
+      const w = Math.max(1, Math.min(99, parseInt(weightInput, 10) || 1));
+      setEdges((cur) => [...cur, { from: pendingFrom, to: id, weight: w }]);
+    }
+    setPendingFrom(null);
+  };
+
+  const loadPreset = (p: { nodes: GxNode[]; edges: GxEdge[] }, opts: { directed: boolean; weighted: boolean }) => {
+    resetTraversal();
+    setNodes(p.nodes);
+    setEdges(p.edges);
+    setDirected(opts.directed);
+    setWeighted(opts.weighted);
+    setPendingFrom(null);
+    idRef.current = Math.max(...p.nodes.map((n) => n.id));
+    setStart(p.nodes[0].id);
+    setTarget(p.nodes[p.nodes.length - 1].id);
+  };
+
+  const clearGraph = () => {
+    resetTraversal();
+    setNodes([]);
+    setEdges([]);
+    setPendingFrom(null);
+    idRef.current = 0;
+  };
+
+  // ---- derived visual state ----
+  const visitedSet = new Set<number>(cur ? cur.visited : []);
+  const frontier: number[] = cur && (cur.kind === "visit" || cur.kind === "backtrack") ? cur.frontier : [];
+  const frontierSet = new Set(frontier);
+  const activeNode =
+    cur && (cur.kind === "visit" || cur.kind === "expand" || cur.kind === "backtrack") ? cur.node : null;
+  const isBacktrack = cur?.kind === "backtrack";
+  const relaxEdge = cur && cur.kind === "relax" ? cur.edge : null;
+  const dist = cur && (cur.kind === "expand" || cur.kind === "relax" || cur.kind === "done") ? cur.dist : null;
+  const donePath = cur && cur.kind === "done" ? cur.path : null;
+  const pathEdgeSet = new Set<string>();
+  if (donePath) {
+    for (let i = 0; i + 1 < donePath.length; i++) pathEdgeSet.add(`${donePath[i]}-${donePath[i + 1]}`);
+  }
+  const order = cur && (cur.kind === "visit" || cur.kind === "backtrack") ? cur.order : null;
+  const lastStep = steps.length > 0 ? steps[steps.length - 1] : null;
+
+  const edgeClass = (e: GxEdge) => {
+    const fwd = `${e.from}-${e.to}`;
+    const rev = `${e.to}-${e.from}`;
+    if (pathEdgeSet.has(fwd) || (!directed && pathEdgeSet.has(rev))) return "is-path";
+    if (relaxEdge && relaxEdge[0] === e.from && relaxEdge[1] === e.to) return "is-relax";
+    if (relaxEdge && !directed && relaxEdge[0] === e.to && relaxEdge[1] === e.from) return "is-relax";
+    return "";
+  };
+
+  const nodeClass = (id: number) => {
+    if (donePath && donePath.includes(id)) return "is-path";
+    if (activeNode === id) return isBacktrack ? "is-backtrack" : "is-active";
+    if (cur?.kind === "relax" && cur.node === id) return "is-relax";
+    if (frontierSet.has(id)) return "is-frontier";
+    if (visitedSet.has(id)) return "is-visited";
+    if (pendingFrom === id) return "is-pending";
+    return "";
+  };
+
+  const frontierLabel = algo === "bfs" ? "queue" : "stack";
+  const fmt = (d: number) => (d === Infinity || d === undefined ? "inf" : String(d));
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// explore a graph"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={clearGraph}>
+            clear graph
+          </button>
+        </div>
+      </div>
+
+      {/* builder controls */}
+      <div className="gx-builder">
+        <div className="gx-seg">
+          <button type="button" className={!directed ? "is-active" : ""} onClick={() => { setDirected(false); resetTraversal(); }}>
+            undirected
+          </button>
+          <button type="button" className={directed ? "is-active" : ""} onClick={() => { setDirected(true); resetTraversal(); }}>
+            directed
+          </button>
+        </div>
+        <div className="gx-seg">
+          <button type="button" className={!weighted ? "is-active" : ""} onClick={() => { setWeighted(false); resetTraversal(); }}>
+            unweighted
+          </button>
+          <button type="button" className={weighted ? "is-active" : ""} onClick={() => { setWeighted(true); resetTraversal(); }}>
+            weighted
+          </button>
+        </div>
+        {weighted && (
+          <label className="gx-weight">
+            <span>edge weight</span>
+            <input
+              value={weightInput}
+              inputMode="numeric"
+              onChange={(e) => setWeightInput(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
+              aria-label="weight for the next edge"
+            />
+          </label>
+        )}
+        <div className="gx-presets">
+          <button
+            type="button"
+            className="widget-btn"
+            onClick={() => loadPreset(gxPresetBitcoin(), { directed: false, weighted: false })}
+          >
+            bitcoin peer mesh
+          </button>
+          <button
+            type="button"
+            className="widget-btn"
+            onClick={() => loadPreset(gxPresetRouters(), { directed: false, weighted: true })}
+          >
+            internet routing
+          </button>
+          <button
+            type="button"
+            className="widget-btn"
+            onClick={() => loadPreset(gxPresetTree(), { directed: false, weighted: false })}
+          >
+            tree (no cycles)
+          </button>
+        </div>
+      </div>
+
+      {/* canvas */}
+      <svg
+        className={`gx-canvas ${editing ? "is-editable" : ""}`}
+        viewBox={`0 0 ${GX_W} ${GX_H}`}
+        role="img"
+        aria-label="Graph canvas. Click empty space to add a node; click one node then another to add an edge."
+        onClick={onCanvasClick}
+      >
+        <defs>
+          <marker id="gx-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-sky)" />
+          </marker>
+        </defs>
+
+        {nodes.length === 0 && (
+          <text x={GX_W / 2} y={GX_H / 2} textAnchor="middle" className="gx-hint">
+            click empty space to add a node. click a node, then another, to add an edge.
+          </text>
+        )}
+
+        {edges.map((e, i) => {
+          const a = nodes.find((n) => n.id === e.from);
+          const b = nodes.find((n) => n.id === e.to);
+          if (!a || !b) return null;
+          // shorten the line so directed arrowheads sit outside the circle
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const pad = 19;
+          const x1 = a.x + (dx / len) * pad;
+          const y1 = a.y + (dy / len) * pad;
+          const x2 = b.x - (dx / len) * pad;
+          const y2 = b.y - (dy / len) * pad;
+          return (
+            <g key={i}>
+              <line
+                className={`gx-edge ${edgeClass(e)}`}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                markerEnd={directed ? "url(#gx-arrow)" : undefined}
+              />
+              {weighted && (
+                <text className="gx-edge-w" x={(a.x + b.x) / 2 + 7} y={(a.y + b.y) / 2 - 5}>
+                  {e.weight}
+                </text>
+              )}
+            </g>
+          );
+        })}
+
+        {nodes.map((n) => (
+          <g
+            key={n.id}
+            className={`gx-node ${nodeClass(n.id)}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onNodeClick(n.id);
+            }}
+          >
+            <circle cx={n.x} cy={n.y} r="16" className="gx-circle" />
+            <text x={n.x} y={n.y + 4} textAnchor="middle" className="gx-label">
+              {n.id}
+            </text>
+            {n.id === start && (
+              <text x={n.x} y={n.y - 22} textAnchor="middle" className="gx-tag">
+                start
+              </text>
+            )}
+            {algo === "dijkstra" && n.id === target && n.id !== start && (
+              <text x={n.x} y={n.y - 22} textAnchor="middle" className="gx-tag is-target">
+                target
+              </text>
+            )}
+          </g>
+        ))}
+      </svg>
+
+      {/* traversal controls */}
+      <div className="gx-run">
+        <div className="gx-seg gx-algo">
+          {(["bfs", "dfs", "dijkstra"] as const).map((a) => (
+            <button
+              key={a}
+              type="button"
+              className={algo === a ? "is-active" : ""}
+              onClick={() => {
+                setAlgo(a);
+                resetTraversal();
+              }}
+            >
+              {a === "dijkstra" ? "dijkstra (weighted)" : a}
+            </button>
+          ))}
+        </div>
+
+        <label className="gx-select">
+          <span>start</span>
+          <select value={start} onChange={(e) => { setStart(Number(e.target.value)); resetTraversal(); }}>
+            {nodes.map((n) => (
+              <option key={n.id} value={n.id}>
+                node-{n.id}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {algo === "dijkstra" && (
+          <label className="gx-select">
+            <span>target</span>
+            <select value={target} onChange={(e) => { setTarget(Number(e.target.value)); resetTraversal(); }}>
+              {nodes.map((n) => (
+                <option key={n.id} value={n.id}>
+                  node-{n.id}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        <label className="gx-speed">
+          <span>speed</span>
+          <input
+            type="range"
+            min={120}
+            max={1000}
+            step={20}
+            value={1120 - speed}
+            onChange={(e) => setSpeed(1120 - Number(e.target.value))}
+            aria-label="animation speed, slow to fast"
+          />
+        </label>
+
+        <div className="gx-buttons">
+          <button type="button" className="widget-btn gx-go" onClick={onRun} disabled={nodes.length === 0 || finished}>
+            {playing ? "pause" : steps.length > 0 ? "resume" : "run"}
+          </button>
+          <button type="button" className="widget-btn" onClick={onStep} disabled={nodes.length === 0 || finished}>
+            step
+          </button>
+          <button type="button" className="widget-btn" onClick={resetTraversal} disabled={steps.length === 0}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      {/* live state: queue / stack / distance table */}
+      <div className="gx-state">
+        {(algo === "bfs" || algo === "dfs") && (
+          <div className="gx-frontier">
+            <span className="gx-state-label">{frontierLabel}</span>
+            <div className="gx-frontier-items">
+              {frontier.length === 0 && <span className="gx-empty-frontier">empty</span>}
+              {frontier.map((id, i) => (
+                <span key={`${id}-${i}`} className="gx-chip">
+                  node-{id}
+                </span>
+              ))}
+            </div>
+            {isBacktrack && <span className="gx-backtrack-note">backtracking</span>}
+          </div>
+        )}
+
+        {algo === "dijkstra" && dist && (
+          <div className="gx-disttable">
+            <span className="gx-state-label">distance table</span>
+            <div className="gx-dist-items">
+              {nodes.map((n) => (
+                <span key={n.id} className={`gx-dist ${dist[n.id] !== Infinity ? "is-known" : ""} ${visitedSet.has(n.id) ? "is-done" : ""}`}>
+                  node-{n.id}: <strong>{fmt(dist[n.id])}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* results panel */}
+      <div className="gx-results">
+        <div className={`gx-connectivity ${nodes.length > 0 && components > 1 ? "is-warn" : ""}`}>
+          {nodes.length === 0
+            ? "graph: empty"
+            : components === 1
+              ? "graph: CONNECTED"
+              : `graph: DISCONNECTED. ${components} components`}
+        </div>
+        <div className="gx-result">
+          {!lastStep && "build a graph, pick an algorithm, press run."}
+          {lastStep && !finished && cur && (
+            cur.kind === "visit" ? `visiting node-${cur.node}` :
+            cur.kind === "backtrack" ? `backtracking to node-${cur.node}` :
+            cur.kind === "expand" ? `expanding node-${cur.node} (cheapest unvisited)` :
+            cur.kind === "relax" ? `improved distance to node-${cur.node}` : ""
+          )}
+          {finished && order && `visited order: ${order.join(", ")}`}
+          {finished && lastStep && lastStep.kind === "done" && (
+            lastStep.cost !== null
+              ? `shortest path to node-${target}: ${lastStep.path.join(" → ")} (cost: ${lastStep.cost})`
+              : `node-${target} is unreachable from node-${start}`
+          )}
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        click empty canvas to add a node; click a node, then another, to add an edge. BFS shows its queue, DFS shows its stack, dijkstra shows the distance table relaxing edge by edge. load the bitcoin mesh and run BFS from any node: that is gossip propagation.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -6713,6 +7386,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <StackQueueVisualiserWidget />;
     case "bst-visualiser":
       return <BstVisualiserWidget />;
+    case "graph-explorer":
+      return <GraphExplorerWidget />;
     default:
       return null;
   }

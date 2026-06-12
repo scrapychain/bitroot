@@ -2712,6 +2712,238 @@ function BtreeNodeDiagram() {
 }
 
 /* =====================================================================
+   33. Graph types (graphs beginner): four quadrants, one per flavour.
+   Undirected, directed, weighted, DAG.
+   ===================================================================== */
+function GraphTypesDiagram() {
+  // small helper: a labelled circle
+  const N = ({ x, y, l, tone }: { x: number; y: number; l: string; tone: string }) => (
+    <g>
+      <circle cx={x} cy={y} r="14" className={`${cell} tone-${tone}`} />
+      <text x={x} y={y + 4} textAnchor="middle" className={`${cellValue} tone-${tone}`} style={{ fontSize: "12px" }}>
+        {l}
+      </text>
+    </g>
+  );
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 400"
+      ariaLabel="Four small graphs, one per type. Undirected: three nodes joined by plain lines. Directed: three nodes joined by arrows. Weighted: three nodes joined by lines labelled with numeric costs. DAG: four nodes joined by arrows that all point forward, so no cycle is possible."
+    >
+      {/* quadrant dividers */}
+      <line x1="360" y1="28" x2="360" y2="390" className="diagram-divider" />
+      <line x1="0" y1="208" x2="720" y2="208" className="diagram-divider" />
+
+      {/* UNDIRECTED (cyan), top-left */}
+      <text x="20" y="48" className={`${cellLabel}`}>UNDIRECTED</text>
+      <line x1="80" y1="120" x2="180" y2="86" className={`${arrow} tone-cyan`} />
+      <line x1="80" y1="120" x2="180" y2="160" className={`${arrow} tone-cyan`} />
+      <line x1="180" y1="86" x2="280" y2="120" className={`${arrow} tone-cyan`} />
+      <line x1="180" y1="160" x2="280" y2="120" className={`${arrow} tone-cyan`} />
+      <N x={80} y={120} l="A" tone="cyan" />
+      <N x={180} y={86} l="B" tone="cyan" />
+      <N x={180} y={160} l="C" tone="cyan" />
+      <N x={280} y={120} l="D" tone="cyan" />
+      <text x="20" y="196" className={note}>no direction. A to B means B to A. friendships, cables.</text>
+
+      {/* DIRECTED (indigo), top-right */}
+      <text x="390" y="48" className={`${cellLabel}`}>DIRECTED</text>
+      <line x1="452" y1="113" x2="538" y2="92" className={`${arrow} tone-indigo`} markerEnd="url(#diag-arrow-indigo)" />
+      <line x1="452" y1="127" x2="538" y2="152" className={`${arrow} tone-indigo`} markerEnd="url(#diag-arrow-indigo)" />
+      <line x1="568" y1="92" x2="648" y2="113" className={`${arrow} tone-indigo`} markerEnd="url(#diag-arrow-indigo)" />
+      <N x={438} y={120} l="A" tone="indigo" />
+      <N x={552} y={86} l="B" tone="indigo" />
+      <N x={552} y={158} l="C" tone="indigo" />
+      <N x={662} y={120} l="D" tone="indigo" />
+      <text x="390" y="196" className={note}>one-way edges. follows, links, transactions.</text>
+
+      {/* WEIGHTED (amber), bottom-left */}
+      <text x="20" y="232" className={`${cellLabel}`}>WEIGHTED</text>
+      <line x1="80" y1="300" x2="180" y2="266" className={`${arrow} tone-amber`} />
+      <line x1="80" y1="300" x2="180" y2="340" className={`${arrow} tone-amber`} />
+      <line x1="180" y1="266" x2="280" y2="300" className={`${arrow} tone-amber`} />
+      <N x={80} y={300} l="A" tone="amber" />
+      <N x={180} y={266} l="B" tone="amber" />
+      <N x={180} y={340} l="C" tone="amber" />
+      <N x={280} y={300} l="D" tone="amber" />
+      <text x="120" y="272" className={`${cellValue} tone-amber`} style={{ fontSize: "11px" }}>4</text>
+      <text x="120" y="336" className={`${cellValue} tone-amber`} style={{ fontSize: "11px" }}>2</text>
+      <text x="236" y="272" className={`${cellValue} tone-amber`} style={{ fontSize: "11px" }}>7</text>
+      <text x="20" y="378" className={note}>edges carry a cost. distance, latency, fees.</text>
+
+      {/* DAG (lime), bottom-right */}
+      <text x="390" y="232" className={`${cellLabel}`}>DAG</text>
+      <line x1="452" y1="293" x2="538" y2="272" className={`${arrow} tone-lime`} markerEnd="url(#diag-arrow-lime)" />
+      <line x1="452" y1="307" x2="538" y2="332" className={`${arrow} tone-lime`} markerEnd="url(#diag-arrow-lime)" />
+      <line x1="566" y1="272" x2="648" y2="293" className={`${arrow} tone-lime`} markerEnd="url(#diag-arrow-lime)" />
+      <line x1="566" y1="332" x2="648" y2="307" className={`${arrow} tone-lime`} markerEnd="url(#diag-arrow-lime)" />
+      <N x={438} y={300} l="A" tone="lime" />
+      <N x={552} y={266} l="B" tone="lime" />
+      <N x={552} y={338} l="C" tone="lime" />
+      <N x={662} y={300} l="D" tone="lime" />
+      <text x="390" y="378" className={note}>directed, no cycles. dependencies, git commits.</text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   34. BFS vs DFS (graphs intermediate): same square graph, two orders.
+   ===================================================================== */
+function BfsVsDfsDiagram() {
+  // square with a cycle: 1-2, 2-4, 1-3, 3-4
+  const nodes = [
+    { l: "1", x: 90, y: 130 },
+    { l: "2", x: 210, y: 64 },
+    { l: "3", x: 210, y: 196 },
+    { l: "4", x: 330, y: 130 },
+  ];
+  const edges = [
+    [0, 1], [0, 2], [1, 3], [2, 3],
+  ];
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 260"
+      ariaLabel="A square graph with nodes 1, 2, 3 and 4 and a cycle: 1 connects to 2 and 3, and both 2 and 3 connect to 4. BFS from node 1 visits 1, 2, 3 then 4, level by level, finding 4 in two hops. DFS from node 1 visits 1, 2, 4, backtracks, then visits 3, going deep before wide."
+    >
+      <text x="0" y="20" className={groupTitle}>SAME GRAPH, TWO ORDERS</text>
+
+      {edges.map(([a, b], i) => (
+        <line
+          key={i}
+          className={`${arrow} tone-sky`}
+          x1={nodes[a].x}
+          y1={nodes[a].y}
+          x2={nodes[b].x}
+          y2={nodes[b].y}
+        />
+      ))}
+      {nodes.map((n, i) => (
+        <g key={`n-${i}`}>
+          <circle cx={n.x} cy={n.y} r="17" className={`${cell} tone-sky`} />
+          <text x={n.x} y={n.y + 5} textAnchor="middle" className={`${cellValue} tone-sky`}>
+            {n.l}
+          </text>
+        </g>
+      ))}
+      <text x={90} y={170} textAnchor="middle" className={note}>start</text>
+
+      {/* the two orders */}
+      <text x="430" y="84" className={`${cellValue} tone-cyan`} style={{ fontSize: "13px" }}>
+        BFS: 1, 2, 3, 4
+      </text>
+      <text x="430" y="104" className={note}>
+        level by level. queue. finds 4 in 2 hops.
+      </text>
+      <text x="430" y="152" className={`${cellValue} tone-violet`} style={{ fontSize: "13px" }}>
+        DFS: 1, 2, 4, 3
+      </text>
+      <text x="430" y="172" className={note}>
+        deep first. stack. backtracks from 4, then visits 3.
+      </text>
+
+      <text x="0" y="250" className={note}>
+        both O(V + E). only BFS guarantees the shortest path in an unweighted graph.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   35. Transaction DAG (graphs advanced): outputs spent by later
+   transactions form a DAG; miners must order parents before children.
+   ===================================================================== */
+function TransactionDagDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 270"
+      ariaLabel="Three Bitcoin transactions forming a directed acyclic graph. Transaction B spends an output of transaction A. Transaction C spends outputs of both A and B. Arrows point from each transaction to the one that spends it. No cycle is possible because an output cannot be spent before it exists."
+    >
+      <text x="0" y="20" className={groupTitle}>THE TRANSACTION DAG: parents before children</text>
+
+      {/* Tx A */}
+      <rect x={40} y={100} width={150} height={56} className={`${cell} tone-bitcoin`} rx="4" />
+      <text x={115} y={124} textAnchor="middle" className={`${cellValue} tone-bitcoin`}>Tx A</text>
+      <text x={115} y={144} textAnchor="middle" className={note}>low fee</text>
+
+      {/* Tx B */}
+      <rect x={290} y={42} width={150} height={56} className={`${cell} tone-flame`} rx="4" />
+      <text x={365} y={66} textAnchor="middle" className={`${cellValue} tone-flame`}>Tx B</text>
+      <text x={365} y={86} textAnchor="middle" className={note}>spends A, high fee</text>
+
+      {/* Tx C */}
+      <rect x={530} y={100} width={150} height={56} className={`${cell} tone-lime`} rx="4" />
+      <text x={605} y={124} textAnchor="middle" className={`${cellValue} tone-lime`}>Tx C</text>
+      <text x={605} y={144} textAnchor="middle" className={note}>spends A and B</text>
+
+      {/* edges: A -> B, A -> C, B -> C */}
+      <line className={`${arrow} tone-bitcoin`} x1={190} y1={114} x2={286} y2={78} markerEnd="url(#diag-arrow-bitcoin)" />
+      <line className={`${arrow} tone-bitcoin`} x1={190} y1={136} x2={526} y2={130} markerEnd="url(#diag-arrow-bitcoin)" />
+      <line className={`${arrow} tone-flame`} x1={440} y1={78} x2={526} y2={112} markerEnd="url(#diag-arrow-flame)" />
+
+      <text x="40" y="210" className={note}>
+        an arrow means: the next transaction spends this one. cycles are impossible.
+      </text>
+      <text x="40" y="230" className={note}>
+        spending an output before it exists would be spending money before it exists.
+      </text>
+      <text x="40" y="258" className="diagram-note tone-amber">
+        valid inclusion order is a topological sort: A before B, both before C. Kahn&apos;s algorithm, every block.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   36. Lightning route (graphs advanced): Dijkstra over the channel
+   graph picks the cheapest path from Alice to Dave.
+   ===================================================================== */
+function LightningRouteDiagram() {
+  const N = ({ x, y, l, tone }: { x: number; y: number; l: string; tone: string }) => (
+    <g>
+      <circle cx={x} cy={y} r="24" className={`${cell} tone-${tone}`} />
+      <text x={x} y={y + 4} textAnchor="middle" className={`${cellValue} tone-${tone}`} style={{ fontSize: "11px" }}>
+        {l}
+      </text>
+    </g>
+  );
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 280"
+      ariaLabel="Lightning Network routing. Alice has no direct channel to Dave. The cheap path runs Alice to Bob to Carol to Dave with fees 1, 2 and 1, total 4. An alternative path runs Alice to Erin to Dave with fees 3 and 5, total 8. Dijkstra picks the cheaper path through Bob and Carol."
+    >
+      <text x="0" y="20" className={groupTitle}>LIGHTNING ROUTING: a shortest path query over payment channels</text>
+
+      {/* chosen path: Alice -> Bob -> Carol -> Dave (cyan) */}
+      <line className={`${arrow} tone-cyan`} x1={104} y1={110} x2={216} y2={110} markerEnd="url(#diag-arrow-cyan)" />
+      <line className={`${arrow} tone-cyan`} x1={284} y1={110} x2={396} y2={110} markerEnd="url(#diag-arrow-cyan)" />
+      <line className={`${arrow} tone-cyan`} x1={464} y1={110} x2={576} y2={110} markerEnd="url(#diag-arrow-cyan)" />
+      <text x={160} y={98} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "11px" }}>fee 1</text>
+      <text x={340} y={98} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "11px" }}>fee 2</text>
+      <text x={520} y={98} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "11px" }}>fee 1</text>
+
+      {/* rejected path: Alice -> Erin -> Dave (mute) */}
+      <line className={`${arrow} tone-mute`} x1={92} y1={132} x2={324} y2={208} markerEnd="url(#diag-arrow-mute)" />
+      <line className={`${arrow} tone-mute`} x1={376} y1={208} x2={590} y2={134} markerEnd="url(#diag-arrow-mute)" />
+      <text x={190} y={188} textAnchor="middle" className={note}>fee 3</text>
+      <text x={500} y={188} textAnchor="middle" className={note}>fee 5</text>
+
+      <N x={80} y={110} l="Alice" tone="cyan" />
+      <N x={250} y={110} l="Bob" tone="cyan" />
+      <N x={430} y={110} l="Carol" tone="cyan" />
+      <N x={610} y={110} l="Dave" tone="lime" />
+      <N x={350} y={210} l="Erin" tone="mute" />
+
+      <text x="0" y="262" className={note}>
+        Dijkstra picks Alice to Bob to Carol to Dave: total fee 4 beats total fee 8. your payment is a shortest path query.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -2749,6 +2981,10 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "binary-tree-traversal": BinaryTreeTraversalDiagram,
   "degenerate-tree": DegenerateTreeDiagram,
   "btree-node": BtreeNodeDiagram,
+  "graph-types": GraphTypesDiagram,
+  "bfs-vs-dfs": BfsVsDfsDiagram,
+  "transaction-dag": TransactionDagDiagram,
+  "lightning-route": LightningRouteDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {
