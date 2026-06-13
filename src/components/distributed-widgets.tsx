@@ -7330,6 +7330,403 @@ function GraphExplorerWidget() {
   );
 }
 
+/* =====================================================================
+   29. Cryptography explorer: three tabs. Symmetric XOR animated byte by
+   byte; a hash commitment using SubtleCrypto SHA-256; and a simplified
+   three-step signing flow. Vanilla state + the browser crypto API, no
+   libraries. (cryptography page)
+   ===================================================================== */
+type CxTab = "symmetric" | "commit" | "sign";
+
+const cxToHex = (n: number) => n.toString(16).padStart(2, "0").toUpperCase();
+const cxPrintable = (n: number) => (n >= 32 && n <= 126 ? String.fromCharCode(n) : ".");
+
+function CryptoExplorerWidget() {
+  const [tab, setTab] = useState<CxTab>("symmetric");
+
+  /* ---- Tab 1: symmetric XOR ---- */
+  const [plain, setPlain] = useState("Send 1 BTC to Bob");
+  const [key, setKey] = useState("mysecretkey");
+  const [mode, setMode] = useState<"encrypt" | "decrypt">("encrypt");
+  const [revealCount, setRevealCount] = useState(0);
+  const [running, setRunning] = useState(false);
+  const cxTimers = useRef<number[]>([]);
+  useEffect(
+    () => () => {
+      cxTimers.current.forEach((t) => clearTimeout(t));
+    },
+    [],
+  );
+
+  const plainBytes = useMemo(() => Array.from(new TextEncoder().encode(plain)), [plain]);
+  const keyBytes = useMemo(() => Array.from(new TextEncoder().encode(key.length ? key : " ")), [key]);
+  const cipherBytes = useMemo(
+    () => plainBytes.map((b, i) => b ^ keyBytes[i % keyBytes.length]),
+    [plainBytes, keyBytes],
+  );
+  // input/output rows depend on direction; XOR is self-inverse so decrypt
+  // takes the ciphertext back to the plaintext with the identical operation.
+  const inputBytes = mode === "encrypt" ? plainBytes : cipherBytes;
+  const outputBytes = mode === "encrypt" ? cipherBytes : plainBytes;
+
+  const runXor = () => {
+    cxTimers.current.forEach((t) => clearTimeout(t));
+    cxTimers.current = [];
+    setRevealCount(0);
+    setRunning(true);
+    inputBytes.forEach((_, i) => {
+      const t = window.setTimeout(() => {
+        setRevealCount(i + 1);
+        if (i === inputBytes.length - 1) setRunning(false);
+      }, i * 140);
+      cxTimers.current.push(t);
+    });
+  };
+
+  /* ---- Tab 2: hash commitment ---- */
+  const [secret, setSecret] = useState("my-secret-answer-42");
+  const [commitment, setCommitment] = useState<string | null>(null);
+  const [reveal, setReveal] = useState("my-secret-answer-42");
+  const [verifyResult, setVerifyResult] = useState<null | "match" | "mismatch">(null);
+
+  const doCommit = async () => {
+    const bytes = await hvSha256Bytes(secret);
+    setCommitment(bytes.map(hvHex).join(""));
+    setReveal(secret);
+    setVerifyResult(null);
+  };
+  const doReveal = async () => {
+    if (!commitment) return;
+    const bytes = await hvSha256Bytes(reveal);
+    setVerifyResult(bytes.map(hvHex).join("") === commitment ? "match" : "mismatch");
+  };
+
+  /* ---- Tab 3: simplified signing ---- */
+  const [priv, setPriv] = useState<string>("");
+  const [signMsg, setSignMsg] = useState("I am sending 1 BTC to Alice");
+  const [signed, setSigned] = useState<null | { msg: string; hash: string; sig: string; pub: string }>(null);
+
+  const genPriv = () => {
+    const arr = new Uint8Array(32);
+    crypto.getRandomValues(arr);
+    setPriv(Array.from(arr).map(cxToHex).join("").toLowerCase());
+    setSigned(null);
+  };
+  useEffect(() => {
+    if (!priv) genPriv();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const doSign = async () => {
+    if (!priv) return;
+    const hash = (await hvSha256Bytes(signMsg)).map(hvHex).join("");
+    // illustrative only: a real signature is ECDSA over secp256k1.
+    // here the "signature" deterministically derives from private key + hash,
+    // and the "public key" from the private key, purely to show the flow.
+    const sig = (await hvSha256Bytes(priv + hash)).map(hvHex).join("");
+    const pub = "02" + (await hvSha256Bytes("pub:" + priv)).map(hvHex).join("").slice(0, 64);
+    setSigned({ msg: signMsg, hash, sig, pub });
+  };
+  // verification passes only while the message is unchanged since signing.
+  const sigValid = signed !== null && signed.msg === signMsg;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// see encryption and signing"}</span>
+        <div className="widget-controls cx-tabs">
+          <button type="button" className={`widget-btn ${tab === "symmetric" ? "is-active" : ""}`} onClick={() => setTab("symmetric")}>
+            symmetric
+          </button>
+          <button type="button" className={`widget-btn ${tab === "commit" ? "is-active" : ""}`} onClick={() => setTab("commit")}>
+            commitment
+          </button>
+          <button type="button" className={`widget-btn ${tab === "sign" ? "is-active" : ""}`} onClick={() => setTab("sign")}>
+            signing
+          </button>
+        </div>
+      </div>
+
+      {/* ---- TAB 1: SYMMETRIC ---- */}
+      {tab === "symmetric" && (
+        <div className="cx-panel">
+          <div className="cx-fields">
+            <label className="cx-field">
+              <span>plaintext</span>
+              <input value={plain} onChange={(e) => { setPlain(e.target.value); setRevealCount(0); }} aria-label="plaintext" />
+            </label>
+            <label className="cx-field">
+              <span>key (repeats)</span>
+              <input value={key} onChange={(e) => { setKey(e.target.value); setRevealCount(0); }} aria-label="key" />
+            </label>
+          </div>
+          <div className="cx-row-controls">
+            <div className="gx-seg">
+              <button type="button" className={mode === "encrypt" ? "is-active" : ""} onClick={() => { setMode("encrypt"); setRevealCount(0); }}>
+                encrypt
+              </button>
+              <button type="button" className={mode === "decrypt" ? "is-active" : ""} onClick={() => { setMode("decrypt"); setRevealCount(0); }}>
+                decrypt
+              </button>
+            </div>
+            <button type="button" className="widget-btn gx-go" onClick={runXor} disabled={running || plainBytes.length === 0}>
+              ▶ run XOR byte by byte
+            </button>
+          </div>
+
+          <div className="cx-xor">
+            {inputBytes.slice(0, revealCount).map((b, i) => {
+              const k = keyBytes[i % keyBytes.length];
+              const out = outputBytes[i];
+              return (
+                <div key={i} className="cx-xor-step">
+                  <span className="cx-xchar">{cxPrintable(inputBytes[i])}</span>
+                  <span className="cx-xhex in">{cxToHex(b)}</span>
+                  <span className="cx-xop">^</span>
+                  <span className="cx-xhex key">{cxToHex(k)}</span>
+                  <span className="cx-xop">=</span>
+                  <span className="cx-xhex out">{cxToHex(out)}</span>
+                  <span className="cx-xchar dim">{mode === "decrypt" ? cxPrintable(out) : ""}</span>
+                </div>
+              );
+            })}
+            {revealCount === 0 && <span className="cx-hint">press run to XOR each byte against the key.</span>}
+          </div>
+
+          {revealCount >= inputBytes.length && inputBytes.length > 0 && (
+            <div className="cx-result-line">
+              {mode === "encrypt"
+                ? `ciphertext: ${cipherBytes.map(cxToHex).join(" ")}`
+                : `recovered: "${new TextDecoder().decode(new Uint8Array(plainBytes))}"`}
+            </div>
+          )}
+
+          <p className="widget-caption">
+            XOR is self-inverse: the same key turns plaintext into ciphertext and back. flip one plaintext character and only one output byte changes. XOR has no avalanche effect. that is exactly why AES adds rounds, S-boxes and key scheduling on top of this one gate.
+          </p>
+        </div>
+      )}
+
+      {/* ---- TAB 2: COMMITMENT ---- */}
+      {tab === "commit" && (
+        <div className="cx-panel">
+          <p className="cx-scenario">Prove you knew a value before the reveal, without showing it.</p>
+          <div className="cx-fields">
+            <label className="cx-field">
+              <span>secret value</span>
+              <input value={secret} onChange={(e) => { setSecret(e.target.value); }} aria-label="secret value" />
+            </label>
+            <button type="button" className="widget-btn gx-go cx-tall" onClick={doCommit}>
+              hash it
+            </button>
+          </div>
+
+          {commitment && (
+            <>
+              <div className="cx-commit-box">
+                <span className="cx-state-label">published commitment . SHA-256</span>
+                <code className="cx-hash">{commitment}</code>
+                <span className="cx-note">publish this. nobody can find the input from it.</span>
+              </div>
+
+              <div className="cx-fields">
+                <label className="cx-field">
+                  <span>reveal secret</span>
+                  <input value={reveal} onChange={(e) => { setReveal(e.target.value); setVerifyResult(null); }} aria-label="reveal secret" />
+                </label>
+                <button type="button" className="widget-btn cx-tall" onClick={doReveal}>
+                  verify
+                </button>
+              </div>
+
+              {verifyResult && (
+                <div className={`cx-verdict ${verifyResult === "match" ? "ok" : "bad"}`}>
+                  {verifyResult === "match"
+                    ? "SHA-256(revealed) == commitment. verified. nobody could have faked it."
+                    : "SHA-256(revealed) != commitment. this is not the committed value."}
+                </div>
+              )}
+            </>
+          )}
+
+          <p className="widget-caption">
+            this is how a Bitcoin address works. your public key is hashed and the hash is your address. you reveal the public key only when you spend. until then the network knows only its hash, exactly like the commitment above.
+          </p>
+        </div>
+      )}
+
+      {/* ---- TAB 3: SIGNING ---- */}
+      {tab === "sign" && (
+        <div className="cx-panel">
+          <div className="cx-sign-step">
+            <span className="cx-step-num">1</span>
+            <div className="cx-step-body">
+              <span className="cx-step-title">private key</span>
+              <code className="cx-priv">{priv || "..."}</code>
+              <div className="cx-step-actions">
+                <span className="cx-note">your secret. never share it.</span>
+                <button type="button" className="widget-btn" onClick={genPriv}>
+                  regenerate
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="cx-sign-step">
+            <span className="cx-step-num">2</span>
+            <div className="cx-step-body">
+              <span className="cx-step-title">sign a message</span>
+              <input className="cx-sign-input" value={signMsg} onChange={(e) => setSignMsg(e.target.value)} aria-label="message to sign" />
+              <button type="button" className="widget-btn gx-go" onClick={doSign}>
+                sign with private key
+              </button>
+              {signed && (
+                <div className="cx-sign-out">
+                  <div className="cx-sign-field">
+                    <span>SHA-256(message)</span>
+                    <code>{signed.hash}</code>
+                  </div>
+                  <div className="cx-sign-field">
+                    <span>signature</span>
+                    <code className="sig">{signed.sig}</code>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="cx-sign-step">
+            <span className="cx-step-num">3</span>
+            <div className="cx-step-body">
+              <span className="cx-step-title">verify</span>
+              {!signed && <span className="cx-note">sign a message first.</span>}
+              {signed && (
+                <>
+                  <div className="cx-sign-field">
+                    <span>public key (derived)</span>
+                    <code>{signed.pub}</code>
+                  </div>
+                  <div className={`cx-verdict ${sigValid ? "ok" : "bad"}`}>
+                    {sigValid
+                      ? "verify(public_key, signature, hash) = TRUE. the signature matches. this is what every Bitcoin node checks."
+                      : "message changed since signing. SHA-256 no longer matches the signed hash. verify = FALSE. transaction rejected."}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <p className="widget-caption">
+            the private key signs, the public key verifies, and the private key is never revealed. edit the message after signing to watch verification fail: that is integrity. the public key here is illustrative; real Bitcoin derives it on the secp256k1 curve.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =====================================================================
+   30. Diffie-Hellman key exchange: change Alice's and Bob's private
+   numbers and watch both sides arrive at the same shared secret over a
+   public channel. Small numbers, illustrative only. (cryptography page)
+   ===================================================================== */
+function dhModPow(base: number, exp: number, mod: number): number {
+  let result = 1;
+  base %= mod;
+  while (exp > 0) {
+    if (exp & 1) result = (result * base) % mod;
+    exp = Math.floor(exp / 2);
+    base = (base * base) % mod;
+  }
+  return result;
+}
+
+function DhKeyExchangeWidget() {
+  const g = 5;
+  const p = 23;
+  const [a, setA] = useState(6);
+  const [b, setB] = useState(15);
+
+  const A = dhModPow(g, a, p); // Alice sends
+  const B = dhModPow(g, b, p); // Bob sends
+  const aliceSecret = dhModPow(B, a, p);
+  const bobSecret = dhModPow(A, b, p);
+  const agree = aliceSecret === bobSecret;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// diffie-hellman over a public channel"}</span>
+        <span className="dh-params">public: g = {g}, p = {p}</span>
+      </div>
+
+      <div className="dh-grid">
+        {/* Alice */}
+        <div className="dh-party alice">
+          <span className="dh-party-name">Alice</span>
+          <label className="dh-priv">
+            <span>private a</span>
+            <input
+              type="number"
+              min={1}
+              max={p - 1}
+              value={a}
+              onChange={(e) => setA(Math.max(1, Math.min(p - 1, Number(e.target.value) || 1)))}
+            />
+          </label>
+          <div className="dh-calc">
+            sends A = g<sup>a</sup> mod p = {g}<sup>{a}</sup> mod {p} = <strong>{A}</strong>
+          </div>
+          <div className="dh-calc">
+            computes B<sup>a</sup> mod p = {B}<sup>{a}</sup> mod {p} = <strong className="dh-secret">{aliceSecret}</strong>
+          </div>
+        </div>
+
+        {/* channel */}
+        <div className="dh-channel">
+          <span className="dh-channel-label">public channel</span>
+          <div className="dh-wire">A = {A} →</div>
+          <div className="dh-wire">← B = {B}</div>
+          <div className="dh-eve">
+            eavesdropper sees g, p, A, B. cannot compute the secret without a or b.
+          </div>
+        </div>
+
+        {/* Bob */}
+        <div className="dh-party bob">
+          <span className="dh-party-name">Bob</span>
+          <label className="dh-priv">
+            <span>private b</span>
+            <input
+              type="number"
+              min={1}
+              max={p - 1}
+              value={b}
+              onChange={(e) => setB(Math.max(1, Math.min(p - 1, Number(e.target.value) || 1)))}
+            />
+          </label>
+          <div className="dh-calc">
+            sends B = g<sup>b</sup> mod p = {g}<sup>{b}</sup> mod {p} = <strong>{B}</strong>
+          </div>
+          <div className="dh-calc">
+            computes A<sup>b</sup> mod p = {A}<sup>{b}</sup> mod {p} = <strong className="dh-secret">{bobSecret}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className={`dh-verdict ${agree ? "ok" : "bad"}`}>
+        {agree
+          ? `both sides computed the same shared secret: ${aliceSecret}. it never travelled the wire.`
+          : "secrets differ (pick valid private numbers)."}
+      </div>
+
+      <p className="widget-caption">
+        change a or b and watch both sides still land on the same secret. real Diffie-Hellman uses 2048-bit or larger primes, so reversing g^a mod p to recover a is computationally impossible. this exact handshake opens almost every HTTPS connection you make.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -7388,6 +7785,10 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <BstVisualiserWidget />;
     case "graph-explorer":
       return <GraphExplorerWidget />;
+    case "crypto-explorer":
+      return <CryptoExplorerWidget />;
+    case "dh-key-exchange":
+      return <DhKeyExchangeWidget />;
     default:
       return null;
   }

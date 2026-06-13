@@ -227,6 +227,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/cryptography",
+    label: "Intro to Cryptography",
+    num: "28",
+    accent: "var(--neon-violet)",
+    desc: "Series 2 begins. Two strangers, no shared secret, private communication anyway. Symmetric and public key crypto, hashing, signatures, Diffie-Hellman, and the maths that makes Bitcoin secure.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     num: "23",

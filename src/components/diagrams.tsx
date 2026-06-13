@@ -2944,6 +2944,110 @@ function LightningRouteDiagram() {
 }
 
 /* =====================================================================
+   37. The crypto problem (cryptography beginner): three rows showing the
+   same message sent with no crypto, symmetric crypto, and public key.
+   ===================================================================== */
+function CryptoProblemDiagram() {
+  const row = (
+    y: number,
+    label: string,
+    tone: string,
+    payload: string,
+    note1: string,
+  ) => (
+    <g>
+      <text x="0" y={y - 24} className={`${cellLabel}`}>{label}</text>
+      {/* Alice */}
+      <rect x={0} y={y} width={90} height={40} className={`${cell} tone-${tone}`} rx="4" />
+      <text x={45} y={y + 25} textAnchor="middle" className={`${cellValue} tone-${tone}`} style={{ fontSize: "13px" }}>
+        Alice
+      </text>
+      {/* channel payload */}
+      <line className={`${arrow} tone-${tone}`} x1={92} y1={y + 20} x2={538} y2={y + 20} markerEnd={`url(#diag-arrow-${tone})`} />
+      <rect x={150} y={y + 2} width={330} height={36} className={`${cell} tone-${tone}`} rx="4" />
+      <text x={315} y={y + 25} textAnchor="middle" className={`${cellValue} tone-${tone}`} style={{ fontSize: "12px" }}>
+        {payload}
+      </text>
+      {/* Node */}
+      <rect x={540} y={y} width={90} height={40} className={`${cell} tone-${tone}`} rx="4" />
+      <text x={585} y={y + 25} textAnchor="middle" className={`${cellValue} tone-${tone}`} style={{ fontSize: "13px" }}>
+        Node
+      </text>
+      <text x="0" y={y + 60} className={note}>{note1}</text>
+    </g>
+  );
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 640 320"
+      ariaLabel="Three ways to send the message Send 1 BTC to Bob from Alice to a node. With no cryptography the plaintext is visible to everyone. With symmetric encryption the ciphertext is meaningless, but the shared key still has to be exchanged somehow. With public key cryptography anyone can encrypt with the node's public key, and only the node can decrypt."
+    >
+      {row(40, "NO CRYPTO", "rose", "Send 1 BTC to Bob", "anyone on the wire can read and copy this.")}
+      {row(150, "SYMMETRIC", "amber", "xK9#mP2@qL7...", "unreadable without the key. but how was the key shared?")}
+      {row(260, "PUBLIC KEY", "cyan", "encrypted with node public key", "anyone can encrypt. only the node can decrypt. no shared secret.")}
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   38. Bitcoin address derivation (cryptography intermediate): the
+   one-way flow private key -> public key -> hashes -> address.
+   ===================================================================== */
+function BitcoinAddressDerivationDiagram() {
+  const steps = [
+    { label: "PRIVATE KEY", value: "32 bytes . the secret", tone: "rose" },
+    { label: "PUBLIC KEY", value: "33 bytes compressed", tone: "violet" },
+    { label: "SHA-256", value: "32 bytes", tone: "cyan" },
+    { label: "RIPEMD-160", value: "20 bytes", tone: "amber" },
+    { label: "BASE58CHECK", value: "26 to 34 chars . the address", tone: "lime" },
+  ];
+  const ops = ["secp256k1 point multiply", "SHA-256", "RIPEMD-160", "Base58Check encode"];
+  const boxW = 360;
+  const boxH = 40;
+  const x = (720 - boxW) / 2;
+  const rowH = 78;
+  const top = 40;
+  const cyOf = (i: number) => top + i * rowH;
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 430"
+      ariaLabel="The one-way derivation of a Bitcoin address. A 32-byte private key is multiplied on the secp256k1 curve to give a 33-byte public key. SHA-256 reduces it to 32 bytes, RIPEMD-160 to 20 bytes, and Base58Check encoding produces the final 26 to 34 character address. Each arrow goes one direction only; none can be reversed."
+    >
+      {steps.map((s, i) => (
+        <g key={i}>
+          <rect x={x} y={cyOf(i)} width={boxW} height={boxH} className={`${cell} tone-${s.tone}`} rx="5" />
+          <text x={x + 16} y={cyOf(i) + 25} className={`${cellValue} tone-${s.tone}`} style={{ fontSize: "13px" }}>
+            {s.label}
+          </text>
+          <text x={x + boxW - 16} y={cyOf(i) + 25} textAnchor="end" className={note}>
+            {s.value}
+          </text>
+          {i < steps.length - 1 && (
+            <>
+              <line
+                className={`${arrow} tone-mute`}
+                x1={360}
+                y1={cyOf(i) + boxH}
+                x2={360}
+                y2={cyOf(i + 1)}
+                markerEnd="url(#diag-arrow-mute)"
+              />
+              <text x={372} y={cyOf(i) + boxH + 24} className={`${cellValue} tone-mute`} style={{ fontSize: "11px" }}>
+                {ops[i]}
+              </text>
+            </>
+          )}
+        </g>
+      ))}
+      <text x="0" y="424" className="diagram-note tone-amber">
+        one direction only. no address reveals its public key. no public key reveals its private key.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -2985,6 +3089,8 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "bfs-vs-dfs": BfsVsDfsDiagram,
   "transaction-dag": TransactionDagDiagram,
   "lightning-route": LightningRouteDiagram,
+  "crypto-problem": CryptoProblemDiagram,
+  "bitcoin-address-derivation": BitcoinAddressDerivationDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

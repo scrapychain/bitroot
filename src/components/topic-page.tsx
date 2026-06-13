@@ -15,6 +15,17 @@ export async function TopicPage({ content }: { content: PageContent }) {
   return (
     <>
       <TopicPager slug={content.slug} />
+      {content.banner && (
+        <aside className="series-banner" aria-label={content.banner.eyebrow}>
+          <span className="series-banner-eyebrow">{content.banner.eyebrow}</span>
+          <h2 className="series-banner-title">{content.banner.title}</h2>
+          <div className="series-banner-body">
+            {content.banner.lines.map((line, i) => (
+              <span key={i}>{line}</span>
+            ))}
+          </div>
+        </aside>
+      )}
       <Hero
         eyebrow={content.hero.eyebrow}
         titleHtml={content.hero.title}

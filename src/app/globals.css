@@ -537,6 +537,54 @@ main {
   position: relative;
 }
 
+/* Series announcement banner (sits above the hero, e.g. Series 2 start). */
+.series-banner {
+  position: relative;
+  margin-top: 2rem;
+  padding: 1.1rem 1.4rem;
+  border-radius: 12px;
+  background:
+    linear-gradient(var(--bg-1), var(--bg-1)) padding-box,
+    linear-gradient(120deg, var(--neon-amber), rgba(255, 182, 39, 0.15), var(--neon-amber)) border-box;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+.series-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 140% at 0% 0%, rgba(255, 182, 39, 0.1), transparent 60%);
+  pointer-events: none;
+}
+.series-banner-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--neon-amber);
+  margin-bottom: 0.5rem;
+}
+.series-banner-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  font-weight: 700;
+  color: var(--fg);
+  margin: 0 0 0.5rem;
+  line-height: 1.1;
+}
+.series-banner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.series-banner-body span {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--fg-dim);
+}
+
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -7579,6 +7627,382 @@ a.card,
   }
   .gx-buttons {
     margin-left: 0;
+  }
+}
+
+/* =====================================================================
+   Cryptography explorer (cryptography page)
+   ===================================================================== */
+.cx-tabs {
+  gap: 0.4rem;
+}
+.cx-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.cx-fields {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.cx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+  min-width: 180px;
+}
+.cx-field span {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.cx-field input {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  color: var(--fg);
+  padding: 0.45rem 0.6rem;
+}
+.cx-field input:focus {
+  outline: none;
+  border-color: var(--neon-violet);
+}
+.cx-tall {
+  align-self: stretch;
+}
+
+.cx-row-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.cx-xor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.7rem;
+  min-height: 3rem;
+}
+.cx-xor-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0.25rem 0.45rem;
+  animation: cxpop 0.18s ease;
+}
+@keyframes cxpop {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.cx-xchar {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg);
+  min-width: 0.7rem;
+  text-align: center;
+}
+.cx-xchar.dim {
+  color: var(--neon-cyan);
+}
+.cx-xhex {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  padding: 0.05rem 0.2rem;
+  border-radius: 3px;
+}
+.cx-xhex.in {
+  color: var(--fg-dim);
+}
+.cx-xhex.key {
+  color: var(--neon-violet);
+}
+.cx-xhex.out {
+  color: var(--neon-amber);
+  background: rgba(255, 182, 39, 0.1);
+}
+.cx-xop {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--fg-mute);
+}
+.cx-hint {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--fg-mute);
+}
+.cx-result-line {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--neon-cyan);
+  word-break: break-all;
+}
+
+.cx-scenario {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  margin: 0;
+}
+.cx-commit-box,
+.cx-sign-out {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+.cx-hash,
+.cx-priv,
+.cx-sign-field code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--neon-amber);
+  word-break: break-all;
+  line-height: 1.5;
+}
+.cx-priv {
+  color: var(--neon-rose);
+}
+.cx-note {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--fg-mute);
+}
+
+.cx-verdict {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid;
+}
+.cx-verdict.ok {
+  color: var(--neon-emerald);
+  border-color: rgba(43, 255, 159, 0.4);
+  background: rgba(43, 255, 159, 0.05);
+}
+.cx-verdict.bad {
+  color: var(--neon-rose);
+  border-color: rgba(255, 92, 138, 0.4);
+  background: rgba(255, 92, 138, 0.05);
+}
+
+.cx-sign-step {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+.cx-step-num {
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--neon-violet);
+  color: var(--bg-0);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.cx-step-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.85rem;
+}
+.cx-sign-step:last-of-type .cx-step-body {
+  border-bottom: none;
+}
+.cx-step-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--neon-violet);
+}
+.cx-step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.cx-sign-input {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  color: var(--fg);
+  padding: 0.4rem 0.6rem;
+}
+.cx-sign-input:focus {
+  outline: none;
+  border-color: var(--neon-violet);
+}
+.cx-sign-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.cx-sign-field span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.cx-sign-field code.sig {
+  color: var(--neon-cyan);
+}
+
+/* =====================================================================
+   Diffie-Hellman key exchange (cryptography page)
+   ===================================================================== */
+.dh-params {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--neon-amber);
+}
+.dh-grid {
+  display: grid;
+  grid-template-columns: 1fr 0.9fr 1fr;
+  gap: 0.8rem;
+  align-items: stretch;
+}
+.dh-party {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+.dh-party.alice {
+  border-top: 2px solid var(--neon-cyan);
+}
+.dh-party.bob {
+  border-top: 2px solid var(--neon-violet);
+}
+.dh-party-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--fg);
+}
+.dh-priv {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.dh-priv span {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.dh-priv input {
+  width: 4rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  color: var(--fg);
+  padding: 0.34rem 0.5rem;
+}
+.dh-calc {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--fg-dim);
+}
+.dh-calc strong {
+  color: var(--neon-amber);
+}
+.dh-calc strong.dh-secret {
+  color: var(--neon-emerald);
+}
+.dh-channel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  justify-content: center;
+  background: var(--bg-0);
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  padding: 0.7rem;
+  text-align: center;
+}
+.dh-channel-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.dh-wire {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--neon-cyan);
+}
+.dh-eve {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1.5;
+  color: var(--neon-rose);
+  margin-top: 0.3rem;
+}
+.dh-verdict {
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid;
+}
+.dh-verdict.ok {
+  color: var(--neon-emerald);
+  border-color: rgba(43, 255, 159, 0.4);
+  background: rgba(43, 255, 159, 0.05);
+}
+.dh-verdict.bad {
+  color: var(--neon-rose);
+  border-color: rgba(255, 92, 138, 0.4);
+}
+
+@media (max-width: 680px) {
+  .dh-grid {
+    grid-template-columns: 1fr;
   }
 }
 

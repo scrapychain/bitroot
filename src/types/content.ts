@@ -50,7 +50,9 @@ export type DiagramName =
   | "graph-types"
   | "bfs-vs-dfs"
   | "transaction-dag"
-  | "lightning-route";
+  | "lightning-route"
+  | "crypto-problem"
+  | "bitcoin-address-derivation";
 
 export type WidgetName =
   | "gossip-network"
@@ -81,7 +83,9 @@ export type WidgetName =
   | "node-scales"
   | "stack-queue-visualiser"
   | "bst-visualiser"
-  | "graph-explorer";
+  | "graph-explorer"
+  | "crypto-explorer"
+  | "dh-key-exchange";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -134,9 +138,20 @@ export interface PageContent {
     | "searching"
     | "stacks-queues"
     | "trees"
-    | "graphs";
+    | "graphs"
+    | "cryptography";
   hexLabel: string;
   category: string;
+  /**
+   * Optional announcement banner rendered above the hero. Used to mark the
+   * start of a new series. eyebrow is the small label, title the headline,
+   * lines the body sentences (each rendered on its own row).
+   */
+  banner?: {
+    eyebrow: string;
+    title: string;
+    lines: string[];
+  };
   hero: {
     eyebrow: string;
     title: string;
