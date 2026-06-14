@@ -3048,6 +3048,216 @@ function BitcoinAddressDerivationDiagram() {
 }
 
 /* =====================================================================
+   39. Key pair flow (public-key beginner): the one-way chain from
+   private key to readable address, easy forward, impossible backward.
+   ===================================================================== */
+function KeypairFlowDiagram() {
+  const rows = [
+    { label: "PRIVATE KEY", value: "32 bytes . SECRET", tone: "rose" },
+    { label: "PUBLIC KEY", value: "33 bytes . shareable", tone: "cyan" },
+    { label: "ADDRESS CORE", value: "20 bytes", tone: "lime" },
+    { label: "READABLE ADDRESS", value: "26 to 34 chars", tone: "amber" },
+  ];
+  const ops = ["multiply by G", "SHA-256 + RIPEMD-160", "Base58Check"];
+  const boxW = 320;
+  const boxH = 40;
+  const x = (720 - boxW) / 2;
+  const rowH = 92;
+  const top = 36;
+  const cyOf = (i: number) => top + i * rowH;
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 408"
+      ariaLabel="The one-way chain from a 32-byte private key to a readable Bitcoin address. Multiplying by the generator point G gives a 33-byte public key. SHA-256 then RIPEMD-160 gives a 20-byte address core. Base58Check encoding gives the final readable address. Each forward step is easy; every backward step is computationally impossible."
+    >
+      {rows.map((r, i) => (
+        <g key={i}>
+          <rect x={x} y={cyOf(i)} width={boxW} height={boxH} className={`${cell} tone-${r.tone}`} rx="5" />
+          <text x={x + 16} y={cyOf(i) + 25} className={`${cellValue} tone-${r.tone}`} style={{ fontSize: "13px" }}>
+            {r.label}
+          </text>
+          <text x={x + boxW - 16} y={cyOf(i) + 25} textAnchor="end" className={note}>
+            {r.value}
+          </text>
+          {i < rows.length - 1 && (
+            <>
+              {/* a tight central pair of arrows: forward (down) and reverse (up) */}
+              <line
+                className={`${arrow} tone-lime`}
+                x1={x + boxW / 2 - 14}
+                y1={cyOf(i) + boxH}
+                x2={x + boxW / 2 - 14}
+                y2={cyOf(i + 1)}
+                markerEnd="url(#diag-arrow-lime)"
+              />
+              <line
+                className={`${arrow} tone-rose`}
+                x1={x + boxW / 2 + 14}
+                y1={cyOf(i + 1)}
+                x2={x + boxW / 2 + 14}
+                y2={cyOf(i) + boxH}
+                markerEnd="url(#diag-arrow-rose)"
+              />
+              {/* forward label sits to the LEFT of the arrows, right-aligned */}
+              <text
+                x={x + boxW / 2 - 30}
+                y={cyOf(i) + boxH + 30}
+                textAnchor="end"
+                className={`${cellValue} tone-lime`}
+                style={{ fontSize: "11px" }}
+              >
+                {ops[i]} . easy
+              </text>
+              {/* reverse label sits to the RIGHT of the arrows, left-aligned */}
+              <text
+                x={x + boxW / 2 + 30}
+                y={cyOf(i) + boxH + 30}
+                textAnchor="start"
+                className={`${cellValue} tone-rose`}
+                style={{ fontSize: "11px" }}
+              >
+                reverse . impossible
+              </text>
+            </>
+          )}
+        </g>
+      ))}
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   40. Elliptic curve (public-key intermediate): the smooth real-number
+   curve y^2 = x^3 + 7, with point addition P + Q = R.
+   ===================================================================== */
+function EllipticCurveDiagram() {
+  // map curve coordinates to SVG pixels
+  const cx = (x: number) => 304 + x * 111;
+  const cy = (y: number) => 180 - y * 22;
+
+  // build the smooth curve path: upper branch left-to-right, then lower
+  const xs: number[] = [];
+  for (let x = -1.912; x <= 3.0001; x += 0.04) xs.push(x);
+  const yOf = (x: number) => Math.sqrt(Math.max(0, x * x * x + 7));
+  const upper = xs.map((x, i) => `${i === 0 ? "M" : "L"} ${cx(x).toFixed(1)} ${cy(yOf(x)).toFixed(1)}`).join(" ");
+  const lower = xs
+    .slice()
+    .reverse()
+    .map((x) => `L ${cx(x).toFixed(1)} ${cy(-yOf(x)).toFixed(1)}`)
+    .join(" ");
+  const path = `${upper} ${lower}`;
+
+  // point addition: P = (-1, sqrt6), Q = (1.5, ...), third point T, R = -T
+  const P = { x: -1, y: Math.sqrt(6) };
+  const Q = { x: 1.5, y: yOf(1.5) };
+  const m = (Q.y - P.y) / (Q.x - P.x);
+  const x3 = m * m - P.x - Q.x;
+  const yT = P.y + m * (x3 - P.x); // third intersection on the line
+  const R = { x: x3, y: -yT };
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 360"
+      ariaLabel="The elliptic curve y squared equals x cubed plus 7 over the real numbers: a single smooth curve, symmetric about the x-axis. Two points P and Q are joined by a straight line that meets the curve at a third point; reflecting it across the x-axis gives R, the sum P plus Q. This geometric addition is the operation behind scalar multiplication."
+    >
+      <text x="0" y="20" className={groupTitle}>y² = x³ + 7  (secp256k1, drawn over the reals)</text>
+
+      {/* axes */}
+      <line x1={40} y1={180} x2={690} y2={180} className="diagram-divider" />
+      <line x1={304} y1={28} x2={304} y2={340} className="diagram-divider" />
+
+      {/* the curve */}
+      <path d={path} fill="none" stroke="var(--neon-cyan)" strokeWidth={2} />
+
+      {/* secant line through P and Q, extended a little */}
+      <line
+        className={`${arrow} tone-amber`}
+        x1={cx(P.x - 0.3)}
+        y1={cy(P.y + m * -0.3)}
+        x2={cx(Q.x + 0.6)}
+        y2={cy(Q.y + m * 0.6)}
+      />
+      {/* vertical reflect line from third intersection down to R */}
+      <line x1={cx(x3)} y1={cy(yT)} x2={cx(x3)} y2={cy(R.y)} className="diagram-divider" />
+
+      {/* points */}
+      {[
+        { p: P, l: "P", tone: "violet" },
+        { p: Q, l: "Q", tone: "violet" },
+        { p: { x: x3, y: yT }, l: "", tone: "mute" },
+        { p: R, l: "R = P + Q", tone: "lime" },
+      ].map((pt, i) => (
+        <g key={i}>
+          <circle cx={cx(pt.p.x)} cy={cy(pt.p.y)} r="5" className={`${cell} tone-${pt.tone}`} />
+          {pt.l && (
+            <text x={cx(pt.p.x) + 10} y={cy(pt.p.y) + 4} className={`${cellValue} tone-${pt.tone}`} style={{ fontSize: "12px" }}>
+              {pt.l}
+            </text>
+          )}
+        </g>
+      ))}
+
+      <text x="40" y="344" className={note}>
+        draw a line through P and Q, take the third intersection, reflect across the x-axis: that is P + Q.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   41. Address types (public-key advanced): the three Bitcoin address
+   formats, their prefixes and signature schemes.
+   ===================================================================== */
+function AddressTypesDiagram() {
+  const rows = [
+    { kind: "P2PKH", prefix: "1...", sig: "ECDSA", note: "original format", tone: "amber" },
+    { kind: "P2WPKH", prefix: "bc1q...", sig: "ECDSA", note: "SegWit, signature in witness", tone: "cyan" },
+    { kind: "P2TR", prefix: "bc1p...", sig: "Schnorr", note: "Taproot, key aggregation", tone: "violet" },
+  ];
+  const rowH = 78;
+  const top = 44;
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 290"
+      ariaLabel="Three Bitcoin address types. P2PKH addresses start with 1 and use ECDSA, the original largest format. P2WPKH addresses start with bc1q, use ECDSA, and move the signature into witness data. P2TR addresses start with bc1p and use Schnorr signatures with key aggregation, the smallest and most private format."
+    >
+      <text x="0" y="22" className={groupTitle}>THREE WAYS TO LOCK COINS TO A KEY</text>
+
+      {rows.map((r, i) => {
+        const y = top + i * rowH;
+        return (
+          <g key={i}>
+            <rect x={0} y={y} width={150} height={54} className={`${cell} tone-${r.tone}`} rx="5" />
+            <text x={75} y={y + 24} textAnchor="middle" className={`${cellValue} tone-${r.tone}`} style={{ fontSize: "14px" }}>
+              {r.kind}
+            </text>
+            <text x={75} y={y + 42} textAnchor="middle" className={note}>
+              {r.prefix}
+            </text>
+
+            <text x={180} y={y + 22} className={`${cellValue} tone-${r.tone}`} style={{ fontSize: "12px" }}>
+              {r.sig}
+            </text>
+            <text x={180} y={y + 42} className={note}>{r.note}</text>
+
+            {/* size bar: P2PKH largest, P2TR smallest */}
+            <rect x={420} y={y + 16} width={260 - i * 70} height={22} className={`${cell} tone-${r.tone}`} rx="3" />
+            <text x={420 + (260 - i * 70) + 8} y={y + 31} className={note}>
+              {i === 0 ? "largest" : i === 1 ? "medium" : "smallest"}
+            </text>
+          </g>
+        );
+      })}
+      <text x="0" y="284" className={note}>
+        privacy and efficiency rise as you go down: ECDSA to Schnorr, visible multisig to aggregated single key.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -3091,6 +3301,9 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "lightning-route": LightningRouteDiagram,
   "crypto-problem": CryptoProblemDiagram,
   "bitcoin-address-derivation": BitcoinAddressDerivationDiagram,
+  "keypair-flow": KeypairFlowDiagram,
+  "elliptic-curve": EllipticCurveDiagram,
+  "address-types": AddressTypesDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

@@ -8006,3 +8006,198 @@ a.card,
   }
 }
 
+/* =====================================================================
+   Key pair explorer (public-key-cryptography page)
+   ===================================================================== */
+.pkc-gen {
+  font-size: 0.74rem;
+}
+.pkc-warn {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  background: rgba(255, 182, 39, 0.07);
+  border: 1px solid var(--neon-amber);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 0.9rem;
+}
+.pkc-warn strong {
+  color: var(--neon-amber);
+}
+
+.pkc-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.pkc-row.priv {
+  background: rgba(255, 92, 138, 0.06);
+  border-left: 3px solid var(--neon-rose);
+}
+.pkc-row.pub {
+  background: rgba(0, 240, 255, 0.05);
+  border-left: 3px solid var(--neon-cyan);
+  transition: box-shadow 0.3s ease;
+}
+.pkc-row.pub.is-glow {
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+}
+.pkc-row.addr {
+  background: rgba(43, 255, 159, 0.05);
+  border-left: 3px solid var(--neon-emerald);
+}
+.pkc-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.pkc-row-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.pkc-derived {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--neon-cyan);
+}
+.pkc-keyval {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--fg);
+  word-break: break-all;
+}
+.pkc-row.priv .pkc-keyval {
+  color: var(--neon-rose);
+}
+.pkc-keyval.addr {
+  color: var(--neon-emerald);
+  font-size: 0.9rem;
+}
+.pkc-row-note {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--fg-mute);
+  line-height: 1.5;
+}
+.pkc-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.6rem;
+}
+.pkc-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.pkc-step span {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-mute);
+}
+.pkc-step code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--neon-amber);
+  word-break: break-all;
+}
+
+.pkc-proof {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem;
+  margin-top: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.pkc-proof-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--neon-violet);
+}
+.pkc-proof-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.pkc-proof-step {
+  color: var(--fg);
+  background: var(--bg-0);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+}
+.pkc-proof-op {
+  color: var(--fg-mute);
+}
+.pkc-proof-cost {
+  color: var(--neon-rose);
+  margin-left: auto;
+}
+.pkc-diverge-btn {
+  align-self: flex-start;
+  margin-top: 0.2rem;
+}
+.pkc-diverge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.6rem;
+}
+.pkc-diverge-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.pkc-diverge-row span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-mute);
+}
+.pkc-diverge-row code {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--fg-dim);
+  word-break: break-all;
+}
+.pkc-diverge-note {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--neon-amber);
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .pkc-proof-cost {
+    margin-left: 0;
+  }
+}
+

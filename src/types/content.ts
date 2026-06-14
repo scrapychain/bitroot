@@ -52,7 +52,10 @@ export type DiagramName =
   | "transaction-dag"
   | "lightning-route"
   | "crypto-problem"
-  | "bitcoin-address-derivation";
+  | "bitcoin-address-derivation"
+  | "keypair-flow"
+  | "elliptic-curve"
+  | "address-types";
 
 export type WidgetName =
   | "gossip-network"
@@ -85,7 +88,8 @@ export type WidgetName =
   | "bst-visualiser"
   | "graph-explorer"
   | "crypto-explorer"
-  | "dh-key-exchange";
+  | "dh-key-exchange"
+  | "keypair-explorer";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -139,7 +143,8 @@ export interface PageContent {
     | "stacks-queues"
     | "trees"
     | "graphs"
-    | "cryptography";
+    | "cryptography"
+    | "public-key-cryptography";
   hexLabel: string;
   category: string;
   /**

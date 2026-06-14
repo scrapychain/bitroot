@@ -235,6 +235,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/public-key-cryptography",
+    label: "Public Key Cryptography",
+    num: "29",
+    accent: "var(--neon-cyan)",
+    desc: "One key creates it, only one key opens it. Key pairs, elliptic curves, secp256k1, scalar multiplication, ECDH, HD wallets, and the Bitcoin address types built on all of it.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     num: "23",

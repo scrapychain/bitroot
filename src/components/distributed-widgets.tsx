@@ -7727,6 +7727,221 @@ function DhKeyExchangeWidget() {
   );
 }
 
+/* =====================================================================
+   31. Key pair explorer: generate a real random 256-bit private key with
+   window.crypto, derive an illustrative public key and a valid-looking
+   Base58Check address, and show why the chain cannot be reversed. The
+   private key is genuinely random; the public-key derivation is a stand-in
+   for secp256k1 (noted in the UI), since the curve maths cannot run in the
+   browser without a library. Vanilla JS + SubtleCrypto. (public-key page)
+   ===================================================================== */
+const PKC_B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+const pkcHex = (bytes: Uint8Array) => Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+async function pkcSha256(bytes: Uint8Array): Promise<Uint8Array> {
+  // copy into a fresh ArrayBuffer-backed view so the type is BufferSource
+  const input = new Uint8Array(bytes);
+  const buf = await crypto.subtle.digest("SHA-256", input.buffer);
+  return new Uint8Array(buf);
+}
+
+function pkcBase58(bytes: Uint8Array): string {
+  let zeros = 0;
+  while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+  let num = 0n;
+  for (const b of bytes) num = num * 256n + BigInt(b);
+  let out = "";
+  while (num > 0n) {
+    out = PKC_B58[Number(num % 58n)] + out;
+    num /= 58n;
+  }
+  return "1".repeat(zeros) + out;
+}
+
+interface PkcKeys {
+  priv: string; // 64 hex chars
+  pub: string; // 66 hex chars (33 bytes)
+  core: string; // 40 hex chars (20-byte address core)
+  address: string;
+}
+
+// Derive an illustrative public key + address from a private key.
+// pub = 0x02/0x03 prefix + SHA-256(priv). address = Base58Check(0x00 || core).
+async function pkcDerive(priv: Uint8Array): Promise<PkcKeys> {
+  const digest = await pkcSha256(priv);
+  const prefix = digest[31] % 2 === 0 ? 0x02 : 0x03; // even/odd y, illustrative
+  const pub = new Uint8Array(33);
+  pub[0] = prefix;
+  pub.set(digest, 1);
+
+  const core = (await pkcSha256(pub)).slice(0, 20); // stand-in for hash160
+  const payload = new Uint8Array(21);
+  payload[0] = 0x00; // version byte: addresses start with 1
+  payload.set(core, 1);
+  const checksum = (await pkcSha256(await pkcSha256(payload))).slice(0, 4);
+  const full = new Uint8Array(25);
+  full.set(payload, 0);
+  full.set(checksum, 21);
+
+  return { priv: pkcHex(priv), pub: pkcHex(pub), core: pkcHex(core), address: pkcBase58(full) };
+}
+
+function pkcRandomPriv(): Uint8Array {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return arr;
+}
+
+function KeypairExplorerWidget() {
+  const [keys, setKeys] = useState<PkcKeys | null>(null);
+  const [showPriv, setShowPriv] = useState(false);
+  const [glow, setGlow] = useState(false);
+  const [expandAddr, setExpandAddr] = useState(false);
+  // one-bit divergence demo: two public keys from keys differing by one bit
+  const [diverge, setDiverge] = useState<null | { a: string; b: string; diff: number }>(null);
+
+  const generate = async () => {
+    const priv = pkcRandomPriv();
+    const k = await pkcDerive(priv);
+    setKeys(k);
+    setShowPriv(false);
+    setExpandAddr(false);
+    setDiverge(null);
+    setGlow(true);
+    window.setTimeout(() => setGlow(false), 600);
+  };
+
+  useEffect(() => {
+    generate();
+  }, []);
+
+  const runDiverge = async () => {
+    if (!keys) return;
+    const priv = new Uint8Array(keys.priv.match(/../g)!.map((h) => parseInt(h, 16)));
+    const flipped = priv.slice();
+    flipped[31] ^= 0x01; // flip the lowest bit
+    const ka = await pkcDerive(priv);
+    const kb = await pkcDerive(flipped);
+    // count differing hex nibbles across the public keys
+    let diff = 0;
+    for (let i = 0; i < ka.pub.length; i++) if (ka.pub[i] !== kb.pub[i]) diff++;
+    setDiverge({ a: ka.pub, b: kb.pub, diff });
+  };
+
+  const privGroups = keys ? (keys.priv.match(/.{1,8}/g) ?? []) : [];
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// generate and explore a key pair"}</span>
+        <button type="button" className="widget-btn gx-go pkc-gen" onClick={generate}>
+          ⟳ generate key pair
+        </button>
+      </div>
+
+      {/* warning banner */}
+      <div className="pkc-warn" role="alert">
+        <strong>Never enter a real private key into any website.</strong> These keys are generated in your
+        browser with window.crypto and stored nowhere. The public key here is an illustrative stand-in for
+        secp256k1, so do not use any of this for real Bitcoin. Treat every private key as sacred.
+      </div>
+
+      {keys && (
+        <>
+          {/* private key row */}
+          <div className="pkc-row priv">
+            <div className="pkc-row-head">
+              <span className="pkc-row-label">private key . SECRET</span>
+              <button type="button" className="widget-btn" onClick={() => setShowPriv((s) => !s)}>
+                {showPriv ? "hide" : "show"}
+              </button>
+            </div>
+            <code className="pkc-keyval">
+              {showPriv ? privGroups.join(" ") : "•••••••• •••••••• •••••••• •••••••• •••••••• •••••••• •••••••• ••••••••"}
+            </code>
+            <span className="pkc-row-note">32 bytes. lose it and the coins are gone. leak it and they are stolen.</span>
+          </div>
+
+          {/* public key row */}
+          <div className={`pkc-row pub ${glow ? "is-glow" : ""}`}>
+            <div className="pkc-row-head">
+              <span className="pkc-row-label">public key . shareable</span>
+              <span className="pkc-derived">↑ derived from the private key</span>
+            </div>
+            <code className="pkc-keyval">{keys.pub}</code>
+            <span className="pkc-row-note">33 bytes compressed. the {keys.pub.slice(0, 2)} prefix encodes the y parity.</span>
+          </div>
+
+          {/* address row */}
+          <div className="pkc-row addr">
+            <div className="pkc-row-head">
+              <span className="pkc-row-label">bitcoin address . shareable</span>
+              <button type="button" className="widget-btn" onClick={() => setExpandAddr((e) => !e)}>
+                {expandAddr ? "hide steps" : "show steps"}
+              </button>
+            </div>
+            <code className="pkc-keyval addr">{keys.address}</code>
+            {expandAddr && (
+              <div className="pkc-steps">
+                <div className="pkc-step">
+                  <span>SHA-256 then RIPEMD-160 (hash160)</span>
+                  <code>{keys.core}</code>
+                </div>
+                <div className="pkc-step">
+                  <span>prepend version 0x00, append 4-byte checksum, Base58Check encode</span>
+                  <code>{keys.address}</code>
+                </div>
+              </div>
+            )}
+            <span className="pkc-row-note">losing the address loses nothing. losing the private key loses everything.</span>
+          </div>
+
+          {/* one-way proof */}
+          <div className="pkc-proof">
+            <span className="pkc-proof-title">why you cannot reverse this</span>
+            <div className="pkc-proof-row">
+              <span className="pkc-proof-step">private key</span>
+              <span className="pkc-proof-op">→ multiply by G →</span>
+              <span className="pkc-proof-step">public key</span>
+              <span className="pkc-proof-cost">reverse = ECDLP = O(2^128). impossible.</span>
+            </div>
+            <div className="pkc-proof-row">
+              <span className="pkc-proof-step">public key</span>
+              <span className="pkc-proof-op">→ SHA-256 + RIPEMD-160 →</span>
+              <span className="pkc-proof-step">address</span>
+              <span className="pkc-proof-cost">reverse = preimage = O(2^160). impossible.</span>
+            </div>
+
+            <button type="button" className="widget-btn pkc-diverge-btn" onClick={runDiverge}>
+              flip one bit of the private key
+            </button>
+            {diverge && (
+              <div className="pkc-diverge">
+                <div className="pkc-diverge-row">
+                  <span>original</span>
+                  <code>{diverge.a}</code>
+                </div>
+                <div className="pkc-diverge-row">
+                  <span>1 bit flipped</span>
+                  <code>{diverge.b}</code>
+                </div>
+                <span className="pkc-diverge-note">
+                  {diverge.diff} of {diverge.a.length} hex digits differ. one bit in, a completely different key out.
+                </span>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      <p className="widget-caption">
+        every press draws 256 fresh bits from your operating system&apos;s secure random source. the same private key always derives the same public key and address, but no amount of computation runs the arrows backward. that asymmetry is the whole of Bitcoin ownership.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -7789,6 +8004,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <CryptoExplorerWidget />;
     case "dh-key-exchange":
       return <DhKeyExchangeWidget />;
+    case "keypair-explorer":
+      return <KeypairExplorerWidget />;
     default:
       return null;
   }
