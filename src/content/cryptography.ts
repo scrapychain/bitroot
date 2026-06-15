@@ -282,7 +282,7 @@ void bitcoin_sign_verify(void) {
 
 export const cryptography: PageContent = {
   slug: "cryptography",
-  hexLabel: "0x1C",
+  hexLabel: "0x1B",
   category: "cryptography",
   banner: {
     eyebrow: "Series 2: Cryptography",
@@ -294,7 +294,7 @@ export const cryptography: PageContent = {
     ],
   },
   hero: {
-    eyebrow: "root.system / 0x1C / cryptography",
+    eyebrow: "root.system / 0x1B / cryptography",
     title: `Two strangers. No shared secret.<br><span class="highlight">Communicate privately anyway.</span>`,
     lede: `This sounds impossible. For most of human history it was. In 1976 two mathematicians solved it. That solution is the reason your bank details travel safely, the reason Bitcoin has no central authority, and the reason you can prove you own a coin without revealing your private key. This page is how it works.`,
     narrativeHtml: `<p>Imagine you want to send a secret message to someone you have never met.</p>
@@ -557,7 +557,7 @@ export const cryptography: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x1D",
+    eyebrow: "next up / 0x1C",
     title: "The mathematics of public keys: elliptic curves, key pairs, and how Bitcoin generates addresses.",
     href: "/public-key-cryptography",
     label: "public key cryptography",

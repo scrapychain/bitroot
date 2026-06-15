@@ -383,10 +383,10 @@ const Utxo *find_first_utxo(const Utxo *utxos,
 
 export const searching: PageContent = {
   slug: "searching",
-  hexLabel: "0x18",
+  hexLabel: "0x17",
   category: "search",
   hero: {
-    eyebrow: "root.system / 0x18 / search",
+    eyebrow: "root.system / 0x17 / search",
     title: `Find it fast.<br><span class="highlight">Or wait forever.</span>`,
     lede: `Two programs. Both correct. Both searching one billion elements. One finishes in <strong>30</strong> comparisons. One finishes in <strong>one billion</strong>. The difference is not the hardware. It is the shape of the algorithm.`,
     narrativeHtml: `<p>Your computer searches for things billions of times a day.</p>
@@ -630,7 +630,7 @@ export const searching: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x19",
+    eyebrow: "next up / 0x18",
     title: "Two rules each, everything else follows: stacks and queues.",
     href: "/stacks-queues",
     label: "stacks & queues",

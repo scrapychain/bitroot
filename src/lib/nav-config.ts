@@ -2,8 +2,9 @@ export type Topic = {
   href: string;
   /** Display name in nav and on the topic card. */
   label: string;
-  /** Two-digit ordinal shown on the home card. */
-  num: string;
+  /** Two-digit curriculum ordinal shown on the home card and nav. Omitted for
+   *  pages outside the numbered sequence, such as Philosophy. */
+  num?: string;
   /** CSS color value used for the title, level pips, and hover underline. */
   accent: string;
   /** One-line description for the home topic card. */
@@ -197,7 +198,7 @@ export const topics: Topic[] = [
   {
     href: "/searching",
     label: "Searching Algorithms",
-    num: "24",
+    num: "23",
     accent: "var(--neon-azure)",
     desc: "Find it fast, or wait forever. Linear vs binary search, the overflow bug, interpolation and exponential search, and why Bitcoin uses hashing and sorting together.",
     levels: 3,
@@ -205,7 +206,7 @@ export const topics: Topic[] = [
   {
     href: "/stacks-queues",
     label: "Stacks & Queues",
-    num: "25",
+    num: "24",
     accent: "var(--neon-violet)",
     desc: "Two rules each, everything else follows. LIFO and FIFO, the call stack you already use, ring-buffer queues, priority queues, and the Bitcoin mempool as a max-heap.",
     levels: 3,
@@ -213,7 +214,7 @@ export const topics: Topic[] = [
   {
     href: "/trees",
     label: "Trees",
-    num: "26",
+    num: "25",
     accent: "var(--neon-emerald)",
     desc: "A linked list that branches. Binary search trees, balance, traversals, and the three trees running inside every Bitcoin block: Merkle, B-tree, and the recursive call tree.",
     levels: 3,
@@ -221,7 +222,7 @@ export const topics: Topic[] = [
   {
     href: "/graphs",
     label: "Graphs",
-    num: "27",
+    num: "26",
     accent: "var(--neon-sky)",
     desc: "Everything is connected, not everything is a tree. Nodes, edges, BFS, DFS, Dijkstra, and the graph algorithms routing your packets, your payments, and every Bitcoin transaction.",
     levels: 3,
@@ -229,7 +230,7 @@ export const topics: Topic[] = [
   {
     href: "/cryptography",
     label: "Intro to Cryptography",
-    num: "28",
+    num: "27",
     accent: "var(--neon-violet)",
     desc: "Series 2 begins. Two strangers, no shared secret, private communication anyway. Symmetric and public key crypto, hashing, signatures, Diffie-Hellman, and the maths that makes Bitcoin secure.",
     levels: 3,
@@ -237,7 +238,7 @@ export const topics: Topic[] = [
   {
     href: "/public-key-cryptography",
     label: "Public Key Cryptography",
-    num: "29",
+    num: "28",
     accent: "var(--neon-cyan)",
     desc: "One key creates it, only one key opens it. Key pairs, elliptic curves, secp256k1, scalar multiplication, ECDH, HD wallets, and the Bitcoin address types built on all of it.",
     levels: 3,
@@ -245,7 +246,6 @@ export const topics: Topic[] = [
   {
     href: "/philosophy",
     label: "Philosophy",
-    num: "23",
     accent: "var(--neon-amber)",
     desc: "Why Scrapy. The mindset behind learning computing from the root up.",
     levels: 3,

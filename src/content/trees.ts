@@ -335,10 +335,10 @@ void merkle_root(Hash *hashes, size_t *n) {
 
 export const trees: PageContent = {
   slug: "trees",
-  hexLabel: "0x1A",
+  hexLabel: "0x19",
   category: "structure",
   hero: {
-    eyebrow: "root.system / 0x1A / trees",
+    eyebrow: "root.system / 0x19 / trees",
     title: `A linked list<br><span class="highlight">that branches.</span>`,
     lede: `Your filesystem is a tree. The HTML in your browser is a tree. Every database index ever built is a tree. The structure that verifies every Bitcoin block is a tree. They are all the same data structure. This page explains why.`,
     narrativeHtml: `<p>You already know a linked list.</p>
@@ -660,7 +660,7 @@ export const trees: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x1B",
+    eyebrow: "next up / 0x1A",
     title: "Data that connects everything: graphs, BFS, DFS, and how the internet finds the shortest path.",
     href: "/graphs",
     label: "graphs",

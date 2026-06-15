@@ -426,10 +426,10 @@ const pre = `<pre style="background:var(--bg-2);border:1px solid var(--line-stro
 
 export const stacksQueues: PageContent = {
   slug: "stacks-queues",
-  hexLabel: "0x19",
+  hexLabel: "0x18",
   category: "structure",
   hero: {
-    eyebrow: "root.system / 0x19 / stacks-queues",
+    eyebrow: "root.system / 0x18 / stacks-queues",
     title: `Two rules each.<br><span class="highlight">Everything else follows.</span>`,
     lede: `A stack remembers where you came from. A queue decides who goes next. You have been using both since page six: the call stack is a stack, the OS scheduler is a queue, the packet buffer is a queue. This page names what you already know, and shows you what it can build.`,
     narrativeHtml: `<p>You have been using a stack since the first function call you ever made.</p>
@@ -732,7 +732,7 @@ ${pre}validate_block()
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x1A",
+    eyebrow: "next up / 0x19",
     title: "Data that branches: binary trees, Merkle trees, and how databases index everything.",
     href: "/trees",
     label: "trees",

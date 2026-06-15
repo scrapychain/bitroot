@@ -89,7 +89,7 @@ export function Nav() {
                     className={active ? "active" : undefined}
                     style={{ ["--card-accent" as string]: t.accent }}
                   >
-                    <span className="nav-dropdown-num">{t.num}</span>
+                    <span className="nav-dropdown-num">{t.num ?? ""}</span>
                     <span className="nav-dropdown-label">{t.label.toLowerCase()}</span>
                   </Link>
                 );

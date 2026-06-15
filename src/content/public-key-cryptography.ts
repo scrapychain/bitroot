@@ -287,10 +287,10 @@ void derive_child_key(
 
 export const publicKeyCryptography: PageContent = {
   slug: "public-key-cryptography",
-  hexLabel: "0x1D",
+  hexLabel: "0x1C",
   category: "cryptography",
   hero: {
-    eyebrow: "root.system / 0x1D / public-key",
+    eyebrow: "root.system / 0x1C / public-key",
     title: `One key creates it.<br><span class="highlight">Only one key opens it.</span>`,
     lede: `A public key is a padlock you give to the world. A private key is the only key that opens it. Anyone can lock a message for you; only you can unlock it. Anyone can verify you signed something; only you could have signed it. This page is the mathematics behind that asymmetry, and how Bitcoin uses it to let you prove ownership of coins without ever revealing your secret.`,
     narrativeHtml: `<p>Imagine a padlock.</p>
@@ -549,7 +549,7 @@ export const publicKeyCryptography: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x1E",
+    eyebrow: "next up / 0x1D",
     title: "Prove you signed it without revealing how: digital signatures, ECDSA, and Schnorr.",
     href: "/digital-signatures",
     label: "digital signatures",

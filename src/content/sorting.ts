@@ -721,7 +721,7 @@ export const sorting: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x18",
+    eyebrow: "next up / 0x17",
     title: "Find it fast, or wait forever: linear vs binary search.",
     href: "/searching",
     label: "searching algorithms",

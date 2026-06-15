@@ -456,10 +456,10 @@ const cGossip = `void gossip_propagate(const Graph *peers,
 
 export const graphs: PageContent = {
   slug: "graphs",
-  hexLabel: "0x1B",
+  hexLabel: "0x1A",
   category: "structure",
   hero: {
-    eyebrow: "root.system / 0x1B / graphs",
+    eyebrow: "root.system / 0x1A / graphs",
     title: `Everything is connected.<br><span class="highlight">Not everything is a tree.</span>`,
     lede: `The internet is a graph. The Bitcoin peer network is a graph. Your social network is a graph. Every routing table on every router on every continent is a graph. A tree is a graph with no cycles. This page is what happens when you remove that restriction.`,
     narrativeHtml: `<p>You already know trees.</p>
@@ -776,7 +776,7 @@ export const graphs: PageContent = {
     ],
   },
   nextUp: {
-    eyebrow: "next up / 0x1C",
+    eyebrow: "next up / 0x1B",
     title: "The mathematics that makes the internet secure: cryptography, keys, and signatures.",
     href: "/cryptography",
     label: "cryptography",

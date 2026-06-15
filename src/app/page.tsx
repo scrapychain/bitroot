@@ -36,7 +36,8 @@ export default function HomePage() {
             style={{ ["--card-accent" as string]: t.accent }}
           >
             <span className="home-topic-num">
-              {t.num} / {t.label.toUpperCase()}
+              {t.num ? `${t.num} / ` : ""}
+              {t.label.toUpperCase()}
             </span>
             <span className="home-topic-title">{t.label}</span>
             <p className="home-topic-desc">{t.desc}</p>
