@@ -7942,6 +7942,218 @@ function KeypairExplorerWidget() {
   );
 }
 
+/* =====================================================================
+   32. Sign and tamper: sign a message (real SHA-256 via SubtleCrypto),
+   then try to break verification by editing the message, swapping the
+   public key, or flipping a byte of the signature. The signature itself is
+   an illustrative stand-in (real ECDSA needs a library), but the integrity
+   logic is exact: any change to message, key or signature fails. (signatures)
+   ===================================================================== */
+async function sigSha256Hex(input: string): Promise<string> {
+  const bytes = await hvSha256Bytes(input);
+  return bytes.map(hvHex).join("");
+}
+
+function sigRandomHex(n: number): string {
+  const arr = new Uint8Array(n);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// illustrative pubkey from a private key: 02 prefix + sha256(priv)
+async function sigDerivePub(priv: string): Promise<string> {
+  return "02" + (await sigSha256Hex("pub:" + priv));
+}
+
+// illustrative 71-byte signature deterministically from priv + hash
+async function sigSign(priv: string, hash: string): Promise<string> {
+  const a = await sigSha256Hex(priv + hash);
+  const b = await sigSha256Hex(hash + priv);
+  return (a + b).slice(0, 142); // 71 bytes
+}
+
+interface SigSigned {
+  msg: string;
+  hash: string;
+  sig: string;
+  pub: string;
+}
+
+type SigResult = { valid: true } | { valid: false; reason: string } | null;
+
+function SignatureTamperWidget() {
+  const privRef = useRef<string>("");
+  const [signMsg, setSignMsg] = useState("Send 1 BTC to Alice");
+  const [signed, setSigned] = useState<SigSigned | null>(null);
+
+  const [vMsg, setVMsg] = useState("");
+  const [vSig, setVSig] = useState("");
+  const [vPub, setVPub] = useState("");
+  const [result, setResult] = useState<SigResult>(null);
+  const [note, setNote] = useState("sign a message, then try to break the verification.");
+
+  // verify the current right-panel fields against what was signed
+  const verify = useCallback(
+    async (msg: string, sig: string, pub: string, s: SigSigned | null) => {
+      if (!s) return;
+      const hash = await sigSha256Hex(msg);
+      if (pub !== s.pub) {
+        setResult({ valid: false, reason: "different-key" });
+        setNote("This public key does not match the private key that signed. A signature only verifies against its own key pair. Rejected.");
+      } else if (sig !== s.sig) {
+        setResult({ valid: false, reason: "bad-sig" });
+        setNote("The signature bytes were altered. A corrupted signature is not 'mostly valid', it simply fails. Rejected.");
+      } else if (hash !== s.hash) {
+        setResult({ valid: false, reason: "bad-msg" });
+        setNote("The message changed, so its SHA-256 hash changed. The signature was computed for the original hash. They no longer match. Rejected.");
+      } else {
+        setResult({ valid: true });
+        setNote("Message, signature and public key all match what was signed. Verified.");
+      }
+    },
+    [],
+  );
+
+  const doSign = async () => {
+    if (!privRef.current) privRef.current = sigRandomHex(32);
+    const priv = privRef.current;
+    const hash = await sigSha256Hex(signMsg);
+    const sig = await sigSign(priv, hash);
+    const pub = await sigDerivePub(priv);
+    const s: SigSigned = { msg: signMsg, hash, sig, pub };
+    setSigned(s);
+    setVMsg(signMsg);
+    setVSig(sig);
+    setVPub(pub);
+    await verify(signMsg, sig, pub, s);
+  };
+
+  // tamper actions
+  const tamperMsg = () => {
+    if (!signed) return;
+    const chars = vMsg.split("");
+    const idx = chars.findIndex((c) => /[a-zA-Z0-9]/.test(c));
+    if (idx >= 0) {
+      const c = chars[idx];
+      chars[idx] = c === "9" ? "8" : /[0-9]/.test(c) ? String(Number(c) + 1) : c === "z" ? "a" : String.fromCharCode(c.charCodeAt(0) + 1);
+    }
+    const next = chars.join("");
+    setVMsg(next);
+    verify(next, vSig, vPub, signed);
+  };
+  const tamperPub = async () => {
+    if (!signed) return;
+    const otherPub = await sigDerivePub(sigRandomHex(32));
+    setVPub(otherPub);
+    verify(vMsg, vSig, otherPub, signed);
+  };
+  const tamperSig = () => {
+    if (!signed) return;
+    const chars = vSig.split("");
+    const c = chars[0];
+    chars[0] = c === "f" ? "0" : (parseInt(c, 16) + 1).toString(16);
+    const next = chars.join("");
+    setVSig(next);
+    verify(vMsg, next, vPub, signed);
+  };
+
+  const restore = () => {
+    if (!signed) return;
+    setVMsg(signed.msg);
+    setVSig(signed.sig);
+    setVPub(signed.pub);
+    verify(signed.msg, signed.sig, signed.pub, signed);
+  };
+
+  const valid = result?.valid === true;
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// sign a message. try to break it."}</span>
+      </div>
+
+      <div className="sig-grid">
+        {/* LEFT: sign */}
+        <div className="sig-panel">
+          <span className="sig-panel-title">sign</span>
+          <label className="cx-field">
+            <span>message</span>
+            <input value={signMsg} onChange={(e) => setSignMsg(e.target.value)} aria-label="message to sign" />
+          </label>
+          <button type="button" className="widget-btn gx-go" onClick={doSign}>
+            sign message
+          </button>
+          {signed && (
+            <div className="sig-out">
+              <div className="sig-field">
+                <span>SHA-256(message)</span>
+                <code>{signed.hash}</code>
+              </div>
+              <div className="sig-field">
+                <span>signature (71 bytes, illustrative)</span>
+                <code className="sig">{signed.sig}</code>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT: verify */}
+        <div className="sig-panel">
+          <div className="sig-verify-head">
+            <span className="sig-panel-title">verify</span>
+            {result && (
+              <span className={`sig-status ${valid ? "ok" : "bad"}`}>{valid ? "✓ VALID" : "✕ INVALID"}</span>
+            )}
+          </div>
+          {!signed && <span className="cx-hint">sign a message first to populate these fields.</span>}
+          {signed && (
+            <>
+              <label className="cx-field">
+                <span>message</span>
+                <input value={vMsg} onChange={(e) => { setVMsg(e.target.value); setResult(null); setNote("press verify to check the edited fields."); }} aria-label="message to verify" />
+              </label>
+              <label className="cx-field">
+                <span>signature</span>
+                <input className="sig-mono" value={vSig} onChange={(e) => { setVSig(e.target.value); setResult(null); }} aria-label="signature" />
+              </label>
+              <label className="cx-field">
+                <span>public key</span>
+                <input className="sig-mono" value={vPub} onChange={(e) => { setVPub(e.target.value); setResult(null); }} aria-label="public key" />
+              </label>
+              <div className="sig-actions">
+                <button type="button" className="widget-btn" onClick={() => verify(vMsg, vSig, vPub, signed)}>
+                  verify
+                </button>
+                <button type="button" className="widget-btn" onClick={restore}>
+                  restore
+                </button>
+              </div>
+              <div className="sig-tampers">
+                <button type="button" className="widget-btn sig-tamper" onClick={tamperMsg}>
+                  change one character in the message
+                </button>
+                <button type="button" className="widget-btn sig-tamper" onClick={tamperPub}>
+                  use a different public key
+                </button>
+                <button type="button" className="widget-btn sig-tamper" onClick={tamperSig}>
+                  flip one byte of the signature
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className={`sig-explain ${result ? (valid ? "ok" : "bad") : ""}`}>{note}</div>
+
+      <p className="widget-caption">
+        the SHA-256 hashing is real, computed in your browser. the signature is an illustrative stand-in, since real ECDSA needs a crypto library. but the rule is exact: change the message, the key, or a single byte of the signature, and verification fails. there is no partial credit.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -8006,6 +8218,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <DhKeyExchangeWidget />;
     case "keypair-explorer":
       return <KeypairExplorerWidget />;
+    case "signature-tamper":
+      return <SignatureTamperWidget />;
     default:
       return null;
   }

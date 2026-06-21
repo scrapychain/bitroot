@@ -55,7 +55,10 @@ export type DiagramName =
   | "bitcoin-address-derivation"
   | "keypair-flow"
   | "elliptic-curve"
-  | "address-types";
+  | "address-types"
+  | "signature-flow"
+  | "nonce-reuse-attack"
+  | "schnorr-aggregation";
 
 export type WidgetName =
   | "gossip-network"
@@ -89,7 +92,8 @@ export type WidgetName =
   | "graph-explorer"
   | "crypto-explorer"
   | "dh-key-exchange"
-  | "keypair-explorer";
+  | "keypair-explorer"
+  | "signature-tamper";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -144,7 +148,8 @@ export interface PageContent {
     | "trees"
     | "graphs"
     | "cryptography"
-    | "public-key-cryptography";
+    | "public-key-cryptography"
+    | "digital-signatures";
   hexLabel: string;
   category: string;
   /**

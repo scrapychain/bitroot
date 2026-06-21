@@ -3258,6 +3258,149 @@ function AddressTypesDiagram() {
 }
 
 /* =====================================================================
+   42. Signature flow (signatures beginner): sign on the left, verify on
+   the right. The message travels beside the signature, never inside it.
+   ===================================================================== */
+function SignatureFlowDiagram() {
+  const col = (
+    x: number,
+    title: string,
+    tone: string,
+    inputs: string,
+    s1: string,
+    s2: string,
+    out: string,
+    outTone: string,
+  ) => (
+    <g>
+      <text x={x} y={28} className={`${cellLabel}`}>{title}</text>
+      <rect x={x} y={42} width={280} height={34} className={`${cell} tone-${tone}`} rx="4" />
+      <text x={x + 14} y={64} className={`${cellValue} tone-${tone}`} style={{ fontSize: "12px" }}>{inputs}</text>
+
+      <line className={`${arrow} tone-mute`} x1={x + 140} y1={76} x2={x + 140} y2={100} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={x} y={100} width={280} height={32} className={`${cell} tone-mute`} rx="4" />
+      <text x={x + 14} y={121} className={note}>{s1}</text>
+
+      <line className={`${arrow} tone-mute`} x1={x + 140} y1={132} x2={x + 140} y2={156} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={x} y={156} width={280} height={32} className={`${cell} tone-mute`} rx="4" />
+      <text x={x + 14} y={177} className={note}>{s2}</text>
+
+      <line className={`${arrow} tone-${outTone}`} x1={x + 140} y1={188} x2={x + 140} y2={212} markerEnd={`url(#diag-arrow-${outTone})`} />
+      <rect x={x} y={212} width={280} height={36} className={`${cell} tone-${outTone}`} rx="4" />
+      <text x={x + 140} y={235} textAnchor="middle" className={`${cellValue} tone-${outTone}`} style={{ fontSize: "13px" }}>{out}</text>
+    </g>
+  );
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 640 300"
+      ariaLabel="Signing and verifying side by side. To sign: take the message and private key, hash the message with SHA-256, then sign the hash to produce a signature. To verify: take the message, signature and public key, recompute the SHA-256 hash, and check the signature against it, returning true or false. The message is never inside the signature."
+    >
+      {col(0, "SIGN", "violet", "message + private key", "hash = SHA-256(message)", "sig = sign(privkey, hash)", "signature (71-72 bytes)", "magenta")}
+      {col(360, "VERIFY", "cyan", "message + signature + pubkey", "hash = SHA-256(message)", "verify(pubkey, sig, hash)", "true  or  false", "lime")}
+      <text x="0" y="276" className={note}>
+        the message travels beside the signature, never inside it. a signature stays small no matter how big the message.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   43. Nonce reuse attack (signatures intermediate): two signatures with
+   the same k share an r, and basic algebra recovers the private key.
+   ===================================================================== */
+function NonceReuseAttackDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="The nonce reuse attack. Two ECDSA signatures made with the same random nonce k both have the same r value. Subtracting their s equations cancels the private key term and solves for k. With k known, a second rearrangement recovers the private key d. Two signatures and basic modular algebra are enough."
+    >
+      <text x="0" y="20" className={groupTitle}>SAME k, TWO SIGNATURES: the private key falls out</text>
+
+      {/* two signatures */}
+      <rect x={20} y={40} width={320} height={64} className={`${cell} tone-rose`} rx="5" />
+      <text x={36} y={64} className={`${cellValue} tone-rose`} style={{ fontSize: "13px" }}>signature 1 on hash z1</text>
+      <text x={36} y={88} className={note}>s1 = k⁻¹ (z1 + r·d) mod n</text>
+
+      <rect x={380} y={40} width={320} height={64} className={`${cell} tone-rose`} rx="5" />
+      <text x={396} y={64} className={`${cellValue} tone-rose`} style={{ fontSize: "13px" }}>signature 2 on hash z2</text>
+      <text x={396} y={88} className={note}>s2 = k⁻¹ (z2 + r·d) mod n</text>
+
+      <text x={360} y={128} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>
+        same k means the same r in both. subtract the two equations:
+      </text>
+
+      {/* the algebra */}
+      <rect x={120} y={146} width={480} height={36} className={`${cell} tone-amber`} rx="4" />
+      <text x={360} y={169} textAnchor="middle" className={`${cellValue} tone-amber`}>s1 - s2 = k⁻¹ (z1 - z2) mod n</text>
+
+      <line className={`${arrow} tone-mute`} x1={360} y1={182} x2={360} y2={204} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={120} y={204} width={480} height={36} className={`${cell} tone-cyan`} rx="4" />
+      <text x={360} y={227} textAnchor="middle" className={`${cellValue} tone-cyan`}>k = (z1 - z2) · (s1 - s2)⁻¹ mod n</text>
+
+      <line className={`${arrow} tone-mute`} x1={360} y1={240} x2={360} y2={262} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={120} y={262} width={480} height={36} className={`${cell} tone-magenta`} rx="4" />
+      <text x={360} y={285} textAnchor="middle" className={`${cellValue} tone-magenta`}>d = (s1·k - z1) · r⁻¹ mod n   . the private key</text>
+
+      <text x="0" y="316" className="diagram-note tone-amber">
+        this is the exact bug that broke the Sony PS3 signing key in 2010 and drained Android wallets in 2013.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   44. Schnorr aggregation (signatures advanced): two signers' keys and
+   signatures add into one, indistinguishable on-chain from a single key.
+   ===================================================================== */
+function SchnorrAggregationDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 300"
+      ariaLabel="Schnorr key and signature aggregation. Alice's and Bob's public keys add to one aggregate key, their nonce points add to one, and their partial signatures add to one. The verification equation s times G equals R plus e times Q still balances for the aggregates, so on-chain a two-of-two looks identical to a single signer."
+    >
+      <text x="0" y="20" className={groupTitle}>SCHNORR IS LINEAR: two signers, one on-chain signature</text>
+
+      {/* Alice */}
+      <rect x={20} y={40} width={200} height={86} className={`${cell} tone-cyan`} rx="5" />
+      <text x={120} y={64} textAnchor="middle" className={`${cellValue} tone-cyan`}>Alice</text>
+      <text x={36} y={88} className={note}>Q_a, R_a</text>
+      <text x={36} y={108} className={note}>s_a = k_a + e·d_a</text>
+
+      {/* Bob */}
+      <rect x={20} y={150} width={200} height={86} className={`${cell} tone-violet`} rx="5" />
+      <text x={120} y={174} textAnchor="middle" className={`${cellValue} tone-violet`}>Bob</text>
+      <text x={36} y={198} className={note}>Q_b, R_b</text>
+      <text x={36} y={218} className={note}>s_b = k_b + e·d_b</text>
+
+      {/* plus into aggregate */}
+      <text x={250} y={144} className={`${cellValue} tone-amber`} style={{ fontSize: "20px" }}>+</text>
+      <line className={`${arrow} tone-amber`} x1={224} y1={83} x2={300} y2={130} markerEnd="url(#diag-arrow-amber)" />
+      <line className={`${arrow} tone-amber`} x1={224} y1={193} x2={300} y2={150} markerEnd="url(#diag-arrow-amber)" />
+
+      <rect x={300} y={92} width={260} height={96} className={`${cell} tone-lime`} rx="5" />
+      <text x={430} y={116} textAnchor="middle" className={`${cellValue} tone-lime`}>aggregate</text>
+      <text x={316} y={140} className={note}>Q_agg = Q_a + Q_b</text>
+      <text x={316} y={160} className={note}>R_agg = R_a + R_b</text>
+      <text x={316} y={180} className={note}>s_agg = s_a + s_b</text>
+
+      <line className={`${arrow} tone-lime`} x1={560} y1={140} x2={628} y2={140} markerEnd="url(#diag-arrow-lime)" />
+      <text x={596} y={130} textAnchor="middle" className={note}>chain</text>
+      <rect x={628} y={112} width={72} height={56} className={`${cell} tone-lime`} rx="5" />
+      <text x={664} y={136} textAnchor="middle" className={note}>one</text>
+      <text x={664} y={154} textAnchor="middle" className={note}>sig</text>
+
+      <text x="0" y="266" className={`${cellValue} tone-cyan`} style={{ fontSize: "12px" }}>
+        verify: s_agg · G == R_agg + e · Q_agg   still balances.
+      </text>
+      <text x="0" y="288" className={note}>
+        on-chain a 2-of-2 is indistinguishable from a single signer: same 64 bytes, same fee, full privacy.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -3304,6 +3447,9 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "keypair-flow": KeypairFlowDiagram,
   "elliptic-curve": EllipticCurveDiagram,
   "address-types": AddressTypesDiagram,
+  "signature-flow": SignatureFlowDiagram,
+  "nonce-reuse-attack": NonceReuseAttackDiagram,
+  "schnorr-aggregation": SchnorrAggregationDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

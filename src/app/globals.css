@@ -8201,3 +8201,135 @@ a.card,
   }
 }
 
+/* =====================================================================
+   Sign and tamper (digital-signatures page)
+   ===================================================================== */
+.sig-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.sig-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+.sig-panel-title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neon-magenta);
+}
+.sig-verify-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.sig-status {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid;
+}
+.sig-status.ok {
+  color: var(--neon-emerald);
+  border-color: rgba(43, 255, 159, 0.45);
+  background: rgba(43, 255, 159, 0.07);
+}
+.sig-status.bad {
+  color: var(--neon-rose);
+  border-color: rgba(255, 92, 138, 0.45);
+  background: rgba(255, 92, 138, 0.07);
+}
+.sig-out {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.6rem;
+}
+.sig-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.sig-field span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.sig-field code {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--neon-amber);
+  word-break: break-all;
+  line-height: 1.5;
+}
+.sig-field code.sig {
+  color: var(--neon-cyan);
+}
+.sig-mono {
+  font-family: var(--font-mono) !important;
+  font-size: 0.72rem !important;
+}
+.sig-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.sig-tampers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+.sig-tamper {
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.7rem;
+  border-color: rgba(255, 182, 39, 0.4);
+  color: var(--neon-amber);
+}
+.sig-tamper:hover {
+  background: rgba(255, 182, 39, 0.12);
+  border-color: var(--neon-amber);
+  color: var(--neon-amber);
+}
+.sig-explain {
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--neon-magenta);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+}
+.sig-explain.ok {
+  border-left-color: var(--neon-emerald);
+}
+.sig-explain.bad {
+  border-left-color: var(--neon-rose);
+}
+
+@media (max-width: 680px) {
+  .sig-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

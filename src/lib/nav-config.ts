@@ -244,6 +244,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/digital-signatures",
+    label: "Digital Signatures",
+    num: "29",
+    accent: "var(--neon-magenta)",
+    desc: "Two signatures and one reused number cost Sony and Bitcoin users their private keys. ECDSA, the nonce that must never repeat, RFC 6979, Schnorr, MuSig, and the signature on every transaction.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     accent: "var(--neon-amber)",
