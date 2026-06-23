@@ -3401,6 +3401,157 @@ function SchnorrAggregationDiagram() {
 }
 
 /* =====================================================================
+   45. Hash timeline (hash deep dive beginner): the family tree of hashes
+   with their security status, broken in red, secure in green.
+   ===================================================================== */
+function HashTimelineDiagram() {
+  const items = [
+    { name: "MD5", year: "1991", bits: "128-bit", status: "broken", note: "collisions since 2004", tone: "rose" },
+    { name: "SHA-1", year: "1995", bits: "160-bit", status: "broken", note: "SHAttered, 2017", tone: "rose" },
+    { name: "SHA-2", year: "2001", bits: "224 to 512", status: "secure", note: "Bitcoin uses SHA-256", tone: "lime" },
+    { name: "SHA-3", year: "2015", bits: "Keccak sponge", status: "secure", note: "Ethereum uses Keccak-256", tone: "cyan" },
+  ];
+  const colW = 168;
+  const gap = 12;
+  const startX = (720 - (items.length * colW + (items.length - 1) * gap)) / 2;
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 250"
+      ariaLabel="A timeline of hash functions. MD5 from 1991 and SHA-1 from 1995 are both broken by collision attacks, shown in red. SHA-2 from 2001, which Bitcoin uses, and SHA-3 from 2015 remain secure, shown in green."
+    >
+      <line x1={startX} y1={118} x2={startX + items.length * colW + (items.length - 1) * gap - colW + colW} y2={118} className="diagram-divider" />
+      {items.map((it, i) => {
+        const x = startX + i * (colW + gap);
+        const broken = it.status === "broken";
+        return (
+          <g key={i}>
+            <text x={x + colW / 2} y={36} textAnchor="middle" className={note}>{it.year}</text>
+            <circle cx={x + colW / 2} cy={118} r="7" className={`${cell} tone-${it.tone}`} />
+            <rect x={x} y={140} width={colW} height={72} className={`${cell} tone-${it.tone}`} rx="6" />
+            <text x={x + colW / 2} y={166} textAnchor="middle" className={`${cellValue} tone-${it.tone}`} style={{ fontSize: "15px" }}>{it.name}</text>
+            <text x={x + colW / 2} y={185} textAnchor="middle" className={note}>{it.bits}</text>
+            <text x={x + colW / 2} y={203} textAnchor="middle" className={`${cellValue} tone-${it.tone}`} style={{ fontSize: "10px" }}>
+              {broken ? "BROKEN" : "SECURE"}
+            </text>
+            <text x={x + colW / 2} y={232} textAnchor="middle" className={note}>{it.note}</text>
+          </g>
+        );
+      })}
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   46. SHA-256 round (hash deep dive intermediate): one of the 64 rounds,
+   showing how a..h mix through S0, S1, ch, maj into the next state.
+   ===================================================================== */
+function Sha256RoundDiagram() {
+  const regs = ["a", "b", "c", "d", "e", "f", "g", "h"];
+  const boxW = 54;
+  const gap = 10;
+  const startX = (720 - (regs.length * boxW + (regs.length - 1) * gap)) / 2;
+  const reg = (i: number, label: string, tone: string, y: number) => {
+    const x = startX + i * (boxW + gap);
+    return (
+      <g key={`${label}-${i}-${y}`}>
+        <rect x={x} y={y} width={boxW} height={34} className={`${cell} tone-${tone}`} rx="4" />
+        <text x={x + boxW / 2} y={y + 22} textAnchor="middle" className={`${cellValue} tone-${tone}`}>{label}</text>
+      </g>
+    );
+  };
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 320"
+      ariaLabel="One SHA-256 round. The eight working variables a through h enter at the top. The e, f, g variables feed S1 and the ch choice function; a, b, c feed S0 and the maj majority function. These combine with the round constant K and message word W into temp1 and temp2. The variables then shift down by one, e becomes d plus temp1, and a becomes temp1 plus temp2."
+    >
+      <text x="0" y="20" className={groupTitle}>ONE ROUND (of 64): the working variables shift and mix</text>
+
+      {/* top row: a..h */}
+      {regs.map((r, i) => reg(i, r, i < 4 ? "violet" : "cyan", 36))}
+
+      {/* middle: the functions */}
+      <rect x={60} y={104} width={250} height={70} className={`${cell} tone-cyan`} rx="6" />
+      <text x={185} y={126} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "12px" }}>from e, f, g:</text>
+      <text x={185} y={145} textAnchor="middle" className={note}>S1 = ROTR6 ^ ROTR11 ^ ROTR25 (e)</text>
+      <text x={185} y={163} textAnchor="middle" className={note}>ch = (e AND f) XOR (NOT e AND g)</text>
+
+      <rect x={410} y={104} width={250} height={70} className={`${cell} tone-violet`} rx="6" />
+      <text x={535} y={126} textAnchor="middle" className={`${cellValue} tone-violet`} style={{ fontSize: "12px" }}>from a, b, c:</text>
+      <text x={535} y={145} textAnchor="middle" className={note}>S0 = ROTR2 ^ ROTR13 ^ ROTR22 (a)</text>
+      <text x={535} y={163} textAnchor="middle" className={note}>maj = (a AND b) XOR (a AND c) XOR (b AND c)</text>
+
+      {/* temps */}
+      <rect x={60} y={196} width={250} height={34} className={`${cell} tone-amber`} rx="5" />
+      <text x={185} y={218} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>temp1 = h + S1 + ch + K[i] + W[i]</text>
+      <rect x={410} y={196} width={250} height={34} className={`${cell} tone-amber`} rx="5" />
+      <text x={535} y={218} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>temp2 = S0 + maj</text>
+
+      <line className={`${arrow} tone-mute`} x1={185} y1={70} x2={185} y2={104} markerEnd="url(#diag-arrow-mute)" />
+      <line className={`${arrow} tone-mute`} x1={535} y1={70} x2={535} y2={104} markerEnd="url(#diag-arrow-mute)" />
+      <line className={`${arrow} tone-mute`} x1={185} y1={174} x2={185} y2={196} markerEnd="url(#diag-arrow-mute)" />
+      <line className={`${arrow} tone-mute`} x1={535} y1={174} x2={535} y2={196} markerEnd="url(#diag-arrow-mute)" />
+
+      {/* bottom result */}
+      <rect x={120} y={258} width={480} height={34} className={`${cell} tone-lime`} rx="5" />
+      <text x={360} y={280} textAnchor="middle" className={`${cellValue} tone-lime`} style={{ fontSize: "12px" }}>
+        shift down: a&apos;=temp1+temp2,  e&apos;=d+temp1,  the rest move b→c→d, f→g→h
+      </text>
+      <line className={`${arrow} tone-lime`} x1={185} y1={230} x2={300} y2={258} markerEnd="url(#diag-arrow-lime)" />
+      <line className={`${arrow} tone-lime`} x1={535} y1={230} x2={420} y2={258} markerEnd="url(#diag-arrow-lime)" />
+
+      <text x="0" y="312" className={note}>
+        one changed bit in e re-routes ch for every affected bit, diffusing into all eight words within about six rounds.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   47. HMAC nesting (hash deep dive advanced): two nested SHA-256 calls
+   with XORed key pads, immune to length extension.
+   ===================================================================== */
+function HmacNestingDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 250"
+      ariaLabel="HMAC construction. The key is XORed with an inner pad and prepended to the message, then hashed. That inner hash is XORed-key-with-outer-pad prepended and hashed again. The outer hash wraps the inner one, so an attacker cannot resume the outer state, which is what defeats length extension."
+    >
+      <text x="0" y="20" className={groupTitle}>HMAC: two nested hashes defeat length extension</text>
+
+      {/* inner */}
+      <rect x={20} y={56} width={300} height={40} className={`${cell} tone-cyan`} rx="5" />
+      <text x={170} y={81} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "12px" }}>(key XOR ipad) || message</text>
+      <line className={`${arrow} tone-mute`} x1={170} y1={96} x2={170} y2={120} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={20} y={120} width={300} height={40} className={`${cell} tone-violet`} rx="5" />
+      <text x={170} y={145} textAnchor="middle" className={`${cellValue} tone-violet`} style={{ fontSize: "12px" }}>SHA-256 . inner hash</text>
+
+      {/* arrow to outer */}
+      <line className={`${arrow} tone-amber`} x1={320} y1={140} x2={400} y2={140} markerEnd="url(#diag-arrow-amber)" />
+      <text x={360} y={130} textAnchor="middle" className={note}>nested</text>
+
+      {/* outer */}
+      <rect x={400} y={56} width={300} height={40} className={`${cell} tone-cyan`} rx="5" />
+      <text x={550} y={81} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "12px" }}>(key XOR opad) || inner</text>
+      <line className={`${arrow} tone-mute`} x1={550} y1={96} x2={550} y2={120} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={400} y={120} width={300} height={40} className={`${cell} tone-lime`} rx="5" />
+      <text x={550} y={145} textAnchor="middle" className={`${cellValue} tone-lime`} style={{ fontSize: "12px" }}>SHA-256 . the HMAC tag</text>
+
+      <text x="0" y="196" className={note}>
+        the outer hash wraps the inner one, so the published tag is not a resumable internal state.
+      </text>
+      <text x="0" y="218" className={note}>
+        Bitcoin BIP-32 uses HMAC-SHA512 for key derivation. TLS, JWT and API auth all rely on this construction.
+      </text>
+      <text x="0" y="242" className="diagram-note tone-amber">
+        raw SHA-256(secret || message) is NOT a MAC. HMAC(key, message) is.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -3450,6 +3601,9 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "signature-flow": SignatureFlowDiagram,
   "nonce-reuse-attack": NonceReuseAttackDiagram,
   "schnorr-aggregation": SchnorrAggregationDiagram,
+  "hash-timeline": HashTimelineDiagram,
+  "sha256-round": Sha256RoundDiagram,
+  "hmac-nesting": HmacNestingDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

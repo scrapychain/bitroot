@@ -252,6 +252,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/hash-deep-dive",
+    label: "Hash Functions Deep Dive",
+    num: "30",
+    accent: "var(--neon-lime)",
+    desc: "Open the SHA-256 black box. 64 rounds, 8 state words, 64 constants, built from the same XOR and bit rotations from page two and four. Plus HMAC, length extension, and password hashing.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     accent: "var(--neon-amber)",

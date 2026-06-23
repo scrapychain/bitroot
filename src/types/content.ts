@@ -58,7 +58,10 @@ export type DiagramName =
   | "address-types"
   | "signature-flow"
   | "nonce-reuse-attack"
-  | "schnorr-aggregation";
+  | "schnorr-aggregation"
+  | "hash-timeline"
+  | "sha256-round"
+  | "hmac-nesting";
 
 export type WidgetName =
   | "gossip-network"
@@ -93,7 +96,8 @@ export type WidgetName =
   | "crypto-explorer"
   | "dh-key-exchange"
   | "keypair-explorer"
-  | "signature-tamper";
+  | "signature-tamper"
+  | "sha256-explorer";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -149,7 +153,8 @@ export interface PageContent {
     | "graphs"
     | "cryptography"
     | "public-key-cryptography"
-    | "digital-signatures";
+    | "digital-signatures"
+    | "hash-deep-dive";
   hexLabel: string;
   category: string;
   /**

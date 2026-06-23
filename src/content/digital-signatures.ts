@@ -468,9 +468,9 @@ export const digitalSignatures: PageContent = {
   },
   nextUp: {
     eyebrow: "next up / 0x1E",
-    title: "Prove you know a secret without revealing the secret: zero knowledge proofs.",
-    href: "/zero-knowledge-proofs",
-    label: "zero knowledge proofs",
+    title: "Open the SHA-256 black box: 64 rounds of XOR gates and bit rotations.",
+    href: "/hash-deep-dive",
+    label: "hash functions deep dive",
     variant: "cyan",
   },
 };

@@ -8154,6 +8154,209 @@ function SignatureTamperWidget() {
   );
 }
 
+/* =====================================================================
+   33. SHA-256 explorer: type anything and watch the real digest (computed
+   with SubtleCrypto) as hex, as coloured bytes, and as 256 bits. Change one
+   character and the avalanche panel marks every flipped bit. Single or
+   double hash, plus byte-exact presets. Vanilla JS. (hash deep dive)
+   ===================================================================== */
+const SHA_GENESIS_HEX =
+  "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c";
+
+function shaHexToBytes(hex: string): Uint8Array {
+  const out = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  return out;
+}
+function shaBytesToBits(bytes: number[]): boolean[] {
+  const bits: boolean[] = [];
+  for (const b of bytes) for (let k = 7; k >= 0; k--) bits.push(((b >> k) & 1) === 1);
+  return bits;
+}
+
+function Sha256ExplorerWidget() {
+  const [text, setText] = useState("Hello, ScrapyBytes");
+  const [override, setOverride] = useState<{ label: string; bytes: Uint8Array } | null>(null);
+  const [dbl, setDbl] = useState(false);
+  const [hashBytes, setHashBytes] = useState<number[]>([]);
+  const [aval, setAval] = useState<{ diff: number; bits: boolean[] } | null>(null);
+  const [aLabel, setALabel] = useState("");
+  const [bLabel, setBLabel] = useState("");
+
+  const inputLen = override ? override.bytes.length : new TextEncoder().encode(text).length;
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const inputBytes = override ? override.bytes : new TextEncoder().encode(text);
+      let h = await pkcSha256(inputBytes);
+      if (dbl) h = await pkcSha256(h);
+
+      // sibling input with a one-unit change, for the avalanche panel
+      let sib: Uint8Array;
+      let aL: string;
+      let bL: string;
+      if (override) {
+        sib = override.bytes.slice();
+        sib[0] ^= 1;
+        aL = override.label;
+        bL = override.label + " . first byte flipped";
+      } else if (text.length === 0) {
+        sib = new TextEncoder().encode("a");
+        aL = '""';
+        bL = '"a"';
+      } else {
+        const arr = [...text];
+        const last = arr.length - 1;
+        arr[last] = String.fromCharCode(arr[last].charCodeAt(0) ^ 1);
+        const sibText = arr.join("");
+        sib = new TextEncoder().encode(sibText);
+        aL = JSON.stringify(text);
+        bL = JSON.stringify(sibText);
+      }
+      let hb = await pkcSha256(sib);
+      if (dbl) hb = await pkcSha256(hb);
+
+      if (cancelled) return;
+      const bitsA = shaBytesToBits([...h]);
+      const bitsB = shaBytesToBits([...hb]);
+      const flipped = bitsA.map((x, i) => x !== bitsB[i]);
+      setHashBytes([...h]);
+      setAval({ diff: flipped.filter(Boolean).length, bits: flipped });
+      setALabel(aL);
+      setBLabel(bL);
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [text, override, dbl]);
+
+  const hex = hashBytes.map(hvHex).join("");
+  const hexGroups = hex.match(/.{1,8}/g) ?? [];
+  const bits = shaBytesToBits(hashBytes);
+  const pct = aval ? Math.round((aval.diff / 256) * 100) : 0;
+
+  const setTextPreset = (v: string) => {
+    setOverride(null);
+    setText(v);
+  };
+  const setBytePreset = (label: string, bytes: Uint8Array) => {
+    setOverride({ label, bytes });
+  };
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// watch SHA-256 transform your input"}</span>
+        <div className="widget-controls">
+          <div className="gx-seg">
+            <button type="button" className={!dbl ? "is-active" : ""} onClick={() => setDbl(false)}>
+              SHA-256
+            </button>
+            <button type="button" className={dbl ? "is-active" : ""} onClick={() => setDbl(true)}>
+              double
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* input */}
+      <div className="sha-input">
+        {override ? (
+          <div className="sha-override">
+            <span>{override.label}</span>
+            <button type="button" className="widget-btn" onClick={() => setOverride(null)}>
+              edit text
+            </button>
+          </div>
+        ) : (
+          <input
+            className="sha-textfield"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            aria-label="input to hash"
+            placeholder="type anything"
+          />
+        )}
+        <span className="sha-counter">
+          {inputLen} byte{inputLen === 1 ? "" : "s"} in . 32 bytes out
+        </span>
+      </div>
+
+      <div className="sha-presets">
+        <button type="button" className="widget-btn" onClick={() => setTextPreset("a")}>
+          &quot;a&quot;
+        </button>
+        <button type="button" className="widget-btn" onClick={() => setTextPreset("b")}>
+          &quot;b&quot;
+        </button>
+        <button type="button" className="widget-btn" onClick={() => setTextPreset("")}>
+          empty string
+        </button>
+        <button type="button" className="widget-btn" onClick={() => setBytePreset("Bitcoin genesis block header (80 bytes)", shaHexToBytes(SHA_GENESIS_HEX))}>
+          genesis header
+        </button>
+        <button type="button" className="widget-btn" onClick={() => setBytePreset("1 MB of zero bytes", new Uint8Array(1 << 20))}>
+          1 MB of zeros
+        </button>
+      </div>
+
+      {/* hex output */}
+      <div className="sha-hex">
+        {hexGroups.map((g, i) => (
+          <span key={i} className="sha-hex-group">
+            {g}
+          </span>
+        ))}
+      </div>
+
+      {/* byte squares */}
+      <div className="sha-bytes">
+        {hashBytes.map((b, i) => (
+          <span
+            key={i}
+            className="sha-byte"
+            title={`byte ${i}: ${b}`}
+            style={{ background: `rgba(0, 240, 255, ${0.12 + (b / 255) * 0.78})` }}
+          />
+        ))}
+      </div>
+
+      {/* bit grid */}
+      <div className="sha-bits" aria-hidden="true">
+        {bits.map((on, i) => (
+          <span key={i} className={`sha-bit ${on ? "on" : ""}`} />
+        ))}
+      </div>
+
+      {/* avalanche */}
+      {aval && (
+        <div className="sha-aval">
+          <div className="sha-aval-head">
+            <span className="sha-aval-title">avalanche</span>
+            <span className="sha-aval-labels">
+              {aLabel} <span className="sha-vs">vs</span> {bLabel}
+            </span>
+            <span className="sha-aval-count">
+              {aval.diff} / 256 bits changed ({pct}%)
+            </span>
+          </div>
+          <div className="sha-bits" aria-hidden="true">
+            {aval.bits.map((flip, i) => (
+              <span key={i} className={`sha-bit ${flip ? "flip" : ""}`} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="widget-caption">
+        the digest is real, computed by your browser with SubtleCrypto. one byte in goes to 32 bytes out, no matter the input size: type one character, hash a megabyte, the output is always 256 bits. change a single character and roughly half of those bits flip. that is the avalanche effect from page 13, now visible bit by bit.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -8220,6 +8423,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <KeypairExplorerWidget />;
     case "signature-tamper":
       return <SignatureTamperWidget />;
+    case "sha256-explorer":
+      return <Sha256ExplorerWidget />;
     default:
       return null;
   }
