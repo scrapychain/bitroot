@@ -3552,6 +3552,175 @@ function HmacNestingDiagram() {
 }
 
 /* =====================================================================
+   48. Symmetric flow (AES beginner): ECDH agrees a key, AES encrypts the
+   bulk, only ciphertext crosses the wire.
+   ===================================================================== */
+function SymmetricFlowDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 250"
+      ariaLabel="The symmetric flow. Alice and Bob run ECDH to agree on a shared secret, derive an AES key from it with HMAC, and Alice encrypts the message with AES. Only the ciphertext crosses the network. Bob decrypts with the same key. The key itself never travels."
+    >
+      <text x="0" y="20" className={groupTitle}>ECDH AGREES THE KEY . AES MOVES THE DATA</text>
+
+      {/* Alice */}
+      <rect x={20} y={48} width={150} height={150} className={`${cell} tone-cyan`} rx="6" />
+      <text x={95} y={72} textAnchor="middle" className={`${cellValue} tone-cyan`}>Alice</text>
+      <text x={34} y={100} className={note}>1. ECDH shared secret</text>
+      <text x={34} y={122} className={note}>2. HMAC derive AES key</text>
+      <text x={34} y={144} className={note}>3. AES encrypt</text>
+      <text x={34} y={172} className={`${cellValue} tone-cyan`} style={{ fontSize: "11px" }}>message → ciphertext</text>
+
+      {/* wire */}
+      <line className={`${arrow} tone-amber`} x1={170} y1={123} x2={550} y2={123} markerEnd="url(#diag-arrow-amber)" />
+      <rect x={250} y={104} width={220} height={38} className={`${cell} tone-amber`} rx="5" />
+      <text x={360} y={128} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>ciphertext only</text>
+
+      {/* Bob */}
+      <rect x={550} y={48} width={150} height={150} className={`${cell} tone-violet`} rx="6" />
+      <text x={625} y={72} textAnchor="middle" className={`${cellValue} tone-violet`}>Bob</text>
+      <text x={564} y={100} className={note}>same shared secret</text>
+      <text x={564} y={122} className={note}>same AES key</text>
+      <text x={564} y={144} className={note}>4. AES decrypt</text>
+      <text x={564} y={172} className={`${cellValue} tone-violet`} style={{ fontSize: "11px" }}>ciphertext → message</text>
+
+      <text x="0" y="232" className={note}>
+        the key is never transmitted. only someone who can derive the same shared secret can decrypt.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   49. AES round (AES intermediate): the four operations on the 4x4 state.
+   ===================================================================== */
+function AesRoundDiagram() {
+  const cellsX = 40;
+  const cellsY = 70;
+  const sz = 26;
+  const grid = (ox: number, label: string, tone: string) => (
+    <g>
+      <text x={ox + sz * 2} y={cellsY - 12} textAnchor="middle" className={note}>{label}</text>
+      {Array.from({ length: 16 }).map((_, i) => {
+        const r = i % 4;
+        const c = Math.floor(i / 4);
+        return (
+          <rect
+            key={i}
+            x={ox + c * sz}
+            y={cellsY + r * sz}
+            width={sz - 2}
+            height={sz - 2}
+            className={`${cell} tone-${tone}`}
+            rx="2"
+          />
+        );
+      })}
+    </g>
+  );
+
+  const op = (x: number, title: string, sub: string, tone: string) => (
+    <g>
+      <rect x={x} y={196} width={150} height={56} className={`${cell} tone-${tone}`} rx="6" />
+      <text x={x + 75} y={220} textAnchor="middle" className={`${cellValue} tone-${tone}`} style={{ fontSize: "12px" }}>{title}</text>
+      <text x={x + 75} y={240} textAnchor="middle" className={note}>{sub}</text>
+    </g>
+  );
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 280"
+      ariaLabel="One AES round operating on the 16-byte state as a 4 by 4 grid of bytes. The four operations run in order: SubBytes substitutes each byte through the S-box, ShiftRows rotates each row, MixColumns mixes each column in the Galois field, and AddRoundKey XORs the round key. Only AddRoundKey uses the key."
+    >
+      <text x="0" y="20" className={groupTitle}>THE STATE: 16 bytes as a 4x4 grid, four operations per round</text>
+
+      {grid(cellsX, "state in", "cyan")}
+      <line className={`${arrow} tone-mute`} x1={cellsX + 4 * sz + 6} y1={cellsY + 2 * sz} x2={cellsX + 4 * sz + 40} y2={cellsY + 2 * sz} markerEnd="url(#diag-arrow-mute)" />
+      {grid(cellsX + 4 * sz + 46, "state out", "lime")}
+
+      <text x={520} y={cellsY + 30} className={note}>only AddRoundKey</text>
+      <text x={520} y={cellsY + 48} className={note}>touches the key.</text>
+      <text x={520} y={cellsY + 70} className={note}>the other three are</text>
+      <text x={520} y={cellsY + 88} className={note}>fixed transforms:</text>
+      <text x={520} y={cellsY + 106} className={note}>confusion + diffusion.</text>
+
+      {op(20, "SubBytes", "S-box swap", "violet")}
+      {op(190, "ShiftRows", "rotate rows", "cyan")}
+      {op(360, "MixColumns", "mix columns", "amber")}
+      {op(530, "AddRoundKey", "XOR round key", "lime")}
+      <line className={`${arrow} tone-mute`} x1={170} y1={224} x2={190} y2={224} markerEnd="url(#diag-arrow-mute)" />
+      <line className={`${arrow} tone-mute`} x1={340} y1={224} x2={360} y2={224} markerEnd="url(#diag-arrow-mute)" />
+      <line className={`${arrow} tone-mute`} x1={510} y1={224} x2={530} y2={224} markerEnd="url(#diag-arrow-mute)" />
+
+      <text x="0" y="274" className={note}>
+        MixColumns is skipped on the final round. ten rounds for AES-128, twelve for AES-192, fourteen for AES-256.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   50. ECB penguin (AES advanced): identical plaintext blocks encrypt to
+   identical ciphertext blocks, so the shape survives. Never use ECB.
+   ===================================================================== */
+function EcbPenguinDiagram() {
+  const penguin = [
+    "....####....",
+    "...######...",
+    "..########..",
+    "..##.##.##..",
+    "..########..",
+    "..########..",
+    ".##########.",
+    "############",
+    "############",
+    ".##########.",
+    "..########..",
+    "..###..###..",
+    ".###....###.",
+  ];
+  const cs = 13;
+  const ox2 = 400;
+  const top = 56;
+
+  const renderGrid = (ox: number, fg: string, bg: string) =>
+    penguin.flatMap((row, r) =>
+      row.split("").map((ch, c) => (
+        <rect
+          key={`${ox}-${r}-${c}`}
+          x={ox + c * cs}
+          y={top + r * cs}
+          width={cs - 1}
+          height={cs - 1}
+          fill={ch === "#" ? fg : bg}
+        />
+      )),
+    );
+
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 280"
+      ariaLabel="The ECB penguin. On the left a penguin image made of two block types. On the right the same image encrypted with AES in ECB mode: because identical plaintext blocks always produce identical ciphertext blocks, the two regions just change colour and the penguin silhouette is still clearly visible. This is why ECB must never be used."
+    >
+      <text x="0" y="20" className={groupTitle}>ECB ENCRYPTS IDENTICAL BLOCKS IDENTICALLY: the shape leaks through</text>
+
+      <text x={6 * cs - 20} y={44} textAnchor="middle" className={note}>plaintext</text>
+      {renderGrid(40, "var(--neon-cyan)", "var(--bg-3)")}
+
+      <line className={`${arrow} tone-amber`} x1={230} y1={150} x2={390} y2={150} markerEnd="url(#diag-arrow-amber)" />
+      <text x={310} y={140} textAnchor="middle" className={note}>AES-ECB</text>
+
+      <text x={ox2 + 6 * cs - 20} y={44} textAnchor="middle" className={`${cellValue} tone-rose`} style={{ fontSize: "11px" }}>ECB ciphertext</text>
+      {renderGrid(ox2, "var(--neon-rose)", "var(--neon-amber)")}
+
+      <text x="0" y="262" className="diagram-note tone-amber">
+        the colours changed but the penguin did not. ECB preserves every pattern. never use it, at any key size.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -3604,6 +3773,9 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "hash-timeline": HashTimelineDiagram,
   "sha256-round": Sha256RoundDiagram,
   "hmac-nesting": HmacNestingDiagram,
+  "symmetric-flow": SymmetricFlowDiagram,
+  "aes-round": AesRoundDiagram,
+  "ecb-penguin": EcbPenguinDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

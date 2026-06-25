@@ -260,6 +260,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/aes",
+    label: "Symmetric Encryption & AES",
+    num: "31",
+    accent: "var(--neon-amber)",
+    desc: "Ten rounds of XOR with structure, unbreakable for a billion years. The AES state, the S-box, ShiftRows, MixColumns, the modes from ECB to GCM, and where AES wraps every Bitcoin secret.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     accent: "var(--neon-amber)",

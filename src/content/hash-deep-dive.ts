@@ -607,9 +607,9 @@ export const hashDeepDive: PageContent = {
   },
   nextUp: {
     eyebrow: "next up / 0x1F",
-    title: "Prove you know a secret without revealing the secret: zero knowledge proofs.",
-    href: "/zero-knowledge-proofs",
-    label: "zero knowledge proofs",
+    title: "Ten rounds of XOR with structure: symmetric encryption and AES.",
+    href: "/aes",
+    label: "symmetric encryption and AES",
     variant: "magenta",
   },
 };
