@@ -16,7 +16,10 @@ export async function TopicPage({ content }: { content: PageContent }) {
     <>
       <TopicPager slug={content.slug} />
       {content.banner && (
-        <aside className="series-banner" aria-label={content.banner.eyebrow}>
+        <aside
+          className={`series-banner${content.banner.tone === "green" ? " is-green" : ""}`}
+          aria-label={content.banner.eyebrow}
+        >
           <span className="series-banner-eyebrow">{content.banner.eyebrow}</span>
           <h2 className="series-banner-title">{content.banner.title}</h2>
           <div className="series-banner-body">
@@ -40,6 +43,9 @@ export async function TopicPage({ content }: { content: PageContent }) {
       ))}
       {content.connections && (
         <Connections label={topic?.label ?? ""} data={content.connections} />
+      )}
+      {content.closingHtml && (
+        <section className="level" dangerouslySetInnerHTML={{ __html: content.closingHtml }} />
       )}
       {content.nextUp && (
         <NextUp

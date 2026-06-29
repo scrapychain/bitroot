@@ -3721,6 +3721,153 @@ function EcbPenguinDiagram() {
 }
 
 /* =====================================================================
+   51. Ali Baba cave (ZK beginner): a top-down ring with one entrance, two
+   paths, and the magic door that only the secret word opens.
+   ===================================================================== */
+function AlibabaCaveDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 640 320"
+      ariaLabel="A top-down view of the Ali Baba cave. One entrance at the top splits into a left path and a right path that meet at a magic door at the bottom. Peggy, who knows the secret word, can pass through the door, so she can always exit from whichever side Victor calls. Victor waits at the entrance and learns nothing about the word."
+    >
+      <text x="0" y="20" className={groupTitle}>THE ALI BABA CAVE: one door, one secret word</text>
+
+      {/* the ring: outer and inner arcs forming the two paths */}
+      <path d="M 320 60 A 180 110 0 0 0 140 250" fill="none" stroke="var(--neon-cyan)" strokeWidth={3} />
+      <path d="M 320 60 A 180 110 0 0 1 500 250" fill="none" stroke="var(--neon-cyan)" strokeWidth={3} />
+
+      {/* entrance */}
+      <rect x={280} y={42} width={80} height={28} className={`${cell} tone-amber`} rx="4" />
+      <text x={320} y={61} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>entrance</text>
+
+      {/* path labels */}
+      <text x={150} y={150} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "13px" }}>LEFT</text>
+      <text x={490} y={150} textAnchor="middle" className={`${cellValue} tone-cyan`} style={{ fontSize: "13px" }}>RIGHT</text>
+
+      {/* the magic door at the bottom */}
+      <rect x={285} y={236} width={70} height={30} className={`${cell} tone-rose`} rx="4" />
+      <text x={320} y={256} textAnchor="middle" className={`${cellValue} tone-rose`} style={{ fontSize: "12px" }}>door</text>
+      <line x1={140} y1={250} x2={285} y2={251} className="diagram-divider" />
+      <line x1={355} y1={251} x2={500} y2={250} className="diagram-divider" />
+
+      {/* Victor at the entrance, Peggy inside */}
+      <circle cx={320} cy={92} r="11" className={`${cell} tone-amber`} />
+      <text x={320} y={96} textAnchor="middle" className={note}>V</text>
+      <text x={320} y={122} textAnchor="middle" className={note}>Victor calls a side</text>
+
+      <circle cx={150} cy={120} r="11" className={`${cell} tone-cyan`} />
+      <text x={150} y={124} textAnchor="middle" className={note}>P</text>
+
+      <text x="0" y="300" className={note}>
+        Victor shouts a random side; Peggy always emerges from it. only the door (the secret) lets her cross when she must.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   52. Fiat-Shamir (ZK intermediate): replace the verifier's live random
+   challenge with a hash, turning an interactive proof non-interactive.
+   ===================================================================== */
+function FiatShamirDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 250"
+      ariaLabel="The Fiat-Shamir heuristic. In the interactive protocol the prover sends a commitment R, the verifier sends a random challenge, and the prover sends a response. Fiat-Shamir replaces the verifier's random challenge with a hash of the commitment and public inputs, so the prover computes the challenge themselves and the proof becomes a single non-interactive artifact."
+    >
+      <text x="0" y="20" className={groupTitle}>FIAT-SHAMIR: the hash function becomes the verifier</text>
+
+      {/* interactive */}
+      <text x="0" y="48" className={`${cellLabel}`}>INTERACTIVE</text>
+      <rect x={0} y={58} width={150} height={34} className={`${cell} tone-cyan`} rx="4" />
+      <text x={75} y={80} textAnchor="middle" className={note}>prover: R = k·G</text>
+      <line className={`${arrow} tone-mute`} x1={150} y1={75} x2={230} y2={75} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={230} y={58} width={170} height={34} className={`${cell} tone-amber`} rx="4" />
+      <text x={315} y={80} textAnchor="middle" className={note}>verifier: random challenge</text>
+      <line className={`${arrow} tone-mute`} x1={400} y1={75} x2={480} y2={75} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={480} y={58} width={170} height={34} className={`${cell} tone-cyan`} rx="4" />
+      <text x={565} y={80} textAnchor="middle" className={note}>prover: s = k + e·x</text>
+      <text x={660} y={80} className={note}>live</text>
+
+      {/* non-interactive */}
+      <text x="0" y="138" className={`${cellLabel}`}>NON-INTERACTIVE</text>
+      <rect x={0} y={148} width={150} height={34} className={`${cell} tone-cyan`} rx="4" />
+      <text x={75} y={170} textAnchor="middle" className={note}>prover: R = k·G</text>
+      <line className={`${arrow} tone-violet`} x1={150} y1={165} x2={230} y2={165} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={230} y={148} width={210} height={34} className={`${cell} tone-violet`} rx="4" />
+      <text x={335} y={170} textAnchor="middle" className={`${cellValue} tone-violet`} style={{ fontSize: "11px" }}>e = SHA-256(R || public || msg)</text>
+      <line className={`${arrow} tone-violet`} x1={440} y1={165} x2={510} y2={165} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={510} y={148} width={170} height={34} className={`${cell} tone-cyan`} rx="4" />
+      <text x={595} y={170} textAnchor="middle" className={note}>s = k + e·x</text>
+
+      <text x="0" y="214" className={note}>
+        the prover commits to R before hashing it, and SHA-256 is one-way, so they cannot rig the challenge.
+      </text>
+      <text x="0" y="236" className="diagram-note tone-amber">
+        a Schnorr signature is exactly this: a non-interactive zero knowledge proof of knowing the private key.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
+   53. ZK rollup (ZK advanced): thousands of transactions become one tiny
+   proof the base layer verifies in roughly constant cost.
+   ===================================================================== */
+function ZkRollupDiagram() {
+  return (
+    <DiagramFrame
+      viewBox="0 0 720 250"
+      ariaLabel="A ZK rollup. A sequencer collects thousands of transactions off-chain, runs them through a ZK circuit, and produces one small proof together with the new state root. The base layer verifies that single proof in roughly constant cost regardless of how many transactions it represents, compressing throughput by about a thousand times."
+    >
+      <text x="0" y="20" className={groupTitle}>ZK ROLLUP: thousands of transactions, one tiny proof</text>
+
+      {/* batch */}
+      <text x={70} y={52} textAnchor="middle" className={note}>10,000 transactions</text>
+      {Array.from({ length: 12 }).map((_, i) => (
+        <rect
+          key={i}
+          x={10 + (i % 4) * 32}
+          y={62 + Math.floor(i / 4) * 24}
+          width={28}
+          height={18}
+          className={`${cell} tone-cyan`}
+          rx="2"
+        />
+      ))}
+
+      {/* circuit */}
+      <line className={`${arrow} tone-mute`} x1={150} y1={95} x2={210} y2={95} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={210} y={66} width={150} height={58} className={`${cell} tone-violet`} rx="6" />
+      <text x={285} y={90} textAnchor="middle" className={`${cellValue} tone-violet`} style={{ fontSize: "12px" }}>ZK circuit</text>
+      <text x={285} y={110} textAnchor="middle" className={note}>prove S1 → S2</text>
+
+      {/* proof */}
+      <line className={`${arrow} tone-mute`} x1={360} y1={95} x2={420} y2={95} markerEnd="url(#diag-arrow-mute)" />
+      <rect x={420} y={74} width={120} height={42} className={`${cell} tone-lime`} rx="6" />
+      <text x={480} y={92} textAnchor="middle" className={`${cellValue} tone-lime`} style={{ fontSize: "12px" }}>proof</text>
+      <text x={480} y={108} textAnchor="middle" className={note}>~200 bytes</text>
+
+      {/* L1 */}
+      <line className={`${arrow} tone-lime`} x1={540} y1={95} x2={600} y2={95} markerEnd="url(#diag-arrow-lime)" />
+      <rect x={600} y={66} width={110} height={58} className={`${cell} tone-amber`} rx="6" />
+      <text x={655} y={90} textAnchor="middle" className={`${cellValue} tone-amber`} style={{ fontSize: "12px" }}>base layer</text>
+      <text x={655} y={110} textAnchor="middle" className={note}>verify ~O(1)</text>
+
+      <text x="0" y="170" className={`${cellValue} tone-cyan`} style={{ fontSize: "12px" }}>
+        10,000 transactions verified for roughly the cost of ten.
+      </text>
+      <text x="0" y="192" className={note}>
+        the prover pays the O(n) cost off-chain; the verifier pays O(1). that asymmetry is the whole point.
+      </text>
+      <text x="0" y="220" className="diagram-note tone-amber">
+        deployed today on zkSync, Polygon zkEVM, Scroll and StarkNet. mathematics is cheaper than trust.
+      </text>
+    </DiagramFrame>
+  );
+}
+
+/* =====================================================================
    Public API: <Diagram name="..." />
    ===================================================================== */
 const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
@@ -3776,6 +3923,9 @@ const REGISTRY: Record<DiagramName, () => React.ReactElement> = {
   "symmetric-flow": SymmetricFlowDiagram,
   "aes-round": AesRoundDiagram,
   "ecb-penguin": EcbPenguinDiagram,
+  "alibaba-cave": AlibabaCaveDiagram,
+  "fiat-shamir": FiatShamirDiagram,
+  "zk-rollup": ZkRollupDiagram,
 };
 
 export function Diagram({ name, caption: cap }: { name: DiagramName; caption?: string }) {

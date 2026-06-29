@@ -8746,6 +8746,210 @@ function AesExplorerWidget() {
   );
 }
 
+/* =====================================================================
+   35. Ali Baba cave: run the zero-knowledge protocol by hand. A toggle sets
+   whether Peggy actually knows the word. Each round Victor calls a random
+   side; an honest Peggy always emerges from it, a cheater only when she
+   guessed right. The cheating-probability counter halves per success and a
+   liar eventually gets caught. Vanilla JS. (zero knowledge page)
+   ===================================================================== */
+type CaveSide = "L" | "R";
+interface CaveRound {
+  n: number;
+  call: CaveSide;
+  from: CaveSide;
+  pass: boolean;
+}
+
+function AliBabaCaveWidget() {
+  const [knows, setKnows] = useState(true);
+  const [peggy, setPeggy] = useState<CaveSide | null>(null);
+  const [call, setCall] = useState<CaveSide | null>(null);
+  const [flash, setFlash] = useState<"pass" | "caught" | null>(null);
+  const [history, setHistory] = useState<CaveRound[]>([]);
+  const [successes, setSuccesses] = useState(0);
+  const [running, setRunning] = useState(false);
+  const cancelRef = useRef(false);
+  const timers = useRef<number[]>([]);
+  useEffect(
+    () => () => {
+      cancelRef.current = true;
+      timers.current.forEach((t) => clearTimeout(t));
+    },
+    [],
+  );
+  const sleep = (ms: number) =>
+    new Promise<void>((res) => {
+      const t = window.setTimeout(res, ms);
+      timers.current.push(t);
+    });
+
+  const reset = () => {
+    cancelRef.current = true;
+    setHistory([]);
+    setSuccesses(0);
+    setPeggy(null);
+    setCall(null);
+    setFlash(null);
+    setRunning(false);
+  };
+
+  // one round; returns true if Peggy passed
+  const playRound = async (): Promise<boolean> => {
+    const entry: CaveSide = Math.random() < 0.5 ? "L" : "R";
+    const victorCall: CaveSide = Math.random() < 0.5 ? "L" : "R";
+    const pass = knows ? true : entry === victorCall;
+
+    setFlash(null);
+    setCall(null);
+    setPeggy(entry);
+    await sleep(550);
+    if (cancelRef.current) return pass;
+    setCall(victorCall);
+    await sleep(650);
+    if (cancelRef.current) return pass;
+    // honest Peggy walks out the called side (through the door if needed)
+    setPeggy(victorCall);
+    if (!knows && !pass) setPeggy(entry); // a caught cheater is stuck on her side
+    setFlash(pass ? "pass" : "caught");
+    setHistory((h) => [{ n: h.length + 1, call: victorCall, from: pass ? victorCall : entry, pass }, ...h].slice(0, 12));
+    setSuccesses((s) => (pass ? s + 1 : s));
+    await sleep(450);
+    return pass;
+  };
+
+  const runOne = async () => {
+    if (running) return;
+    setRunning(true);
+    cancelRef.current = false;
+    await playRound();
+    setRunning(false);
+  };
+
+  const runMany = async () => {
+    if (running) return;
+    setRunning(true);
+    cancelRef.current = false;
+    for (let i = 0; i < 10; i++) {
+      const pass = await playRound();
+      if (cancelRef.current) break;
+      if (!pass) break; // a cheater got caught: stop
+      await sleep(150);
+    }
+    setRunning(false);
+  };
+
+  // probability an honest-looking streak came from a lucky cheater = 2^-successes
+  const cheatProb = Math.pow(0.5, successes);
+  const cheatPct =
+    successes === 0 ? "100%" : cheatProb >= 0.01 ? `${(cheatProb * 100).toFixed(successes <= 3 ? 1 : 2)}%` : `${(cheatProb * 100).toExponential(2)}%`;
+
+  const px = (s: CaveSide | null) => (s === "L" ? 70 : s === "R" ? 290 : 180);
+  const py = (s: CaveSide | null) => (s === null ? 52 : 120);
+
+  return (
+    <div className="widget-wrap">
+      <div className="widget-head">
+        <span className="widget-title">{"// run the protocol yourself"}</span>
+        <div className="widget-controls">
+          <button type="button" className="widget-btn" onClick={reset}>
+            reset
+          </button>
+        </div>
+      </div>
+
+      <div className="azk-grid">
+        {/* cave */}
+        <div className="azk-cave-wrap">
+          <svg className="azk-cave" viewBox="0 0 360 220" role="img" aria-label="Top-down view of the Ali Baba cave with Peggy and Victor">
+            {/* paths */}
+            <path d="M 180 30 A 150 95 0 0 0 70 185" fill="none" stroke="var(--neon-cyan)" strokeWidth={3} opacity={0.6} />
+            <path d="M 180 30 A 150 95 0 0 1 290 185" fill="none" stroke="var(--neon-cyan)" strokeWidth={3} opacity={0.6} />
+            {/* entrance */}
+            <rect x={150} y={8} width={60} height={22} rx="4" fill="var(--bg-2)" stroke="var(--neon-amber)" />
+            <text x={180} y={23} textAnchor="middle" className="azk-label">entrance</text>
+            {/* door */}
+            <rect x={158} y={176} width={44} height={24} rx="4" fill="rgba(255,92,138,0.12)" stroke="var(--neon-rose)" />
+            <text x={180} y={192} textAnchor="middle" className="azk-label door">door</text>
+            <text x={70} y={205} textAnchor="middle" className="azk-label">LEFT</text>
+            <text x={290} y={205} textAnchor="middle" className="azk-label">RIGHT</text>
+
+            {/* Victor */}
+            <circle cx={180} cy={52} r="12" fill="rgba(255,182,39,0.18)" stroke="var(--neon-amber)" strokeWidth={2} />
+            <text x={180} y={56} textAnchor="middle" className="azk-icon">V</text>
+            {call && (
+              <g>
+                <rect x={206} y={36} width={120} height={26} rx="6" fill="var(--bg-2)" stroke="var(--neon-amber)" />
+                <text x={266} y={53} textAnchor="middle" className="azk-shout">come out {call === "L" ? "LEFT" : "RIGHT"}</text>
+              </g>
+            )}
+
+            {/* Peggy */}
+            <circle
+              cx={px(peggy)}
+              cy={py(peggy)}
+              r="12"
+              className={`azk-peggy ${flash ?? ""}`}
+              fill="rgba(0,240,255,0.18)"
+              stroke="var(--neon-cyan)"
+              strokeWidth={2}
+            />
+            <text x={px(peggy)} y={py(peggy) + 4} textAnchor="middle" className="azk-icon">P</text>
+
+            {flash && (
+              <text x={180} y={150} textAnchor="middle" className={`azk-verdict ${flash}`}>
+                {flash === "pass" ? "PASSED" : "CAUGHT CHEATING"}
+              </text>
+            )}
+          </svg>
+
+          <div className="azk-controls">
+            <button
+              type="button"
+              className={`widget-btn azk-toggle ${knows ? "is-on" : "is-off"}`}
+              onClick={() => { setKnows((k) => !k); reset(); }}
+              disabled={running}
+            >
+              Peggy {knows ? "knows the word" : "is cheating"}
+            </button>
+            <button type="button" className="widget-btn gx-go" onClick={runOne} disabled={running}>
+              run one round
+            </button>
+            <button type="button" className="widget-btn" onClick={runMany} disabled={running}>
+              run 10 rounds
+            </button>
+          </div>
+
+          <div className={`azk-prob ${successes >= 7 ? "is-sure" : ""}`}>
+            <span>probability Peggy is bluffing</span>
+            <strong>{cheatPct}</strong>
+            <span className="azk-prob-frac">{successes === 0 ? "no evidence yet" : `1 in 2^${successes}`}</span>
+          </div>
+        </div>
+
+        {/* history */}
+        <div className="azk-history">
+          <span className="azk-history-title">round history</span>
+          {history.length === 0 && <span className="cx-hint">run a round to begin.</span>}
+          {history.map((r) => (
+            <div key={r.n} className={`azk-row ${r.pass ? "ok" : "bad"}`}>
+              <span className="azk-row-n">#{r.n}</span>
+              <span className="azk-row-body">
+                Victor said {r.call === "L" ? "LEFT" : "RIGHT"}. Peggy came from {r.from === "L" ? "LEFT" : "RIGHT"}.
+              </span>
+              <span className="azk-row-tag">{r.pass ? "PASS" : "CAUGHT"}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="widget-caption">
+        an honest Peggy passes every round because she can cross the door to whichever side Victor calls. a cheater can only exit the side she entered, so each round she has a 50% chance of being caught. after ten clean rounds the odds of bluffing that far are 1 in 1024, and Victor still learns nothing about the word itself.
+      </p>
+    </div>
+  );
+}
+
 export function DistributedWidget({ name }: { name: WidgetName }) {
   switch (name) {
     case "gossip-network":
@@ -8816,6 +9020,8 @@ export function DistributedWidget({ name }: { name: WidgetName }) {
       return <Sha256ExplorerWidget />;
     case "aes-explorer":
       return <AesExplorerWidget />;
+    case "ali-baba-cave":
+      return <AliBabaCaveWidget />;
     default:
       return null;
   }

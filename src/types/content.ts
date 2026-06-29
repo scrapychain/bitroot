@@ -64,7 +64,10 @@ export type DiagramName =
   | "hmac-nesting"
   | "symmetric-flow"
   | "aes-round"
-  | "ecb-penguin";
+  | "ecb-penguin"
+  | "alibaba-cave"
+  | "fiat-shamir"
+  | "zk-rollup";
 
 export type WidgetName =
   | "gossip-network"
@@ -101,7 +104,8 @@ export type WidgetName =
   | "keypair-explorer"
   | "signature-tamper"
   | "sha256-explorer"
-  | "aes-explorer";
+  | "aes-explorer"
+  | "ali-baba-cave";
 
 export type Block =
   | { kind: "prose"; html: string }
@@ -159,7 +163,8 @@ export interface PageContent {
     | "public-key-cryptography"
     | "digital-signatures"
     | "hash-deep-dive"
-    | "aes";
+    | "aes"
+    | "zero-knowledge-proofs";
   hexLabel: string;
   category: string;
   /**
@@ -171,6 +176,8 @@ export interface PageContent {
     eyebrow: string;
     title: string;
     lines: string[];
+    /** Accent colour for the banner. Defaults to amber (series start). */
+    tone?: "amber" | "green";
   };
   hero: {
     eyebrow: string;
@@ -189,6 +196,11 @@ export interface PageContent {
     introHtml?: string;
     items: { slug: string; text: string }[];
   };
+  /**
+   * Optional closing block rendered after the connections grid and before the
+   * next-up card. Used for milestone moments such as completing a series.
+   */
+  closingHtml?: string;
   nextUp?: {
     eyebrow: string;
     title: string;

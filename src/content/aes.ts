@@ -504,9 +504,9 @@ export const aes: PageContent = {
   },
   nextUp: {
     eyebrow: "next up / 0x20",
-    title: "Prove you know a secret without revealing it: the zero knowledge proofs that will scale Bitcoin.",
+    title: "Prove you know a secret without revealing it: zero knowledge proofs, the finale of Series 2.",
     href: "/zero-knowledge-proofs",
     label: "zero knowledge proofs",
-    variant: "cyan",
+    variant: "magenta",
   },
 };

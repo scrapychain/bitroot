@@ -268,6 +268,14 @@ export const topics: Topic[] = [
     levels: 3,
   },
   {
+    href: "/zero-knowledge-proofs",
+    label: "Zero Knowledge Proofs",
+    num: "32",
+    accent: "var(--neon-violet)",
+    desc: "Prove you know a secret without revealing it. The Ali Baba cave, completeness, soundness, Fiat-Shamir, Pedersen commitments, zk-SNARKs and zk-STARKs, and the rollups scaling blockchain 1000x. The finale of Series 2.",
+    levels: 3,
+  },
+  {
     href: "/philosophy",
     label: "Philosophy",
     accent: "var(--neon-amber)",
